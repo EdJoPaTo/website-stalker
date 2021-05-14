@@ -1,0 +1,9 @@
+# This is an example config
+# The filename should be `website-stalker.yaml`
+# and it should be in the working directory where you run website-stalker
+
+from: my-email-address
+
+sites:
+  - url: https://edjopato.de/post/
+    kind: html

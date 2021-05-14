@@ -1,0 +1,78 @@
+use http::Http;
+use settings::Site;
+
+mod cli;
+mod git;
+mod http;
+mod settings;
+
+fn main() {
+    let matches = cli::build().get_matches();
+    match matches.subcommand() {
+        ("example-config", _) => {
+            let example = include_str!("example-config.yaml");
+            println!("{}", example);
+        }
+        ("check", _) => {
+            match settings::load() {
+                Ok(_) => println!("config ok"),
+                Err(err) => {
+                    eprintln!("{}", err);
+                    // TODO: dont panic, just exit code != 0
+                    eprintln!();
+                    panic!("config not ok");
+                }
+            }
+        }
+        ("run", _) => {
+            let settings = settings::load().expect("failed to load settings");
+            std::fs::create_dir_all("sites").expect("failed to create sites directory");
+            let mut http_agent = http::Http::new(settings.from);
+            if let Some(user_agent) = settings.user_agent {
+                http_agent.set_user_agent(user_agent);
+            }
+
+            let is_repo = git::is_repo();
+            if is_repo {
+                git::reset().expect("failed to reset git repo state");
+            } else {
+                println!("HINT: not a git repo. Will run but wont commit.")
+            }
+
+            println!("Begin stalking sites...\n");
+
+            for site in settings.sites {
+                if let Err(err) = do_site(&http_agent, is_repo, &site) {
+                    println!("  site failed: {}", err);
+                }
+
+                println!();
+            }
+
+            if is_repo {
+                drop(git::commit("website stalker stalked some things"));
+            }
+
+            println!("All done. Thanks for using website-stalker!");
+        }
+        (subcommand, matches) => {
+            todo!("subcommand {} {:?}", subcommand, matches);
+        }
+    }
+}
+
+fn do_site(http_agent: &Http, is_repo: bool, site: &Site) -> anyhow::Result<()> {
+    let kind = site.kind.as_deref().unwrap_or("raw");
+    println!("do site {:6} {}", kind, site.url);
+
+    let text = http_agent.get(site.url.as_str())?;
+    println!("  text length {}", text.len());
+
+    let filename = format!("sites/{}.html", site.url.domain().unwrap());
+    std::fs::write(&filename, text)?;
+    if is_repo {
+        git::add(&filename)?;
+    }
+
+    Ok(())
+}
