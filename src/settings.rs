@@ -3,9 +3,19 @@ use serde::{Deserialize, Serialize};
 use url::Url;
 
 #[derive(Debug, Deserialize, Serialize)]
-pub struct Site {
+pub enum Site {
+    Html(HtmlSite),
+    Utf8(Utf8Site),
+}
+
+#[derive(Debug, Deserialize, Serialize)]
+pub struct HtmlSite {
     pub url: Url,
-    pub kind: Option<String>,
+}
+
+#[derive(Debug, Deserialize, Serialize)]
+pub struct Utf8Site {
+    pub url: Url,
 }
 
 #[derive(Debug, Deserialize, Serialize)]
@@ -23,10 +33,14 @@ impl Settings {
         Self {
             from: "my-email-address".to_string(),
             user_agent: None,
-            sites: vec![Site {
-                url: Url::parse("https://edjopato.de/post/").unwrap(),
-                kind: Some("html".to_string()),
-            }],
+            sites: vec![
+                Site::Html(HtmlSite {
+                    url: Url::parse("https://edjopato.de/post/").unwrap(),
+                }),
+                Site::Utf8(Utf8Site {
+                    url: Url::parse("https://edjopato.de/robots.txt").unwrap(),
+                }),
+            ],
         }
     }
 

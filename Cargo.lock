@@ -645,6 +645,7 @@ dependencies = [
  "anyhow",
  "clap",
  "config",
+ "regex",
  "serde 1.0.126",
  "serde_yaml",
  "ureq",

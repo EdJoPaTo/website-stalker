@@ -1,4 +1,5 @@
 use http::Http;
+use regex::Regex;
 use settings::{Settings, Site};
 
 mod cli;
@@ -71,17 +72,27 @@ fn main() {
 }
 
 fn do_site(http_agent: &Http, is_repo: bool, site: &Site) -> anyhow::Result<()> {
-    let kind = site.kind.as_deref().unwrap_or("raw");
-    println!("do site {:6} {}", kind, site.url);
+    println!("do site {:?}", site);
 
-    let text = http_agent.get(site.url.as_str())?;
+    let url = match site {
+        Site::Html(http) => &http.url,
+        Site::Utf8(utf8) => &utf8.url,
+    };
+    let text = http_agent.get(url.as_str())?;
     println!("  text length {}", text.len());
 
-    let filename = format!("sites/{}.html", site.url.domain().unwrap());
+    let filename = format!("sites/{}.html", format_url_as_filename(&url));
     std::fs::write(&filename, text)?;
     if is_repo {
         git::add(&filename)?;
     }
 
     Ok(())
+}
+
+fn format_url_as_filename(url: &url::Url) -> String {
+    let re = Regex::new("[^a-zA-Z\\d]+").unwrap();
+    let bla = re.replace_all(url.as_str(), "-");
+    let blubb = bla.trim_matches('-');
+    blubb.to_string()
 }
