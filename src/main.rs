@@ -10,8 +10,17 @@ fn main() {
     let matches = cli::build().get_matches();
     match matches.subcommand() {
         ("example-config", _) => {
-            let example = include_str!("example-config.yaml");
-            println!("{}", example);
+            let config = serde_yaml::to_string(&Settings::example()).unwrap();
+            println!(
+                "# This is an example config
+# The filename should be `website-stalker.yaml`
+# and it should be in the working directory where you run website-stalker.
+#
+# For example run `website-stalker example-config > website-stalker.yaml`.
+# And then do a run via `website-stalker run`.
+{}",
+                config
+            );
         }
         ("check", _) => {
             match Settings::load() {

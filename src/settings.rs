@@ -1,22 +1,35 @@
 use config::ConfigError;
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
 use url::Url;
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, Serialize)]
 pub struct Site {
     pub url: Url,
     pub kind: Option<String>,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, Serialize)]
 pub struct Settings {
     pub from: String,
+
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub user_agent: Option<String>,
 
     pub sites: Vec<Site>,
 }
 
 impl Settings {
+    pub fn example() -> Self {
+        Self {
+            from: "my-email-address".to_string(),
+            user_agent: None,
+            sites: vec![Site {
+                url: Url::parse("https://edjopato.de/post/").unwrap(),
+                kind: Some("html".to_string()),
+            }],
+        }
+    }
+
     pub fn load() -> Result<Self, ConfigError> {
         let mut settings = config::Config::default();
         settings
@@ -46,11 +59,8 @@ impl Settings {
 
 #[test]
 fn can_parse_example_config() {
-    let mut settings = config::Config::default();
-    settings
-        .merge(config::File::with_name("src/example-config.yaml"))
-        .unwrap();
-
-    let settings = settings.try_into::<Settings>().expect("failed to parse");
-    println!("{:?}", settings);
+    let settings = Settings::example();
+    let content = serde_yaml::to_string(&settings);
+    println!("{:?}", content);
+    assert!(content.is_ok(), "failed to parse default settings to yaml");
 }
