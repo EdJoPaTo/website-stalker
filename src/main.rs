@@ -1,5 +1,5 @@
 use http::Http;
-use settings::Site;
+use settings::{Settings, Site};
 
 mod cli;
 mod git;
@@ -14,7 +14,7 @@ fn main() {
             println!("{}", example);
         }
         ("check", _) => {
-            match settings::load() {
+            match Settings::load() {
                 Ok(_) => println!("config ok"),
                 Err(err) => {
                     eprintln!("{}", err);
@@ -25,7 +25,7 @@ fn main() {
             }
         }
         ("run", _) => {
-            let settings = settings::load().expect("failed to load settings");
+            let settings = Settings::load().expect("failed to load settings");
             std::fs::create_dir_all("sites").expect("failed to create sites directory");
             let mut http_agent = http::Http::new(settings.from);
             if let Some(user_agent) = settings.user_agent {
