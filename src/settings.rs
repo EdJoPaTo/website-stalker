@@ -1,22 +1,7 @@
 use config::ConfigError;
 use serde::{Deserialize, Serialize};
-use url::Url;
 
-#[derive(Debug, Deserialize, Serialize)]
-pub enum Site {
-    Html(HtmlSite),
-    Utf8(Utf8Site),
-}
-
-#[derive(Debug, Deserialize, Serialize)]
-pub struct HtmlSite {
-    pub url: Url,
-}
-
-#[derive(Debug, Deserialize, Serialize)]
-pub struct Utf8Site {
-    pub url: Url,
-}
+use crate::site::Site;
 
 #[derive(Debug, Deserialize, Serialize)]
 pub struct Settings {
@@ -33,14 +18,7 @@ impl Settings {
         Self {
             from: "my-email-address".to_string(),
             user_agent: None,
-            sites: vec![
-                Site::Html(HtmlSite {
-                    url: Url::parse("https://edjopato.de/post/").unwrap(),
-                }),
-                Site::Utf8(Utf8Site {
-                    url: Url::parse("https://edjopato.de/robots.txt").unwrap(),
-                }),
-            ],
+            sites: Site::examples(),
         }
     }
 

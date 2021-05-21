@@ -1,11 +1,14 @@
 use http::Http;
-use regex::Regex;
-use settings::{Settings, Site};
+use settings::Settings;
+use site::Site;
+
+use crate::site::Huntable;
 
 mod cli;
 mod git;
 mod http;
 mod settings;
+mod site;
 
 fn main() {
     let matches = cli::build().get_matches();
@@ -74,25 +77,16 @@ fn main() {
 fn do_site(http_agent: &Http, is_repo: bool, site: &Site) -> anyhow::Result<()> {
     println!("do site {:?}", site);
 
-    let url = match site {
-        Site::Html(http) => &http.url,
-        Site::Utf8(utf8) => &utf8.url,
-    };
-    let text = http_agent.get(url.as_str())?;
-    println!("  text length {}", text.len());
+    let output = site.hunt(http_agent)?;
+    println!("  filename {}", output.filename);
+    println!("  content length {}", output.content.len());
 
-    let filename = format!("sites/{}.html", format_url_as_filename(&url));
-    std::fs::write(&filename, text)?;
+    let filename = format!("sites/{}", output.filename);
+    std::fs::write(&filename, output.content)?;
+
     if is_repo {
         git::add(&filename)?;
     }
 
     Ok(())
-}
-
-fn format_url_as_filename(url: &url::Url) -> String {
-    let re = Regex::new("[^a-zA-Z\\d]+").unwrap();
-    let bla = re.replace_all(url.as_str(), "-");
-    let blubb = bla.trim_matches('-');
-    blubb.to_string()
 }
