@@ -24,8 +24,8 @@ pub fn reset() -> anyhow::Result<()> {
     result_from_status(status, "reset")
 }
 
-pub fn add(file: &str) -> anyhow::Result<()> {
-    let status = Command::new("git").arg("add").arg(file).status()?;
+pub fn add(path: &str) -> anyhow::Result<()> {
+    let status = Command::new("git").arg("add").arg(path).status()?;
     result_from_status(status, "add")
 }
 

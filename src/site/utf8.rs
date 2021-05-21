@@ -1,10 +1,9 @@
 use serde::{Deserialize, Serialize};
 use url::Url;
 
-use super::general::format_url_as_filename;
 use crate::http::Http;
 
-use super::general::{HuntOutput, Huntable};
+use super::{format_url_as_filename, Huntable};
 
 #[derive(Debug, Deserialize, Serialize)]
 pub struct Utf8 {
@@ -12,9 +11,11 @@ pub struct Utf8 {
 }
 
 impl Huntable for Utf8 {
-    fn hunt(&self, http_agent: &Http) -> anyhow::Result<HuntOutput> {
-        let content = http_agent.get(self.url.as_str())?;
-        let filename = format_url_as_filename(&self.url, "txt");
-        Ok(HuntOutput { content, filename })
+    fn get_filename(&self) -> String {
+        format_url_as_filename(&self.url, "txt")
+    }
+
+    fn hunt(&self, http_agent: &Http) -> anyhow::Result<String> {
+        http_agent.get(self.url.as_str())
     }
 }

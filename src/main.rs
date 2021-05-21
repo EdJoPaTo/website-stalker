@@ -77,15 +77,16 @@ fn main() {
 fn do_site(http_agent: &Http, is_repo: bool, site: &Site) -> anyhow::Result<()> {
     println!("do site {:?}", site);
 
-    let output = site.hunt(http_agent)?;
-    println!("  filename {}", output.filename);
-    println!("  content length {}", output.content.len());
+    let filename = site.get_filename();
+    let contents = site.hunt(http_agent)?;
+    println!("  filename {}", filename);
+    println!("  content length {}", contents.len());
 
-    let filename = format!("sites/{}", output.filename);
-    std::fs::write(&filename, output.content)?;
+    let path = format!("sites/{}", filename);
+    std::fs::write(&path, contents)?;
 
     if is_repo {
-        git::add(&filename)?;
+        git::add(&path)?;
     }
 
     Ok(())
