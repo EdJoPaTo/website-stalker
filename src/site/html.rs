@@ -3,7 +3,8 @@ use url::Url;
 
 use crate::http::Http;
 
-use super::{format_url_as_filename, Huntable};
+use super::url_filename;
+use super::Huntable;
 
 #[derive(Debug, Deserialize, Serialize)]
 pub struct Html {
@@ -12,7 +13,7 @@ pub struct Html {
 
 impl Huntable for Html {
     fn get_filename(&self) -> String {
-        format_url_as_filename(&self.url, "txt")
+        url_filename::format(&self.url, "html")
     }
 
     fn hunt(&self, http_agent: &Http) -> anyhow::Result<String> {

@@ -1,10 +1,10 @@
-use regex::Regex;
 use serde::{Deserialize, Serialize};
 use url::Url;
 
 use crate::http::Http;
 
 mod html;
+mod url_filename;
 mod utf8;
 
 #[derive(Debug, Deserialize, Serialize)]
@@ -58,13 +58,6 @@ impl Site {
             Err("Some sites are duplicates of each other".to_string())
         }
     }
-}
-
-fn format_url_as_filename(url: &url::Url, extension: &str) -> String {
-    let re = Regex::new("[^a-zA-Z\\d]+").unwrap();
-    let only_ascii = re.replace_all(url.as_str(), "-");
-    let trimmed = only_ascii.trim_matches('-');
-    format!("{}.{}", trimmed, extension)
 }
 
 #[test]
