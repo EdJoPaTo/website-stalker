@@ -37,6 +37,12 @@ impl Settings {
     }
 
     fn validate(&self) -> Result<(), ConfigError> {
+        self.validate_from_is_email()?;
+        Site::validate_no_duplicate(&self.sites).map_err(ConfigError::Message)?;
+        Ok(())
+    }
+
+    fn validate_from_is_email(&self) -> Result<(), ConfigError> {
         let from = &self.from;
         if !from.contains('@') || !from.contains('.') {
             return Err(ConfigError::Message(format!(

@@ -45,6 +45,19 @@ impl Site {
             }),
         ]
     }
+
+    pub fn validate_no_duplicate(sites: &[Site]) -> Result<(), String> {
+        // TODO: return url or something of specific duplicates
+        let mut filenames = sites.iter().map(|o| o.get_filename()).collect::<Vec<_>>();
+        filenames.sort_unstable();
+        let filename_amount = filenames.len();
+        filenames.dedup();
+        if filenames.len() == filename_amount {
+            Ok(())
+        } else {
+            Err("Some sites are duplicates of each other".to_string())
+        }
+    }
 }
 
 fn format_url_as_filename(url: &url::Url, extension: &str) -> String {
@@ -52,4 +65,23 @@ fn format_url_as_filename(url: &url::Url, extension: &str) -> String {
     let only_ascii = re.replace_all(url.as_str(), "-");
     let trimmed = only_ascii.trim_matches('-');
     format!("{}.{}", trimmed, extension)
+}
+
+#[test]
+fn validate_finds_duplicates() {
+    let sites = vec![
+        Site::Html(html::Html {
+            url: Url::parse("https://edjopato.de/post/").unwrap(),
+        }),
+        Site::Utf8(utf8::Utf8 {
+            url: Url::parse("https://edjopato.de/robots.txt").unwrap(),
+        }),
+        Site::Html(html::Html {
+            url: Url::parse("https://edjopato.de/post").unwrap(),
+        }),
+    ];
+
+    let result = Site::validate_no_duplicate(&sites);
+    println!("{:?}", result);
+    assert!(result.is_err());
 }
