@@ -68,6 +68,13 @@ impl Site {
             Err("Some sites are duplicates of each other".to_string())
         }
     }
+
+    pub fn get_url(&self) -> &Url {
+        match self {
+            Site::Html(o) => &o.url,
+            Site::Utf8(o) => &o.url,
+        }
+    }
 }
 
 #[test]

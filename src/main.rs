@@ -52,15 +52,17 @@ fn main() {
                 println!("HINT: not a git repo. Will run but won't do git actions.")
             }
 
-            println!("Begin stalking sites...\n");
+            let site_amount = settings.sites.len();
+            println!("Begin stalking {} sites...", site_amount);
 
-            for site in settings.sites {
+            for (i, site) in settings.sites.iter().enumerate() {
+                println!("{:4}/{} {}", i + 1, site_amount, site.get_url().as_str());
                 if let Err(err) = do_site(&http_agent, is_repo, &site) {
-                    println!("  site failed: {}", err);
+                    println!("\tsite failed: {}", err);
                 }
-
-                println!();
             }
+
+            println!();
 
             if matches.is_present("commit") {
                 git::commit("website stalker stalked some things").unwrap();
@@ -80,13 +82,9 @@ fn main() {
 }
 
 fn do_site(http_agent: &Http, is_repo: bool, site: &Site) -> anyhow::Result<()> {
-    println!("do site {:?}", site);
-
     let filename = site.get_filename();
     let contents = site.hunt(http_agent)?;
     let contents = contents.trim().to_string() + "\n";
-    println!("  filename {}", filename);
-    println!("  content length {}", contents.len());
 
     let path = format!("sites/{}", filename);
     std::fs::write(&path, contents)?;
