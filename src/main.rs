@@ -54,20 +54,27 @@ fn main() {
 
             let site_amount = settings.sites.len();
             println!("Begin stalking {} sites...", site_amount);
+            let mut something_changed = false;
 
             for (i, site) in settings.sites.iter().enumerate() {
                 println!("{:4}/{} {}", i + 1, site_amount, site.get_url().as_str());
-                if let Err(err) = do_site(&http_agent, is_repo, &site) {
-                    println!("\tsite failed: {}", err);
+                match do_site(&http_agent, is_repo, &site) {
+                    Ok(true) => {
+                        something_changed = true;
+                    }
+                    Ok(false) => {}
+                    Err(err) => {
+                        println!("\tsite failed: {}", err);
+                    }
                 }
             }
 
-            println!();
-
-            if matches.is_present("commit") {
-                git::commit("website stalker stalked some things").unwrap();
-            } else if is_repo {
+            if is_repo {
+                println!();
                 git::diff(&["--staged", "--stat"]).unwrap();
+            }
+            if something_changed && matches.is_present("commit") {
+                git::commit("website stalker stalked some things").unwrap();
             }
             if is_repo {
                 git::status_short().unwrap();
@@ -81,17 +88,21 @@ fn main() {
     }
 }
 
-fn do_site(http_agent: &Http, is_repo: bool, site: &Site) -> anyhow::Result<()> {
+fn do_site(http_agent: &Http, is_repo: bool, site: &Site) -> anyhow::Result<bool> {
     let filename = site.get_filename();
+    let path = format!("sites/{}", filename);
     let contents = site.hunt(http_agent)?;
     let contents = contents.trim().to_string() + "\n";
 
-    let path = format!("sites/{}", filename);
-    std::fs::write(&path, contents)?;
-
+    let current = std::fs::read_to_string(&path).unwrap_or_default();
+    let changed = current != contents;
+    if changed {
+        std::fs::write(&path, contents)?;
+    }
     if is_repo {
+        // Always add as it could have changed in the last non --commit run
         git::add(&path)?;
     }
 
-    Ok(())
+    Ok(changed)
 }
