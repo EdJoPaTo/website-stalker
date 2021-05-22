@@ -97,7 +97,9 @@ fn run(do_commit: bool) -> anyhow::Result<()> {
         git::diff(&["--staged", "--stat"]).unwrap();
     }
     if something_changed && do_commit {
+        logging::begin_group("git commit");
         git::commit("stalked some things \u{1f440}\u{1f310}\u{1f60e}").unwrap();
+        logging::end_group();
     }
     if is_repo {
         git::status_short().unwrap();
