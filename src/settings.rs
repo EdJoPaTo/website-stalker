@@ -1,7 +1,7 @@
 use config::ConfigError;
 use serde::{Deserialize, Serialize};
 
-use crate::site::Site;
+use crate::site::{Huntable, Site};
 
 #[derive(Debug, Deserialize, Serialize)]
 pub struct Settings {
@@ -39,6 +39,7 @@ impl Settings {
     fn validate(&self) -> Result<(), ConfigError> {
         self.validate_from_is_email()?;
         Site::validate_no_duplicate(&self.sites).map_err(ConfigError::Message)?;
+        self.validate_each_site()?;
         Ok(())
     }
 
@@ -49,6 +50,19 @@ impl Settings {
                 "from doesnt look like an email address: {}",
                 from
             )));
+        }
+
+        Ok(())
+    }
+
+    fn validate_each_site(&self) -> Result<(), ConfigError> {
+        for site in &self.sites {
+            if let Err(err) = site.is_valid() {
+                return Err(ConfigError::Message(format!(
+                    "site entry is invalid: {}\n{:?}",
+                    err, site,
+                )));
+            }
         }
 
         Ok(())

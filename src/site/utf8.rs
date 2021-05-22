@@ -19,4 +19,8 @@ impl Huntable for Utf8 {
     fn hunt(&self, http_agent: &Http) -> anyhow::Result<String> {
         http_agent.get(self.url.as_str())
     }
+
+    fn is_valid(&self) -> anyhow::Result<()> {
+        Ok(())
+    }
 }

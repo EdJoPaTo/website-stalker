@@ -16,6 +16,7 @@ pub enum Site {
 pub trait Huntable {
     fn get_filename(&self) -> String;
     fn hunt(&self, http_agent: &Http) -> anyhow::Result<String>;
+    fn is_valid(&self) -> anyhow::Result<()>;
 }
 
 impl Huntable for Site {
@@ -32,6 +33,13 @@ impl Huntable for Site {
             Site::Utf8(o) => o.hunt(http_agent),
         }
     }
+
+    fn is_valid(&self) -> anyhow::Result<()> {
+        match self {
+            Site::Html(o) => o.is_valid(),
+            Site::Utf8(o) => o.is_valid(),
+        }
+    }
 }
 
 impl Site {
@@ -39,6 +47,7 @@ impl Site {
         vec![
             Site::Html(html::Html {
                 url: Url::parse("https://edjopato.de/post/").unwrap(),
+                css_selector: Some("section".to_string()),
             }),
             Site::Utf8(utf8::Utf8 {
                 url: Url::parse("https://edjopato.de/robots.txt").unwrap(),
@@ -65,12 +74,14 @@ fn validate_finds_duplicates() {
     let sites = vec![
         Site::Html(html::Html {
             url: Url::parse("https://edjopato.de/post/").unwrap(),
+            css_selector: None,
         }),
         Site::Utf8(utf8::Utf8 {
             url: Url::parse("https://edjopato.de/robots.txt").unwrap(),
         }),
         Site::Html(html::Html {
             url: Url::parse("https://edjopato.de/post").unwrap(),
+            css_selector: None,
         }),
     ];
 
