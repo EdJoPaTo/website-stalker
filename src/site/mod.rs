@@ -8,6 +8,7 @@ mod url_filename;
 mod utf8;
 
 #[derive(Debug, Deserialize, Serialize)]
+#[serde(rename_all = "camelCase")]
 pub enum Site {
     Html(html::Html),
     Utf8(utf8::Utf8),
