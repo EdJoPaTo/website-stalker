@@ -3,6 +3,14 @@
 use std::path::Path;
 use std::process::{Command, ExitStatus, Stdio};
 
+const GIT_COMMIT_AUTHOR: &str = concat!(
+    env!("CARGO_PKG_NAME"),
+    "/",
+    env!("CARGO_PKG_VERSION"),
+    " ",
+    "<website-stalker-git-commit@edjopato.de>"
+);
+
 fn result_from_status(status: ExitStatus, command: &'static str) -> anyhow::Result<()> {
     if status.success() {
         Ok(())
@@ -59,7 +67,7 @@ pub fn commit(message: &str) -> anyhow::Result<()> {
         .arg("commit")
         .arg("--no-gpg-sign")
         .arg("--author")
-        .arg("website-stalker <website-stalker-git-commit@edjopato.de>")
+        .arg(GIT_COMMIT_AUTHOR)
         .arg("-m")
         .arg(message)
         .status()?;

@@ -3,7 +3,8 @@ use std::time::Duration;
 use ureq::{Agent, AgentBuilder, Request};
 
 const USER_AGENT: &str = concat!(
-    "website-stalker/",
+    env!("CARGO_PKG_NAME"),
+    "/",
     env!("CARGO_PKG_VERSION"),
     " ",
     env!("CARGO_PKG_REPOSITORY"),
