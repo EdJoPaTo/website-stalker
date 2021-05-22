@@ -6,6 +6,8 @@ use crate::http::Http;
 use super::url_filename;
 use super::Huntable;
 
+mod prettify;
+
 #[derive(Debug, Deserialize, Serialize)]
 pub struct Html {
     pub url: Url,
@@ -18,6 +20,7 @@ impl Huntable for Html {
 
     fn hunt(&self, http_agent: &Http) -> anyhow::Result<String> {
         let content = http_agent.get(self.url.as_str())?;
-        Ok(content)
+        let result = prettify::prettify(&content)?;
+        Ok(result)
     }
 }
