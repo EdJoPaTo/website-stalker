@@ -1,4 +1,5 @@
 use http::Http;
+use regex::Regex;
 use settings::Settings;
 use site::Site;
 
@@ -40,7 +41,10 @@ fn main() {
         }
         ("run", Some(matches)) => {
             let do_commit = matches.is_present("commit");
-            match run(do_commit) {
+            let site_filter = matches
+                .value_of("site filter")
+                .map(|v| Regex::new(v).unwrap());
+            match run(do_commit, &site_filter) {
                 Ok(_) => {
                     println!("\nAll done. Thanks for using website-stalker!");
                 }
@@ -56,11 +60,26 @@ fn main() {
     }
 }
 
-fn run(do_commit: bool) -> anyhow::Result<()> {
+fn run(do_commit: bool, site_filter: &Option<Regex>) -> anyhow::Result<()> {
     let settings = Settings::load().expect("failed to load settings");
     let mut http_agent = http::Http::new(settings.from);
     if let Some(user_agent) = settings.user_agent {
         http_agent.set_user_agent(user_agent);
+    }
+
+    let sites_total = settings.sites.len();
+    let sites = settings
+        .sites
+        .iter()
+        .filter(|site| {
+            site_filter
+                .as_ref()
+                .map_or(true, |filter| filter.is_match(site.get_url().as_str()))
+        })
+        .collect::<Vec<_>>();
+    let sites_amount = sites.len();
+    if sites.is_empty() {
+        panic!("Site filter filtered everything out.");
     }
 
     let is_repo = git::is_repo();
@@ -73,13 +92,20 @@ fn run(do_commit: bool) -> anyhow::Result<()> {
 
     std::fs::create_dir_all("sites").expect("failed to create sites directory");
 
-    let site_amount = settings.sites.len();
-    println!("Begin stalking {} sites...", site_amount);
+    if sites_amount < sites_total {
+        println!(
+            "Begin filtered stalking of {}/{} sites...",
+            sites_amount, sites_total
+        );
+    } else {
+        println!("Begin stalking {} sites...", sites_amount);
+    }
+
     let mut something_changed = false;
     let mut error_occured = false;
 
-    for (i, site) in settings.sites.iter().enumerate() {
-        println!("{:4}/{} {}", i + 1, site_amount, site.get_url().as_str());
+    for (i, site) in sites.iter().enumerate() {
+        println!("{:4}/{} {}", i + 1, sites_amount, site.get_url().as_str());
         match do_site(&http_agent, is_repo, &site) {
             Ok(true) => {
                 something_changed = true;

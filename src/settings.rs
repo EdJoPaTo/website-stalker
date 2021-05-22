@@ -89,7 +89,6 @@ fn validate_fails_on_empty_sites_list() {
         from: "dummy".to_string(),
         user_agent: None,
         sites: vec![],
-
     };
     let result = settings.validate_min_one_site();
     assert!(result.is_err());
