@@ -47,7 +47,7 @@ fn main() {
 
             let is_repo = git::is_repo();
             if is_repo {
-                git::reset().expect("failed to reset git repo state");
+                git::reset().unwrap();
             } else {
                 println!("HINT: not a git repo. Will run but won't do git actions.")
             }
@@ -63,10 +63,15 @@ fn main() {
             }
 
             if matches.is_present("commit") {
-                git::commit("website stalker stalked some things").expect("failed to commit");
+                git::commit("website stalker stalked some things").unwrap();
+            } else if is_repo {
+                git::diff(&["--staged", "--stat"]).unwrap();
+            }
+            if is_repo {
+                git::status_short().unwrap();
             }
 
-            println!("All done. Thanks for using website-stalker!");
+            println!("\nAll done. Thanks for using website-stalker!");
         }
         (subcommand, matches) => {
             todo!("subcommand {} {:?}", subcommand, matches);

@@ -19,11 +19,6 @@ pub fn is_repo() -> bool {
     Path::new(".git/HEAD").exists()
 }
 
-pub fn reset() -> anyhow::Result<()> {
-    let status = Command::new("git").arg("reset").status()?;
-    result_from_status(status, "reset")
-}
-
 pub fn add(path: &str) -> anyhow::Result<()> {
     let status = Command::new("git").arg("add").arg(path).status()?;
     result_from_status(status, "add")
@@ -32,12 +27,29 @@ pub fn add(path: &str) -> anyhow::Result<()> {
 pub fn commit(message: &str) -> anyhow::Result<()> {
     let status = Command::new("git")
         .arg("commit")
-        .arg("--quiet")
         .arg("--no-gpg-sign")
         .arg("--author")
         .arg("website-stalker <website-stalker-git-commit@edjopato.de>")
         .arg("-m")
         .arg(message)
         .status()?;
+    result_from_status(status, "commit")
+}
+
+pub fn diff(additional_args: &[&str]) -> anyhow::Result<()> {
+    let status = Command::new("git")
+        .arg("diff")
+        .args(additional_args)
+        .status()?;
+    result_from_status(status, "commit")
+}
+
+pub fn reset() -> anyhow::Result<()> {
+    let status = Command::new("git").arg("reset").status()?;
+    result_from_status(status, "reset")
+}
+
+pub fn status_short() -> anyhow::Result<()> {
+    let status = Command::new("git").arg("status").arg("--short").status()?;
     result_from_status(status, "commit")
 }
