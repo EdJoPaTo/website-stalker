@@ -74,7 +74,7 @@ fn main() {
                 git::diff(&["--staged", "--stat"]).unwrap();
             }
             if something_changed && matches.is_present("commit") {
-                git::commit("website stalker stalked some things").unwrap();
+                git::commit("website stalker stalked some things 👀🌐😎").unwrap();
             }
             if is_repo {
                 git::status_short().unwrap();
