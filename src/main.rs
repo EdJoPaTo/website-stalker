@@ -7,6 +7,7 @@ use crate::site::Huntable;
 mod cli;
 mod git;
 mod http;
+mod logging;
 mod settings;
 mod site;
 
@@ -86,7 +87,7 @@ fn run(do_commit: bool) -> anyhow::Result<()> {
             Ok(false) => {}
             Err(err) => {
                 error_occured = true;
-                println!("\tsite failed: {}", err);
+                logging::error(&err.to_string());
             }
         }
     }
