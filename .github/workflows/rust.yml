@@ -1,0 +1,146 @@
+name: Test and Build Rust
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  test:
+    name: Test ${{ matrix.os }} ${{ matrix.toolchain }}
+    runs-on: ${{ matrix.os }}
+    continue-on-error: ${{ matrix.toolchain == 'nightly' }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-latest
+            toolchain: stable
+            clippyargs: -D clippy::all -D clippy::pedantic
+          - os: macOS-latest
+            toolchain: stable
+            clippyargs: -D clippy::all -D clippy::pedantic
+          - os: windows-latest
+            toolchain: stable
+            clippyargs: -D clippy::all -D clippy::pedantic
+
+          - os: ubuntu-latest
+            toolchain: nightly
+            clippyargs: -W clippy::all -W clippy::pedantic
+          # - os: ubuntu-latest
+          #   toolchain: 1.41.1 # Debian 10 Buster
+          #   clippyargs: -W clippy::all -W clippy::pedantic -A unknown-lints -A clippy::unknown-clippy-lints
+          - os: ubuntu-latest
+            toolchain: 1.47.0 # Alpine 3.13
+            clippyargs: -W clippy::all -W clippy::pedantic -A unknown-lints -A clippy::unknown-clippy-lints
+          - os: ubuntu-latest
+            toolchain: 1.48.0 # Debian 11 Bullseye
+            clippyargs: -W clippy::all -W clippy::pedantic -A unknown-lints -A clippy::unknown-clippy-lints
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Setup Rust
+        uses: actions-rs/toolchain@v1
+        with:
+          components: clippy
+          override: true
+          profile: minimal
+          toolchain: ${{ matrix.toolchain }}
+
+      - name: Run clippy
+        uses: actions-rs/cargo@v1
+        with:
+          command: clippy
+          args: --verbose --locked --all-targets --all-features -- ${{ matrix.clippyargs }}
+
+      - name: Run tests
+        uses: actions-rs/cargo@v1
+        with:
+          command: test
+          args: --verbose --locked --all-features
+
+  release:
+    name: Release ${{ matrix.triple }}
+    runs-on: ${{ matrix.os }}
+    needs: test
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-latest
+            triple: x86_64-unknown-linux-gnu
+          - os: ubuntu-latest
+            triple: arm-unknown-linux-gnueabihf
+          - os: ubuntu-latest
+            triple: armv7-unknown-linux-gnueabihf
+          - os: ubuntu-latest
+            triple: aarch64-unknown-linux-gnu
+          - os: macOS-latest
+            triple: x86_64-apple-darwin
+          - os: macOS-latest
+            triple: aarch64-apple-darwin
+          - os: windows-latest
+            triple: x86_64-pc-windows-msvc
+          - os: windows-latest
+            triple: aarch64-pc-windows-msvc
+
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+
+      - name: Get the version from the tag
+        shell: bash
+        run: |
+          version=$(git describe --tags --match "v*.*.*" --always)
+          echo "version is: $version"
+          echo "GIT_TAG_VERSION=$version" >> $GITHUB_ENV
+
+      - name: Setup Rust
+        uses: actions-rs/toolchain@v1
+        with:
+          override: true
+          profile: minimal
+          target: ${{ matrix.triple }}
+          toolchain: stable
+
+      - name: Build release
+        uses: actions-rs/cargo@v1
+        env:
+          # TODO: Remove this once it's the default
+          SDKROOT: /Library/Developer/CommandLineTools/SDKs/MacOSX11.1.sdk
+        with:
+          command: build
+          args: --release --verbose --locked --target ${{ matrix.triple }}
+          use-cross: ${{ runner.os == 'Linux' && matrix.triple != 'x86_64-unknown-linux-gnu' }}
+
+      - name: Pack release (-nix)
+        if: runner.os != 'Windows'
+        run: |
+          cd target/${{ matrix.triple }}/release
+          tar -czvf ../../../website-stalker-${{ env.GIT_TAG_VERSION }}-${{ matrix.triple }}.tar.gz website-stalker
+          cd -
+      - name: Pack release (windows)
+        if: runner.os == 'Windows'
+        run: |
+          cd target/${{ matrix.triple }}/release
+          7z a ../../../website-stalker-${{ env.GIT_TAG_VERSION }}-${{ matrix.triple }}.zip website-stalker.exe
+          cd -
+
+      - name: Upload Artifact
+        uses: actions/upload-artifact@v2
+        with:
+          name: ${{ matrix.triple }}
+          path: |
+            *.zip
+            *.tar.gz
+
+      - name: GH Release
+        if: startsWith(github.ref, 'refs/tags/')
+        uses: softprops/action-gh-release@v1
+        with:
+          draft: true
+          files: |
+            *.zip
+            *.tar.gz
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

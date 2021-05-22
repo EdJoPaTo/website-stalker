@@ -1,0 +1,13 @@
+# Please see the documentation for all configuration options:
+# https://help.github.com/github/administering-a-repository/configuration-options-for-dependency-updates
+
+version: 2
+updates:
+  - package-ecosystem: "cargo"
+    directory: "/"
+    open-pull-requests-limit: 30
+    schedule:
+      interval: "weekly"
+      time: "03:37" # UTC
+    commit-message:
+      prefix: "chore(cargo):"
