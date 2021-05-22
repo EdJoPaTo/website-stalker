@@ -38,55 +38,74 @@ fn main() {
             }
         }
         ("run", Some(matches)) => {
-            let settings = Settings::load().expect("failed to load settings");
-            let mut http_agent = http::Http::new(settings.from);
-            if let Some(user_agent) = settings.user_agent {
-                http_agent.set_user_agent(user_agent);
-            }
-
-            let is_repo = git::is_repo();
-            if is_repo {
-                git::reset().unwrap();
-                git::cleanup("sites").unwrap();
-            } else {
-                println!("HINT: not a git repo. Will run but won't do git actions.")
-            }
-
-            std::fs::create_dir_all("sites").expect("failed to create sites directory");
-
-            let site_amount = settings.sites.len();
-            println!("Begin stalking {} sites...", site_amount);
-            let mut something_changed = false;
-
-            for (i, site) in settings.sites.iter().enumerate() {
-                println!("{:4}/{} {}", i + 1, site_amount, site.get_url().as_str());
-                match do_site(&http_agent, is_repo, &site) {
-                    Ok(true) => {
-                        something_changed = true;
-                    }
-                    Ok(false) => {}
-                    Err(err) => {
-                        println!("\tsite failed: {}", err);
-                    }
+            let do_commit = matches.is_present("commit");
+            match run(do_commit) {
+                Ok(_) => {
+                    println!("\nAll done. Thanks for using website-stalker!");
+                }
+                Err(err) => {
+                    println!("\n{} Thanks for using website-stalker!", err);
+                    std::process::exit(1);
                 }
             }
-
-            if is_repo {
-                println!();
-                git::diff(&["--staged", "--stat"]).unwrap();
-            }
-            if something_changed && matches.is_present("commit") {
-                git::commit("stalked some things \u{1f440}\u{1f310}\u{1f60e}").unwrap();
-            }
-            if is_repo {
-                git::status_short().unwrap();
-            }
-
-            println!("\nAll done. Thanks for using website-stalker!");
         }
         (subcommand, matches) => {
             todo!("subcommand {} {:?}", subcommand, matches);
         }
+    }
+}
+
+fn run(do_commit: bool) -> anyhow::Result<()> {
+    let settings = Settings::load().expect("failed to load settings");
+    let mut http_agent = http::Http::new(settings.from);
+    if let Some(user_agent) = settings.user_agent {
+        http_agent.set_user_agent(user_agent);
+    }
+
+    let is_repo = git::is_repo();
+    if is_repo {
+        git::reset().unwrap();
+        git::cleanup("sites").unwrap();
+    } else {
+        println!("HINT: not a git repo. Will run but won't do git actions.")
+    }
+
+    std::fs::create_dir_all("sites").expect("failed to create sites directory");
+
+    let site_amount = settings.sites.len();
+    println!("Begin stalking {} sites...", site_amount);
+    let mut something_changed = false;
+    let mut error_occured = false;
+
+    for (i, site) in settings.sites.iter().enumerate() {
+        println!("{:4}/{} {}", i + 1, site_amount, site.get_url().as_str());
+        match do_site(&http_agent, is_repo, &site) {
+            Ok(true) => {
+                something_changed = true;
+            }
+            Ok(false) => {}
+            Err(err) => {
+                error_occured = true;
+                println!("\tsite failed: {}", err);
+            }
+        }
+    }
+
+    if is_repo {
+        println!();
+        git::diff(&["--staged", "--stat"]).unwrap();
+    }
+    if something_changed && do_commit {
+        git::commit("stalked some things \u{1f440}\u{1f310}\u{1f60e}").unwrap();
+    }
+    if is_repo {
+        git::status_short().unwrap();
+    }
+
+    if error_occured {
+        Err(anyhow::anyhow!("All done but some site failed."))
+    } else {
+        Ok(())
     }
 }
 
