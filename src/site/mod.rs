@@ -49,9 +49,11 @@ impl Site {
             Site::Html(html::Html {
                 url: Url::parse("https://edjopato.de/post/").unwrap(),
                 css_selector: Some("section".to_string()),
+                regex_replacers: vec![],
             }),
             Site::Utf8(utf8::Utf8 {
                 url: Url::parse("https://edjopato.de/robots.txt").unwrap(),
+                regex_replacers: vec![],
             }),
         ]
     }
@@ -83,13 +85,16 @@ fn validate_finds_duplicates() {
         Site::Html(html::Html {
             url: Url::parse("https://edjopato.de/post/").unwrap(),
             css_selector: None,
+            regex_replacers: vec![],
         }),
         Site::Utf8(utf8::Utf8 {
             url: Url::parse("https://edjopato.de/robots.txt").unwrap(),
+            regex_replacers: vec![],
         }),
         Site::Html(html::Html {
             url: Url::parse("https://edjopato.de/post").unwrap(),
             css_selector: None,
+            regex_replacers: vec![],
         }),
     ];
 

@@ -9,6 +9,7 @@ mod cli;
 mod git;
 mod http;
 mod logger;
+mod regex_replacer;
 mod settings;
 mod site;
 

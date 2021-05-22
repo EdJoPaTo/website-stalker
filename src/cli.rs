@@ -1,4 +1,5 @@
 use clap::{App, AppSettings, Arg, SubCommand};
+use regex::Regex;
 
 pub fn build() -> App<'static, 'static> {
     App::new("Website Stalker")
@@ -27,7 +28,7 @@ pub fn build() -> App<'static, 'static> {
                     Arg::with_name("site filter")
                         .conflicts_with("all")
                         .required_unless("all")
-                        .validator(|v| match regex::Regex::new(&v) {
+                        .validator(|v| match Regex::new(&v) {
                             Ok(_) => Ok(()),
                             Err(err) => Err(format!("{}", err)),
                         })

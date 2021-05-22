@@ -3,6 +3,7 @@ use serde::{Deserialize, Serialize};
 use url::Url;
 
 use crate::http::Http;
+use crate::regex_replacer::RegexReplacer;
 
 use super::url_filename;
 use super::Huntable;
@@ -15,6 +16,9 @@ pub struct Html {
 
     #[serde(skip_serializing_if = "Option::is_none")]
     pub css_selector: Option<String>,
+
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub regex_replacers: Vec<RegexReplacer>,
 }
 
 impl Huntable for Html {
@@ -35,8 +39,14 @@ impl Huntable for Html {
             content
         };
 
-        let result = prettify::prettify(&content)?;
-        Ok(result)
+        let prettified = prettify::prettify(&content)?;
+
+        let mut replaced = prettified;
+        for replacer in &self.regex_replacers {
+            replaced = replacer.replace_all(&replaced)?.to_string();
+        }
+
+        Ok(replaced)
     }
 
     fn is_valid(&self) -> anyhow::Result<()> {
@@ -50,6 +60,10 @@ impl Huntable for Html {
             }
         }
 
+        for rp in &self.regex_replacers {
+            rp.is_valid()?;
+        }
+
         Ok(())
     }
 }
@@ -59,6 +73,7 @@ fn css_selector_valid() {
     let example = Html {
         url: Url::parse("https://edjopato.de/").unwrap(),
         css_selector: Some("body".to_string()),
+        regex_replacers: vec![],
     };
     let result = example.is_valid();
     println!("{:?}", result);
@@ -70,6 +85,7 @@ fn css_selector_invalid() {
     let example = Html {
         url: Url::parse("https://edjopato.de/").unwrap(),
         css_selector: Some(".".to_string()),
+        regex_replacers: vec![],
     };
     let result = example.is_valid();
     println!("{:?}", result);
