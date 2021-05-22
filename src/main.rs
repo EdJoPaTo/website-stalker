@@ -8,7 +8,7 @@ use crate::site::Huntable;
 mod cli;
 mod git;
 mod http;
-mod logging;
+mod logger;
 mod settings;
 mod site;
 
@@ -118,7 +118,7 @@ fn run(do_commit: bool, site_filter: &Option<Regex>) -> anyhow::Result<()> {
             Ok(false) => {}
             Err(err) => {
                 error_occured = true;
-                logging::error(&err.to_string());
+                logger::error(&err.to_string());
             }
         }
     }
@@ -128,9 +128,9 @@ fn run(do_commit: bool, site_filter: &Option<Regex>) -> anyhow::Result<()> {
         git::diff(&["--staged", "--stat"]).unwrap();
     }
     if something_changed && do_commit {
-        logging::begin_group("git commit");
+        logger::begin_group("git commit");
         git::commit("stalked some things \u{1f440}\u{1f310}\u{1f60e}").unwrap();
-        logging::end_group();
+        logger::end_group();
     }
     if is_repo {
         git::status_short().unwrap();
@@ -186,14 +186,14 @@ fn remove_gone_sites(
             }
             any_removed = true;
 
-            logging::warn(&format!("remove superfluous {}", path));
+            logger::warn(&format!("remove superfluous {}", path));
         }
     }
 
     if any_removed && do_commit {
-        logging::begin_group("git commit");
+        logger::begin_group("git commit");
         git::commit("remove superfluous \u{1f5d1}\u{1f310}\u{1f916}")?;
-        logging::end_group();
+        logger::end_group();
     }
 
     Ok(())
