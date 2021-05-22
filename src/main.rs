@@ -92,6 +92,11 @@ fn run(do_commit: bool, site_filter: &Option<Regex>) -> anyhow::Result<()> {
 
     std::fs::create_dir_all("sites").expect("failed to create sites directory");
 
+    if sites_amount == sites_total {
+        let filenames = sites.iter().map(|o| o.get_filename()).collect::<Vec<_>>();
+        remove_gone_sites(is_repo, do_commit, &filenames)?;
+    }
+
     if sites_amount < sites_total {
         println!(
             "Begin filtered stalking of {}/{} sites...",
@@ -155,4 +160,41 @@ fn do_site(http_agent: &Http, is_repo: bool, site: &Site) -> anyhow::Result<bool
     }
 
     Ok(changed)
+}
+
+fn remove_gone_sites(
+    is_repo: bool,
+    do_commit: bool,
+    existing_filenames: &[String],
+) -> anyhow::Result<()> {
+    let mut any_removed = false;
+
+    for file in std::fs::read_dir("sites")? {
+        let file = file?;
+
+        let name = file
+            .file_name()
+            .into_string()
+            .map_err(|name| anyhow::anyhow!("filename has no valid Utf-8: {:?}", name))?;
+        let path = format!("sites/{}", name);
+
+        let is_wanted = existing_filenames.as_ref().contains(&name);
+        if !is_wanted {
+            std::fs::remove_file(&path)?;
+            if is_repo {
+                git::add(&path)?;
+            }
+            any_removed = true;
+
+            logging::warn(&format!("remove superfluous {}", path));
+        }
+    }
+
+    if any_removed && do_commit {
+        logging::begin_group("git commit");
+        git::commit("remove superfluous \u{1f5d1}\u{1f310}\u{1f916}")?;
+        logging::end_group();
+    }
+
+    Ok(())
 }

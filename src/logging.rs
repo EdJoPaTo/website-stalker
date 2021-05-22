@@ -12,6 +12,14 @@ pub fn error(message: &str) {
     }
 }
 
+pub fn warn(message: &str) {
+    if is_gha() {
+        println!("::warning file=website-stalker.yaml::{}", message);
+    } else {
+        println!("WARN: {}", message);
+    }
+}
+
 pub fn begin_group(title: &str) {
     if is_gha() {
         println!("::group::{}", title);
