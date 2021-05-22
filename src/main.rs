@@ -13,7 +13,7 @@ mod site;
 fn main() {
     let matches = cli::build().get_matches();
     match matches.subcommand() {
-        ("example-config", _) => {
+        ("example-config", Some(_)) => {
             let config = serde_yaml::to_string(&Settings::example()).unwrap();
             println!(
                 "# This is an example config
@@ -26,7 +26,7 @@ fn main() {
                 config
             );
         }
-        ("check", _) => {
+        ("check", Some(_)) => {
             match Settings::load() {
                 Ok(_) => println!("config ok"),
                 Err(err) => {
@@ -37,7 +37,7 @@ fn main() {
                 }
             }
         }
-        ("run", _) => {
+        ("run", Some(matches)) => {
             let settings = Settings::load().expect("failed to load settings");
             std::fs::create_dir_all("sites").expect("failed to create sites directory");
             let mut http_agent = http::Http::new(settings.from);
@@ -49,7 +49,7 @@ fn main() {
             if is_repo {
                 git::reset().expect("failed to reset git repo state");
             } else {
-                println!("HINT: not a git repo. Will run but wont commit.")
+                println!("HINT: not a git repo. Will run but won't do git actions.")
             }
 
             println!("Begin stalking sites...\n");
@@ -62,8 +62,8 @@ fn main() {
                 println!();
             }
 
-            if is_repo {
-                drop(git::commit("website stalker stalked some things"));
+            if matches.is_present("commit") {
+                git::commit("website stalker stalked some things").expect("failed to commit");
             }
 
             println!("All done. Thanks for using website-stalker!");

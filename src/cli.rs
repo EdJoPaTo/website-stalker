@@ -1,4 +1,4 @@
-use clap::{App, AppSettings, SubCommand};
+use clap::{App, AppSettings, Arg, SubCommand};
 
 pub fn build() -> App<'static, 'static> {
     App::new("Website Stalker")
@@ -14,5 +14,13 @@ pub fn build() -> App<'static, 'static> {
         .subcommand(
             SubCommand::with_name("check").about("check if the config is fine but do not run"),
         )
-        .subcommand(SubCommand::with_name("run").about("stalk all the websites you specified"))
+        .subcommand(
+            SubCommand::with_name("run")
+                .about("stalk all the websites you specified")
+                .arg(
+                    Arg::with_name("commit")
+                        .long("commit")
+                        .help("git commit changed files"),
+                ),
+        )
 }
