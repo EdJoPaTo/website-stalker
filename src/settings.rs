@@ -38,6 +38,7 @@ impl Settings {
 
     fn validate(&self) -> Result<(), ConfigError> {
         self.validate_from_is_email()?;
+        self.validate_min_one_site()?;
         Site::validate_no_duplicate(&self.sites).map_err(ConfigError::Message)?;
         self.validate_each_site()?;
         Ok(())
@@ -51,7 +52,13 @@ impl Settings {
                 from
             )));
         }
+        Ok(())
+    }
 
+    fn validate_min_one_site(&self) -> Result<(), ConfigError> {
+        if self.sites.is_empty() {
+            return Err(ConfigError::Message("site list is empty".to_string()));
+        }
         Ok(())
     }
 
@@ -64,7 +71,6 @@ impl Settings {
                 )));
             }
         }
-
         Ok(())
     }
 }
@@ -75,4 +81,16 @@ fn can_parse_example_config() {
     let content = serde_yaml::to_string(&settings);
     println!("{:?}", content);
     assert!(content.is_ok(), "failed to parse default settings to yaml");
+}
+
+#[test]
+fn validate_fails_on_empty_sites_list() {
+    let settings = Settings {
+        from: "dummy".to_string(),
+        user_agent: None,
+        sites: vec![],
+
+    };
+    let result = settings.validate_min_one_site();
+    assert!(result.is_err());
 }
