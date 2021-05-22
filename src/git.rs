@@ -49,7 +49,7 @@ pub fn diff(additional_args: &[&str]) -> anyhow::Result<()> {
         .arg("diff")
         .args(additional_args)
         .status()?;
-    result_from_status(status, "commit")
+    result_from_status(status, "diff")
 }
 
 pub fn reset() -> anyhow::Result<()> {
@@ -59,5 +59,5 @@ pub fn reset() -> anyhow::Result<()> {
 
 pub fn status_short() -> anyhow::Result<()> {
     let status = Command::new("git").arg("status").arg("--short").status()?;
-    result_from_status(status, "commit")
+    result_from_status(status, "status")
 }
