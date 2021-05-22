@@ -1,6 +1,8 @@
 # Website Stalker
 
-Track changes on websites via git
+> Track changes on websites via git
+
+See it [in action](https://github.com/EdJoPaTo/website-stalker-example) (literally in GitHub **Action**s).
 
 ## Install
 
