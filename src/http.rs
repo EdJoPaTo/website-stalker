@@ -1,3 +1,5 @@
+use std::time::Duration;
+
 use ureq::{Agent, AgentBuilder, Request};
 
 const USER_AGENT: &str = concat!(
@@ -19,7 +21,7 @@ impl Http {
     /// See [http From header](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/From)
     pub fn new(from: String) -> Self {
         Self {
-            agent: AgentBuilder::new().build(),
+            agent: AgentBuilder::new().timeout(Duration::from_secs(30)).build(),
             user_agent: USER_AGENT.to_string(),
             from,
         }
