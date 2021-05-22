@@ -39,7 +39,6 @@ fn main() {
         }
         ("run", Some(matches)) => {
             let settings = Settings::load().expect("failed to load settings");
-            std::fs::create_dir_all("sites").expect("failed to create sites directory");
             let mut http_agent = http::Http::new(settings.from);
             if let Some(user_agent) = settings.user_agent {
                 http_agent.set_user_agent(user_agent);
@@ -48,9 +47,12 @@ fn main() {
             let is_repo = git::is_repo();
             if is_repo {
                 git::reset().unwrap();
+                git::cleanup("sites").unwrap();
             } else {
                 println!("HINT: not a git repo. Will run but won't do git actions.")
             }
+
+            std::fs::create_dir_all("sites").expect("failed to create sites directory");
 
             let site_amount = settings.sites.len();
             println!("Begin stalking {} sites...", site_amount);

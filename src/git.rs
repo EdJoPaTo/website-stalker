@@ -1,7 +1,7 @@
 // the git2 crate requires openssl which is annoying to cross compile -> require git to be installed on host
 
 use std::path::Path;
-use std::process::{Command, ExitStatus};
+use std::process::{Command, ExitStatus, Stdio};
 
 fn result_from_status(status: ExitStatus, command: &'static str) -> anyhow::Result<()> {
     if status.success() {
@@ -22,6 +22,28 @@ pub fn is_repo() -> bool {
 pub fn add(path: &str) -> anyhow::Result<()> {
     let status = Command::new("git").arg("add").arg(path).status()?;
     result_from_status(status, "add")
+}
+
+pub fn cleanup(path: &str) -> anyhow::Result<()> {
+    let status = Command::new("git")
+        .arg("clean")
+        .arg("--force")
+        .arg("--quiet")
+        .arg("-x") // remove untracked files
+        .arg(path)
+        .status()?;
+    result_from_status(status, "clean")?;
+
+    let status = Command::new("git")
+        .arg("checkout")
+        .arg("--quiet")
+        .arg(path)
+        .stdout(Stdio::null())
+        .stderr(Stdio::null())
+        .status();
+    drop(status);
+
+    Ok(())
 }
 
 pub fn commit(message: &str) -> anyhow::Result<()> {
