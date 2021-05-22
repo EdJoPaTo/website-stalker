@@ -79,6 +79,7 @@ fn do_site(http_agent: &Http, is_repo: bool, site: &Site) -> anyhow::Result<()> 
 
     let filename = site.get_filename();
     let contents = site.hunt(http_agent)?;
+    let contents = contents.trim().to_string() + "\n";
     println!("  filename {}", filename);
     println!("  content length {}", contents.len());
 
