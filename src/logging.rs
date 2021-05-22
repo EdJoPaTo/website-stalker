@@ -1,7 +1,7 @@
 use std::env;
 
 fn is_gha() -> bool {
-    env::var("GITHUB_ACTIONS").is_ok()
+    env::var_os("GITHUB_ACTIONS").is_some()
 }
 
 pub fn error(message: &str) {
