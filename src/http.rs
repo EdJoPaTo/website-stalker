@@ -33,7 +33,7 @@ impl Http {
     }
 
     pub async fn get(&self, url: &str) -> anyhow::Result<String> {
-        let response = self.client.get(url).send().await?;
+        let response = self.client.get(url).send().await?.error_for_status()?;
         let text = response.text().await?;
         Ok(text)
     }
