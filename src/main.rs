@@ -45,7 +45,7 @@ fn main() {
             let site_filter = matches
                 .value_of("site filter")
                 .map(|v| Regex::new(v).unwrap());
-            match run(do_commit, &site_filter) {
+            match run(do_commit, site_filter.as_ref()) {
                 Ok(_) => {
                     println!("\nAll done. Thanks for using website-stalker!");
                 }
@@ -61,7 +61,7 @@ fn main() {
     }
 }
 
-fn run(do_commit: bool, site_filter: &Option<Regex>) -> anyhow::Result<()> {
+fn run(do_commit: bool, site_filter: Option<&Regex>) -> anyhow::Result<()> {
     let settings = Settings::load().expect("failed to load settings");
     let mut http_agent = http::Http::new(settings.from);
     if let Some(user_agent) = settings.user_agent {
@@ -72,11 +72,7 @@ fn run(do_commit: bool, site_filter: &Option<Regex>) -> anyhow::Result<()> {
     let sites = settings
         .sites
         .iter()
-        .filter(|site| {
-            site_filter
-                .as_ref()
-                .map_or(true, |filter| filter.is_match(site.get_url().as_str()))
-        })
+        .filter(|site| site_filter.map_or(true, |filter| filter.is_match(site.get_url().as_str())))
         .collect::<Vec<_>>();
     let sites_amount = sites.len();
     if sites.is_empty() {
