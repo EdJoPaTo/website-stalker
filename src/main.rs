@@ -1,7 +1,11 @@
+use std::time::Duration;
+
 use http::Http;
+use itertools::Itertools;
 use regex::Regex;
 use settings::Settings;
 use site::Site;
+use tokio::time::sleep;
 
 mod cli;
 mod git;
@@ -67,7 +71,7 @@ async fn run(do_commit: bool, site_filter: Option<&Regex>) -> anyhow::Result<()>
     let sites_total = settings.sites.len();
     let sites = settings
         .sites
-        .iter()
+        .into_iter()
         .filter(|site| site_filter.map_or(true, |filter| filter.is_match(site.get_url().as_str())))
         .collect::<Vec<_>>();
     let sites_amount = sites.len();
@@ -86,7 +90,7 @@ async fn run(do_commit: bool, site_filter: Option<&Regex>) -> anyhow::Result<()>
     std::fs::create_dir_all("sites").expect("failed to create sites directory");
 
     if sites_amount == sites_total {
-        let filenames = sites.iter().map(|o| o.get_filename()).collect::<Vec<_>>();
+        let filenames = sites.iter().map(Site::get_filename).collect::<Vec<_>>();
         remove_gone_sites(is_repo, do_commit, &filenames)?;
     }
 
@@ -99,19 +103,45 @@ async fn run(do_commit: bool, site_filter: Option<&Regex>) -> anyhow::Result<()>
         println!("Begin stalking {} sites...", sites_amount);
     }
 
+    let mut tasks = Vec::with_capacity(sites.len());
+    let groups = sites
+        .into_iter()
+        .group_by(|a| a.get_url().domain().unwrap().to_string());
+    for (_, group) in &groups {
+        for (i, site) in group.enumerate() {
+            let http_agent = http_agent.clone();
+            let handle = tokio::spawn(async move {
+                sleep(Duration::from_secs((i * 5) as u64)).await;
+                let result = do_site(&http_agent, is_repo, &site).await;
+                let url = site.get_url().as_str();
+                match &result {
+                    Ok(true) => {
+                        println!("  CHANGED: {}", url);
+                    }
+                    Ok(false) => {
+                        println!("UNCHANGED: {}", url);
+                    }
+                    Err(err) => {
+                        logger::error(&format!("{} {}", url, err));
+                    }
+                }
+                result
+            });
+
+            tasks.push(handle);
+        }
+    }
+
     let mut something_changed = false;
     let mut error_occured = false;
-
-    for (i, site) in sites.iter().enumerate() {
-        println!("{:4}/{} {}", i + 1, sites_amount, site.get_url().as_str());
-        match do_site(&http_agent, is_repo, &site).await {
+    for handle in tasks {
+        match handle.await.expect("failed to spawn task") {
             Ok(true) => {
                 something_changed = true;
             }
             Ok(false) => {}
-            Err(err) => {
+            Err(_) => {
                 error_occured = true;
-                logger::error(&err.to_string());
             }
         }
     }

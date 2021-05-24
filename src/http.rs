@@ -10,6 +10,7 @@ const USER_AGENT: &str = concat!(
     env!("CARGO_PKG_REPOSITORY"),
 );
 
+#[derive(Clone)]
 pub struct Http {
     client: Client,
 }
