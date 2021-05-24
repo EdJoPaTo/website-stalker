@@ -3,8 +3,6 @@ use regex::Regex;
 use settings::Settings;
 use site::Site;
 
-use crate::site::Huntable;
-
 mod cli;
 mod git;
 mod http;
@@ -13,7 +11,8 @@ mod regex_replacer;
 mod settings;
 mod site;
 
-fn main() {
+#[tokio::main]
+async fn main() {
     let matches = cli::build().get_matches();
     match matches.subcommand() {
         ("example-config", Some(_)) => {
@@ -45,7 +44,7 @@ fn main() {
             let site_filter = matches
                 .value_of("site filter")
                 .map(|v| Regex::new(v).unwrap());
-            match run(do_commit, site_filter.as_ref()) {
+            match run(do_commit, site_filter.as_ref()).await {
                 Ok(_) => {
                     println!("\nAll done. Thanks for using website-stalker!");
                 }
@@ -61,7 +60,7 @@ fn main() {
     }
 }
 
-fn run(do_commit: bool, site_filter: Option<&Regex>) -> anyhow::Result<()> {
+async fn run(do_commit: bool, site_filter: Option<&Regex>) -> anyhow::Result<()> {
     let settings = Settings::load().expect("failed to load settings");
     let http_agent = http::Http::new(settings.from);
 
@@ -105,7 +104,7 @@ fn run(do_commit: bool, site_filter: Option<&Regex>) -> anyhow::Result<()> {
 
     for (i, site) in sites.iter().enumerate() {
         println!("{:4}/{} {}", i + 1, sites_amount, site.get_url().as_str());
-        match do_site(&http_agent, is_repo, &site) {
+        match do_site(&http_agent, is_repo, &site).await {
             Ok(true) => {
                 something_changed = true;
             }
@@ -137,10 +136,10 @@ fn run(do_commit: bool, site_filter: Option<&Regex>) -> anyhow::Result<()> {
     }
 }
 
-fn do_site(http_agent: &Http, is_repo: bool, site: &Site) -> anyhow::Result<bool> {
+async fn do_site(http_agent: &Http, is_repo: bool, site: &Site) -> anyhow::Result<bool> {
     let filename = site.get_filename();
     let path = format!("sites/{}", filename);
-    let contents = site.hunt(http_agent)?;
+    let contents = site.hunt(http_agent).await?;
     let contents = contents.trim().to_string() + "\n";
 
     let current = std::fs::read_to_string(&path).unwrap_or_default();

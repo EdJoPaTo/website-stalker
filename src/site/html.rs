@@ -6,7 +6,6 @@ use crate::http::Http;
 use crate::regex_replacer::RegexReplacer;
 
 use super::url_filename;
-use super::Huntable;
 
 mod prettify;
 
@@ -21,13 +20,13 @@ pub struct Html {
     pub regex_replacers: Vec<RegexReplacer>,
 }
 
-impl Huntable for Html {
-    fn get_filename(&self) -> String {
+impl Html {
+    pub fn get_filename(&self) -> String {
         url_filename::format(&self.url, "html")
     }
 
-    fn hunt(&self, http_agent: &Http) -> anyhow::Result<String> {
-        let content = http_agent.get(self.url.as_str())?;
+    pub async fn hunt(&self, http_agent: &Http) -> anyhow::Result<String> {
+        let content = http_agent.get(self.url.as_str()).await?;
 
         #[allow(clippy::option_if_let_else)]
         let content = if let Some(selector) = &self.css_selector {
@@ -49,7 +48,7 @@ impl Huntable for Html {
         Ok(replaced)
     }
 
-    fn is_valid(&self) -> anyhow::Result<()> {
+    pub fn is_valid(&self) -> anyhow::Result<()> {
         if let Some(selector) = &self.css_selector {
             if let Err(err) = Selector::parse(selector) {
                 return Err(anyhow::anyhow!(

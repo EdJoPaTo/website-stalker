@@ -1,6 +1,6 @@
 use std::time::Duration;
 
-use ureq::{Agent, AgentBuilder, Request};
+use reqwest::{Client, ClientBuilder};
 
 const USER_AGENT: &str = concat!(
     env!("CARGO_PKG_NAME"),
@@ -11,7 +11,7 @@ const USER_AGENT: &str = concat!(
 );
 
 pub struct Http {
-    agent: Agent,
+    client: Client,
     from: String,
 }
 
@@ -21,20 +21,19 @@ impl Http {
     /// See [http From header](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/From)
     pub fn new(from: String) -> Self {
         Self {
-            agent: AgentBuilder::new()
+            client: ClientBuilder::new()
                 .timeout(Duration::from_secs(30))
                 .user_agent(USER_AGENT)
-                .build(),
+                .build()
+                .expect("failed to create reqwest client"),
             from,
         }
     }
 
-    fn get_with_headers(&self, url: &str) -> Request {
-        self.agent.get(url).set("from", &self.from)
-    }
-
-    pub fn get(&self, url: &str) -> anyhow::Result<String> {
-        let text = self.get_with_headers(url).call()?.into_string()?;
+    pub async fn get(&self, url: &str) -> anyhow::Result<String> {
+        let request = self.client.get(url).header("from", &self.from);
+        let response = request.send().await?;
+        let text = response.text().await?;
         Ok(text)
     }
 }

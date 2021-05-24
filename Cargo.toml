@@ -17,15 +17,23 @@ kuchiki = "0.8"
 regex = "1"
 scraper = "0.12"
 serde_yaml = "0.8"
-ureq = "2"
 
 [dependencies.clap]
 version = "2"
 features = ["wrap_help"]
 
+[dependencies.reqwest]
+version = "0.11"
+default-features = false
+features = ["rustls-tls"]
+
 [dependencies.serde]
 version = "1"
 features = ["derive"]
+
+[dependencies.tokio]
+version = "1"
+features = ["full"]
 
 [dependencies.url]
 version = "2"

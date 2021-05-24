@@ -14,36 +14,28 @@ pub enum Site {
     Utf8(utf8::Utf8),
 }
 
-pub trait Huntable {
-    fn get_filename(&self) -> String;
-    fn hunt(&self, http_agent: &Http) -> anyhow::Result<String>;
-    fn is_valid(&self) -> anyhow::Result<()>;
-}
-
-impl Huntable for Site {
-    fn get_filename(&self) -> String {
+impl Site {
+    pub fn get_filename(&self) -> String {
         match self {
             Site::Html(o) => o.get_filename(),
             Self::Utf8(o) => o.get_filename(),
         }
     }
 
-    fn hunt(&self, http_agent: &Http) -> anyhow::Result<String> {
+    pub async fn hunt(&self, http_agent: &Http) -> anyhow::Result<String> {
         match self {
-            Site::Html(o) => o.hunt(http_agent),
-            Site::Utf8(o) => o.hunt(http_agent),
+            Site::Html(o) => o.hunt(http_agent).await,
+            Site::Utf8(o) => o.hunt(http_agent).await,
         }
     }
 
-    fn is_valid(&self) -> anyhow::Result<()> {
+    pub fn is_valid(&self) -> anyhow::Result<()> {
         match self {
             Site::Html(o) => o.is_valid(),
             Site::Utf8(o) => o.is_valid(),
         }
     }
-}
 
-impl Site {
     pub fn examples() -> Vec<Site> {
         vec![
             Site::Html(html::Html {
@@ -60,7 +52,7 @@ impl Site {
 
     pub fn validate_no_duplicate(sites: &[Site]) -> Result<(), String> {
         // TODO: return url or something of specific duplicates
-        let mut filenames = sites.iter().map(|o| o.get_filename()).collect::<Vec<_>>();
+        let mut filenames = sites.iter().map(Site::get_filename).collect::<Vec<_>>();
         filenames.sort_unstable();
         let filename_amount = filenames.len();
         filenames.dedup();

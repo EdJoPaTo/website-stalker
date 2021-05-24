@@ -5,7 +5,6 @@ use crate::http::Http;
 use crate::regex_replacer::RegexReplacer;
 
 use super::url_filename;
-use super::Huntable;
 
 #[derive(Debug, Deserialize, Serialize)]
 pub struct Utf8 {
@@ -15,13 +14,13 @@ pub struct Utf8 {
     pub regex_replacers: Vec<RegexReplacer>,
 }
 
-impl Huntable for Utf8 {
-    fn get_filename(&self) -> String {
+impl Utf8 {
+    pub fn get_filename(&self) -> String {
         url_filename::format(&self.url, "txt")
     }
 
-    fn hunt(&self, http_agent: &Http) -> anyhow::Result<String> {
-        let content = http_agent.get(self.url.as_str())?;
+    pub async fn hunt(&self, http_agent: &Http) -> anyhow::Result<String> {
+        let content = http_agent.get(self.url.as_str()).await?;
 
         let mut replaced = content;
         for replacer in &self.regex_replacers {
@@ -31,7 +30,7 @@ impl Huntable for Utf8 {
         Ok(replaced)
     }
 
-    fn is_valid(&self) -> anyhow::Result<()> {
+    pub fn is_valid(&self) -> anyhow::Result<()> {
         for rp in &self.regex_replacers {
             rp.is_valid()?;
         }

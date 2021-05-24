@@ -1,7 +1,7 @@
 use config::ConfigError;
 use serde::{Deserialize, Serialize};
 
-use crate::site::{Huntable, Site};
+use crate::site::Site;
 
 #[derive(Debug, Deserialize, Serialize)]
 pub struct Settings {
