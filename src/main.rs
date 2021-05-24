@@ -63,10 +63,7 @@ fn main() {
 
 fn run(do_commit: bool, site_filter: Option<&Regex>) -> anyhow::Result<()> {
     let settings = Settings::load().expect("failed to load settings");
-    let mut http_agent = http::Http::new(settings.from);
-    if let Some(user_agent) = settings.user_agent {
-        http_agent.set_user_agent(user_agent);
-    }
+    let http_agent = http::Http::new(settings.from);
 
     let sites_total = settings.sites.len();
     let sites = settings

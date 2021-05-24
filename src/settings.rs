@@ -7,9 +7,6 @@ use crate::site::{Huntable, Site};
 pub struct Settings {
     pub from: String,
 
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub user_agent: Option<String>,
-
     pub sites: Vec<Site>,
 }
 
@@ -17,7 +14,6 @@ impl Settings {
     pub fn example() -> Self {
         Self {
             from: "my-email-address".to_string(),
-            user_agent: None,
             sites: Site::examples(),
         }
     }
@@ -87,7 +83,6 @@ fn can_parse_example_config() {
 fn validate_fails_on_empty_sites_list() {
     let settings = Settings {
         from: "dummy".to_string(),
-        user_agent: None,
         sites: vec![],
     };
     let result = settings.validate_min_one_site();
