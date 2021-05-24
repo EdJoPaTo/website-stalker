@@ -28,12 +28,17 @@ pub fn is_repo() -> bool {
 }
 
 pub fn add(path: &str) -> anyhow::Result<()> {
-    let status = Command::new("git").arg("add").arg(path).status()?;
+    let status = Command::new("git")
+        .arg("--no-pager")
+        .arg("add")
+        .arg(path)
+        .status()?;
     result_from_status(status, "add")
 }
 
 pub fn cleanup(path: &str) -> anyhow::Result<()> {
     let status = Command::new("git")
+        .arg("--no-pager")
         .arg("clean")
         .arg("--force")
         .arg("--quiet")
@@ -43,6 +48,7 @@ pub fn cleanup(path: &str) -> anyhow::Result<()> {
     result_from_status(status, "clean")?;
 
     let status = Command::new("git")
+        .arg("--no-pager")
         .arg("checkout")
         .arg("--quiet")
         .arg(path)
@@ -64,6 +70,7 @@ pub fn commit(message: &str) -> anyhow::Result<()> {
     #[cfg(debug_assertions)]
     println!("commit message length is {}/50 {}", message.len(), message);
     let status = Command::new("git")
+        .arg("--no-pager")
         .arg("commit")
         .arg("--no-gpg-sign")
         .arg("--author")
@@ -76,6 +83,7 @@ pub fn commit(message: &str) -> anyhow::Result<()> {
 
 pub fn diff(additional_args: &[&str]) -> anyhow::Result<()> {
     let status = Command::new("git")
+        .arg("--no-pager")
         .arg("diff")
         .args(additional_args)
         .status()?;
@@ -83,11 +91,18 @@ pub fn diff(additional_args: &[&str]) -> anyhow::Result<()> {
 }
 
 pub fn reset() -> anyhow::Result<()> {
-    let status = Command::new("git").arg("reset").status()?;
+    let status = Command::new("git")
+        .arg("--no-pager")
+        .arg("reset")
+        .status()?;
     result_from_status(status, "reset")
 }
 
 pub fn status_short() -> anyhow::Result<()> {
-    let status = Command::new("git").arg("status").arg("--short").status()?;
+    let status = Command::new("git")
+        .arg("--no-pager")
+        .arg("status")
+        .arg("--short")
+        .status()?;
     result_from_status(status, "status")
 }
