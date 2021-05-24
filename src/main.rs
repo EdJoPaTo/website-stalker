@@ -62,7 +62,7 @@ async fn main() {
 
 async fn run(do_commit: bool, site_filter: Option<&Regex>) -> anyhow::Result<()> {
     let settings = Settings::load().expect("failed to load settings");
-    let http_agent = http::Http::new(settings.from);
+    let http_agent = http::Http::new(&settings.from);
 
     let sites_total = settings.sites.len();
     let sites = settings
