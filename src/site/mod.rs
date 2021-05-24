@@ -22,10 +22,10 @@ impl Site {
         }
     }
 
-    pub async fn hunt(&self, http_agent: &Http) -> anyhow::Result<String> {
+    pub async fn stalk(&self, http_agent: &Http) -> anyhow::Result<String> {
         match self {
-            Site::Html(o) => o.hunt(http_agent).await,
-            Site::Utf8(o) => o.hunt(http_agent).await,
+            Site::Html(o) => o.stalk(http_agent).await,
+            Site::Utf8(o) => o.stalk(http_agent).await,
         }
     }
 

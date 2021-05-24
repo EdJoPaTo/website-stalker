@@ -139,7 +139,7 @@ async fn run(do_commit: bool, site_filter: Option<&Regex>) -> anyhow::Result<()>
 async fn do_site(http_agent: &Http, is_repo: bool, site: &Site) -> anyhow::Result<bool> {
     let filename = site.get_filename();
     let path = format!("sites/{}", filename);
-    let contents = site.hunt(http_agent).await?;
+    let contents = site.stalk(http_agent).await?;
     let contents = contents.trim().to_string() + "\n";
 
     let current = std::fs::read_to_string(&path).unwrap_or_default();

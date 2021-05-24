@@ -19,7 +19,7 @@ impl Utf8 {
         url_filename::format(&self.url, "txt")
     }
 
-    pub async fn hunt(&self, http_agent: &Http) -> anyhow::Result<String> {
+    pub async fn stalk(&self, http_agent: &Http) -> anyhow::Result<String> {
         let content = http_agent.get(self.url.as_str()).await?;
 
         let mut replaced = content;
