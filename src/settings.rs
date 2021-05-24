@@ -1,6 +1,7 @@
 use config::ConfigError;
 use serde::{Deserialize, Serialize};
 
+use crate::http::validate_from;
 use crate::site::Site;
 
 #[derive(Debug, Deserialize, Serialize)]
@@ -33,21 +34,12 @@ impl Settings {
     }
 
     fn validate(&self) -> Result<(), ConfigError> {
-        self.validate_from_is_email()?;
+        validate_from(&self.from).map_err(|err| {
+            ConfigError::Message(format!("from ({}) is invalid: {}", self.from, err))
+        })?;
         self.validate_min_one_site()?;
         Site::validate_no_duplicate(&self.sites).map_err(ConfigError::Message)?;
         self.validate_each_site()?;
-        Ok(())
-    }
-
-    fn validate_from_is_email(&self) -> Result<(), ConfigError> {
-        let from = &self.from;
-        if !from.contains('@') || !from.contains('.') {
-            return Err(ConfigError::Message(format!(
-                "from doesnt look like an email address: {}",
-                from
-            )));
-        }
         Ok(())
     }
 
