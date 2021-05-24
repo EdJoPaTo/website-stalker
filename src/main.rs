@@ -92,8 +92,8 @@ async fn run(do_commit: bool, site_filter: Option<&Regex>) -> anyhow::Result<()>
 
     std::fs::create_dir_all("sites").expect("failed to create sites directory");
 
+    let filenames = sites.iter().map(Site::get_filename).collect::<Vec<_>>();
     if sites_amount == sites_total {
-        let filenames = sites.iter().map(Site::get_filename).collect::<Vec<_>>();
         remove_gone_sites(is_repo, do_commit, &filenames)?;
     }
 
@@ -118,7 +118,7 @@ async fn run(do_commit: bool, site_filter: Option<&Regex>) -> anyhow::Result<()>
             let handle = tokio::spawn(async move {
                 sleep(Duration::from_secs((i * 5) as u64)).await;
                 let start = Instant::now();
-                let result = do_site(&http_agent, is_repo, &site).await;
+                let result = do_site(&http_agent, &site).await;
                 let took = Instant::now().saturating_duration_since(start).as_millis();
                 let url = site.get_url().as_str();
 
@@ -167,6 +167,12 @@ async fn run(do_commit: bool, site_filter: Option<&Regex>) -> anyhow::Result<()>
 
     if is_repo {
         println!();
+        git::add(
+            filenames
+                .iter()
+                .map(|o| format!("sites/{}", o))
+                .filter(|path| std::fs::metadata(path).is_ok()),
+        )?;
         git::diff(&["--staged", "--stat"]).unwrap();
     }
     if something_changed && do_commit {
@@ -185,22 +191,16 @@ async fn run(do_commit: bool, site_filter: Option<&Regex>) -> anyhow::Result<()>
     }
 }
 
-async fn do_site(http_agent: &Http, is_repo: bool, site: &Site) -> anyhow::Result<bool> {
+async fn do_site(http_agent: &Http, site: &Site) -> anyhow::Result<bool> {
     let filename = site.get_filename();
     let path = format!("sites/{}", filename);
     let contents = site.stalk(http_agent).await?;
     let contents = contents.trim().to_string() + "\n";
-
     let current = std::fs::read_to_string(&path).unwrap_or_default();
     let changed = current != contents;
     if changed {
         std::fs::write(&path, contents)?;
     }
-    if is_repo {
-        // Always add as it could have changed in the last non --commit run
-        git::add(&path)?;
-    }
-
     Ok(changed)
 }
 
@@ -224,7 +224,7 @@ fn remove_gone_sites(
         if !is_wanted {
             std::fs::remove_file(&path)?;
             if is_repo {
-                git::add(&path)?;
+                git::add(&[&path])?;
             }
             any_removed = true;
 

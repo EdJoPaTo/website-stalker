@@ -1,5 +1,6 @@
 // the git2 crate requires openssl which is annoying to cross compile -> require git to be installed on host
 
+use std::ffi::OsStr;
 use std::path::Path;
 use std::process::{Command, ExitStatus, Stdio};
 
@@ -27,11 +28,15 @@ pub fn is_repo() -> bool {
     Path::new(".git/HEAD").exists()
 }
 
-pub fn add(path: &str) -> anyhow::Result<()> {
+pub fn add<I, S>(paths: I) -> anyhow::Result<()>
+where
+    I: IntoIterator<Item = S>,
+    S: AsRef<OsStr>,
+{
     let status = Command::new("git")
         .arg("--no-pager")
         .arg("add")
-        .arg(path)
+        .args(paths)
         .status()?;
     result_from_status(status, "add")
 }
