@@ -61,12 +61,7 @@ pub fn cleanup(path: &str) -> anyhow::Result<()> {
 }
 
 pub fn commit(message: &str) -> anyhow::Result<()> {
-    let message = format!(
-        "{}/{}: {}",
-        env!("CARGO_PKG_NAME"),
-        env!("CARGO_PKG_VERSION"),
-        message
-    );
+    let message = format!("{}: {}", env!("CARGO_PKG_NAME"), message,);
     #[cfg(debug_assertions)]
     println!("commit message length is {}/50 {}", message.len(), message);
     let status = Command::new("git")
