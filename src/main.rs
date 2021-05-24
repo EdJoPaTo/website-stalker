@@ -1,4 +1,4 @@
-use std::time::Duration;
+use std::time::{Duration, Instant};
 
 use http::Http;
 use itertools::Itertools;
@@ -112,14 +112,14 @@ async fn run(do_commit: bool, site_filter: Option<&Regex>) -> anyhow::Result<()>
             let http_agent = http_agent.clone();
             let handle = tokio::spawn(async move {
                 sleep(Duration::from_secs((i * 5) as u64)).await;
+                let start = Instant::now();
                 let result = do_site(&http_agent, is_repo, &site).await;
+                let took = Instant::now().saturating_duration_since(start).as_millis();
                 let url = site.get_url().as_str();
                 match &result {
-                    Ok(true) => {
-                        println!("  CHANGED: {}", url);
-                    }
-                    Ok(false) => {
-                        println!("UNCHANGED: {}", url);
+                    Ok(changed) => {
+                        let change = if *changed { "  CHANGED" } else { "UNCHANGED" };
+                        println!("{} {:5}ms {}", change, took, url);
                     }
                     Err(err) => {
                         logger::error(&format!("{} {}", url, err));
