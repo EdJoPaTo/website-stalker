@@ -1,3 +1,4 @@
+use std::sync::Arc;
 use std::time::{Duration, Instant};
 
 use http::Http;
@@ -5,6 +6,7 @@ use itertools::Itertools;
 use regex::Regex;
 use settings::Settings;
 use site::Site;
+use tokio::sync::RwLock;
 use tokio::time::sleep;
 
 mod cli;
@@ -64,6 +66,7 @@ async fn main() {
     }
 }
 
+#[allow(clippy::too_many_lines)]
 async fn run(do_commit: bool, site_filter: Option<&Regex>) -> anyhow::Result<()> {
     let settings = Settings::load().expect("failed to load settings");
     let http_agent = http::Http::new(&settings.from);
@@ -107,19 +110,35 @@ async fn run(do_commit: bool, site_filter: Option<&Regex>) -> anyhow::Result<()>
     let groups = sites
         .into_iter()
         .group_by(|a| a.get_url().domain().unwrap().to_string());
+    let amount_done = Arc::new(RwLock::new(0_usize));
     for (_, group) in &groups {
         for (i, site) in group.enumerate() {
             let http_agent = http_agent.clone();
+            let amount_done = amount_done.clone();
             let handle = tokio::spawn(async move {
                 sleep(Duration::from_secs((i * 5) as u64)).await;
                 let start = Instant::now();
                 let result = do_site(&http_agent, is_repo, &site).await;
                 let took = Instant::now().saturating_duration_since(start).as_millis();
                 let url = site.get_url().as_str();
+
+                let done = {
+                    let before = amount_done.read().await;
+                    *before + 1
+                };
+
+                {
+                    let mut n = amount_done.write().await;
+                    *n = done;
+                }
+
                 match &result {
                     Ok(changed) => {
                         let change = if *changed { "  CHANGED" } else { "UNCHANGED" };
-                        println!("{} {:5}ms {}", change, took, url);
+                        println!(
+                            "{:4}/{} {} {:5}ms {}",
+                            done, sites_amount, change, took, url
+                        );
                     }
                     Err(err) => {
                         logger::error(&format!("{} {}", url, err));
