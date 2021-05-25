@@ -26,7 +26,10 @@ Check out [website-stalker-example](https://github.com/EdJoPaTo/website-stalker-
     git init
     ```
 
-- Create the config file which contains all the websites to be stalked. Add your favorite website.
+- Create the config file which contains all the websites to be stalked.
+    Add your favorite website.
+    Also make sure to set the value of [from](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/From) to an email address of yours.
+
     ```bash
     website-stalker example-config > website-stalker.yaml
     nano website-stalker.yaml
