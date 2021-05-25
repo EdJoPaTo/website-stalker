@@ -20,6 +20,10 @@ pub fn warn(message: &str) {
     }
 }
 
+pub fn hint(message: &str) {
+    eprintln!("Hint: {}", message);
+}
+
 pub fn begin_group(title: &str) {
     if is_gha() {
         println!("::group::{}", title);

@@ -82,6 +82,16 @@ async fn run(do_commit: bool, site_filter: Option<&Regex>) -> anyhow::Result<()>
         panic!("Site filter filtered everything out.");
     }
 
+    let distinct_domains = {
+        let mut domains = sites
+            .iter()
+            .map(|o| o.get_url().domain().unwrap().to_string())
+            .collect::<Vec<_>>();
+        domains.sort();
+        domains.dedup();
+        domains.len()
+    };
+
     let is_repo = git::is_repo();
     if is_repo {
         git::reset().unwrap();
@@ -99,14 +109,20 @@ async fn run(do_commit: bool, site_filter: Option<&Regex>) -> anyhow::Result<()>
 
     if sites_amount < sites_total {
         println!(
-            "Begin filtered stalking of {}/{} sites...",
-            sites_amount, sites_total
+            "Begin filtered stalking of {}/{} sites on {} domains...",
+            sites_amount, sites_total, distinct_domains
         );
     } else {
-        println!("Begin stalking {} sites...", sites_amount);
+        println!(
+            "Begin stalking {} sites on {} domains...",
+            sites_amount, distinct_domains
+        );
+    }
+    if distinct_domains < sites_amount {
+        logger::hint("Some sites are on the same domain. There is a wait time of 5 seconds between each request to the same domain in order to reduce load on the server.");
     }
 
-    let mut tasks = Vec::with_capacity(sites.len());
+    let mut tasks = Vec::with_capacity(sites_amount);
     let groups = sites
         .into_iter()
         .group_by(|a| a.get_url().domain().unwrap().to_string());
