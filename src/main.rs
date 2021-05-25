@@ -183,25 +183,10 @@ async fn run(do_commit: bool, site_filter: Option<&Regex>) -> anyhow::Result<()>
 
     if is_repo {
         println!();
-        git::add(
-            filenames
-                .iter()
-                .map(|o| format!("sites/{}", o))
-                .filter(|path| std::fs::metadata(path).is_ok()),
-        )?;
-        git::diff(&["--staged", "--stat"]).unwrap();
-    }
-    if something_changed {
-        if do_commit {
-            logger::begin_group("git commit");
-            git::commit("stalked some things \u{1f440}\u{1f310}\u{1f60e}").unwrap();
-            logger::end_group();
-        } else {
-            logger::warn("No commit is created without the --commit flag.");
+        if something_changed {
+            git_finishup(do_commit, filenames)?;
         }
-    }
-    if is_repo {
-        git::status_short().unwrap();
+        git::status_short()?;
     }
 
     if error_occured {
@@ -256,6 +241,30 @@ fn remove_gone_sites(
         logger::begin_group("git commit");
         git::commit("remove superfluous \u{1f5d1}\u{1f310}\u{1f916}")?;
         logger::end_group();
+    }
+
+    Ok(())
+}
+
+fn git_finishup<F, FT>(do_commit: bool, filenames: F) -> anyhow::Result<()>
+where
+    F: IntoIterator<Item = FT>,
+    FT: ToString,
+{
+    git::add(
+        filenames
+            .into_iter()
+            .map(|o| format!("sites/{}", o.to_string()))
+            .filter(|path| std::fs::metadata(path).is_ok()),
+    )?;
+    git::diff(&["--staged", "--stat"])?;
+
+    if do_commit {
+        logger::begin_group("git commit");
+        git::commit("stalked some things \u{1f440}\u{1f310}\u{1f60e}")?;
+        logger::end_group();
+    } else {
+        logger::warn("No commit is created without the --commit flag.");
     }
 
     Ok(())
