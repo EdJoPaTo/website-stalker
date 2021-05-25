@@ -87,7 +87,7 @@ async fn run(do_commit: bool, site_filter: Option<&Regex>) -> anyhow::Result<()>
         git::reset().unwrap();
         git::cleanup("sites").unwrap();
     } else {
-        println!("HINT: not a git repo. Will run but won't do git actions.")
+        logger::warn("Not a git repo. Will run but won't do git actions.");
     }
 
     std::fs::create_dir_all("sites").expect("failed to create sites directory");
@@ -175,10 +175,14 @@ async fn run(do_commit: bool, site_filter: Option<&Regex>) -> anyhow::Result<()>
         )?;
         git::diff(&["--staged", "--stat"]).unwrap();
     }
-    if something_changed && do_commit {
-        logger::begin_group("git commit");
-        git::commit("stalked some things \u{1f440}\u{1f310}\u{1f60e}").unwrap();
-        logger::end_group();
+    if something_changed {
+        if do_commit {
+            logger::begin_group("git commit");
+            git::commit("stalked some things \u{1f440}\u{1f310}\u{1f60e}").unwrap();
+            logger::end_group();
+        } else {
+            logger::warn("No commit is created without the --commit flag.");
+        }
     }
     if is_repo {
         git::status_short().unwrap();
