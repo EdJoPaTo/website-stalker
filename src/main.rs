@@ -232,7 +232,7 @@ fn remove_gone_sites(
             }
             any_removed = true;
 
-            logger::warn(&format!("remove superfluous {}", path));
+            logger::warn(&format!("Remove superfluous {}", path));
         }
     }
 
