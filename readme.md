@@ -47,9 +47,27 @@ Check out [website-stalker-example](https://github.com/EdJoPaTo/website-stalker-
     website-stalker run --all --commit
     ```
 
-### Detailed Config Example
+### Config Example
 
-There is a [config](https://github.com/EdJoPaTo/website-stalker-example/blob/main/website-stalker.yaml) in my [example repo](https://github.com/EdJoPaTo/website-stalker-example).
+```yaml
+# This is an example config
+# The filename should be `website-stalker.yaml`
+# and it should be in the working directory where you run website-stalker.
+#
+# For example run `website-stalker example-config > website-stalker.yaml`.
+# And then do a run via `website-stalker run`.
+---
+from: my-email-address
+sites:
+  - html:
+      url: "https://edjopato.de/post/"
+      css_selector: section
+  - utf8:
+      url: "https://edjopato.de/robots.txt"
+```
+
+There is a bigger [config](https://github.com/EdJoPaTo/website-stalker-example/blob/main/website-stalker.yaml) in my [example repo](https://github.com/EdJoPaTo/website-stalker-example).
+The example repo is also used by me to detect changes of interesting sites.
 
 ### Command Line Arguments
 
