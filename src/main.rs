@@ -138,15 +138,8 @@ async fn run(do_commit: bool, site_filter: Option<&Regex>) -> anyhow::Result<()>
                 let took = Instant::now().saturating_duration_since(start).as_millis();
                 let url = site.get_url().as_str();
 
-                let done = {
-                    let before = amount_done.read().await;
-                    *before + 1
-                };
-
-                {
-                    let mut n = amount_done.write().await;
-                    *n = done;
-                }
+                let mut done = amount_done.write().await;
+                *done += 1;
 
                 match &result {
                     Ok(changed) => {
