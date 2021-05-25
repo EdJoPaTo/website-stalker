@@ -32,7 +32,7 @@ pub fn build() -> App<'static, 'static> {
                             Ok(_) => Ok(()),
                             Err(err) => Err(format!("{}", err)),
                         })
-                        .help("filter the rules to be run"),
+                        .help("filter the rules to be run (regular expression)"),
                 ),
         )
 }
