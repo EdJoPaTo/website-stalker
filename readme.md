@@ -2,6 +2,10 @@
 
 > Track changes on websites via git
 
+This tool checks all the websites listed in its config.
+When a change is detected, the new site is added to a git commit.
+It can then be inspected via normal git tooling.
+
 See it [in action](https://github.com/EdJoPaTo/website-stalker-example) (literally in GitHub **Action**s).
 
 ## Install
