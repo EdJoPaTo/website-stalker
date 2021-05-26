@@ -1,7 +1,7 @@
 use serde::{Deserialize, Serialize};
 use url::Url;
 
-use crate::http::Http;
+use crate::http::Response;
 
 mod html;
 mod url_filename;
@@ -22,10 +22,10 @@ impl Site {
         }
     }
 
-    pub async fn stalk(&self, http_agent: &Http) -> anyhow::Result<String> {
+    pub async fn stalk(&self, response: Response) -> anyhow::Result<String> {
         match self {
-            Site::Html(o) => o.stalk(http_agent).await,
-            Site::Utf8(o) => o.stalk(http_agent).await,
+            Site::Html(o) => o.stalk(response).await,
+            Site::Utf8(o) => o.stalk(response).await,
         }
     }
 

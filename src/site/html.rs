@@ -2,7 +2,7 @@ use scraper::Selector;
 use serde::{Deserialize, Serialize};
 use url::Url;
 
-use crate::http::Http;
+use crate::http::Response;
 use crate::regex_replacer::RegexReplacer;
 
 use super::url_filename;
@@ -25,8 +25,8 @@ impl Html {
         url_filename::format(&self.url, "html")
     }
 
-    pub async fn stalk(&self, http_agent: &Http) -> anyhow::Result<String> {
-        let content = http_agent.get(self.url.as_str()).await?;
+    pub async fn stalk(&self, response: Response) -> anyhow::Result<String> {
+        let content = response.text().await?;
 
         #[allow(clippy::option_if_let_else)]
         let content = if let Some(selector) = &self.css_selector {

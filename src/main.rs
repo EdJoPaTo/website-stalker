@@ -196,8 +196,9 @@ async fn run(do_commit: bool, site_filter: Option<&Regex>) -> anyhow::Result<()>
 async fn stalk_and_save_site(http_agent: &Http, site: &Site) -> anyhow::Result<(bool, Duration)> {
     let path = format!("sites/{}", site.get_filename());
     let start = Instant::now();
-    let contents = site.stalk(http_agent).await?;
+    let response = http_agent.get(site.get_url().as_str()).await?;
     let took = Instant::now().saturating_duration_since(start);
+    let contents = site.stalk(response).await?;
     let contents = contents.trim().to_string() + "\n";
     let changed = write_only_changed(path, &contents)?;
     Ok((changed, took))

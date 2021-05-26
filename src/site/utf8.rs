@@ -1,7 +1,7 @@
 use serde::{Deserialize, Serialize};
 use url::Url;
 
-use crate::http::Http;
+use crate::http::Response;
 use crate::regex_replacer::RegexReplacer;
 
 use super::url_filename;
@@ -19,8 +19,8 @@ impl Utf8 {
         url_filename::format(&self.url, "txt")
     }
 
-    pub async fn stalk(&self, http_agent: &Http) -> anyhow::Result<String> {
-        let content = http_agent.get(self.url.as_str()).await?;
+    pub async fn stalk(&self, response: Response) -> anyhow::Result<String> {
+        let content = response.text().await?;
 
         let mut replaced = content;
         for replacer in &self.regex_replacers {

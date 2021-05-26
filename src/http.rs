@@ -15,6 +15,10 @@ pub struct Http {
     client: Client,
 }
 
+pub struct Response {
+    response: reqwest::Response,
+}
+
 impl Http {
     /// Create an http agent with an email address to be contacted in case of problems.
     ///
@@ -33,9 +37,15 @@ impl Http {
         }
     }
 
-    pub async fn get(&self, url: &str) -> anyhow::Result<String> {
+    pub async fn get(&self, url: &str) -> anyhow::Result<Response> {
         let response = self.client.get(url).send().await?.error_for_status()?;
-        let text = response.text().await?;
+        Ok(Response { response })
+    }
+}
+
+impl Response {
+    pub async fn text(self) -> anyhow::Result<String> {
+        let text = self.response.text().await?;
         Ok(text)
     }
 }
