@@ -192,10 +192,17 @@ async fn run(do_commit: bool, site_filter: Option<&Regex>) -> anyhow::Result<()>
 }
 
 async fn do_site(http_agent: &Http, site: &Site) -> anyhow::Result<bool> {
-    let filename = site.get_filename();
-    let path = format!("sites/{}", filename);
+    let path = format!("sites/{}", site.get_filename());
     let contents = site.stalk(http_agent).await?;
     let contents = contents.trim().to_string() + "\n";
+    let changed = write_only_changed(path, &contents)?;
+    Ok(changed)
+}
+
+fn write_only_changed<P>(path: P, contents: &str) -> std::io::Result<bool>
+where
+    P: AsRef<std::path::Path>,
+{
     let current = std::fs::read_to_string(&path).unwrap_or_default();
     let changed = current != contents;
     if changed {
