@@ -135,20 +135,22 @@ async fn run(do_commit: bool, site_filter: Option<&Regex>) -> anyhow::Result<()>
             let amount_done = amount_done.clone();
             let handle = tokio::spawn(async move {
                 sleep(Duration::from_secs((i * 5) as u64)).await;
-                let start = Instant::now();
-                let result = do_site(&http_agent, &site).await;
-                let took = Instant::now().saturating_duration_since(start).as_millis();
+                let result = stalk_and_save_site(&http_agent, &site).await;
                 let url = site.get_url().as_str();
 
                 let mut done = amount_done.write().await;
                 *done += 1;
 
                 match &result {
-                    Ok(changed) => {
+                    Ok((changed, took)) => {
                         let change = if *changed { "  CHANGED" } else { "UNCHANGED" };
                         println!(
                             "{:4}/{} {} {:5}ms {}",
-                            done, sites_amount, change, took, url
+                            done,
+                            sites_amount,
+                            change,
+                            took.as_millis(),
+                            url
                         );
                     }
                     Err(err) => {
@@ -166,10 +168,10 @@ async fn run(do_commit: bool, site_filter: Option<&Regex>) -> anyhow::Result<()>
     let mut error_occured = false;
     for handle in tasks {
         match handle.await.expect("failed to spawn task") {
-            Ok(true) => {
+            Ok((true, _)) => {
                 something_changed = true;
             }
-            Ok(false) => {}
+            Ok(_) => {}
             Err(_) => {
                 error_occured = true;
             }
@@ -191,12 +193,14 @@ async fn run(do_commit: bool, site_filter: Option<&Regex>) -> anyhow::Result<()>
     }
 }
 
-async fn do_site(http_agent: &Http, site: &Site) -> anyhow::Result<bool> {
+async fn stalk_and_save_site(http_agent: &Http, site: &Site) -> anyhow::Result<(bool, Duration)> {
     let path = format!("sites/{}", site.get_filename());
+    let start = Instant::now();
     let contents = site.stalk(http_agent).await?;
+    let took = Instant::now().saturating_duration_since(start);
     let contents = contents.trim().to_string() + "\n";
     let changed = write_only_changed(path, &contents)?;
-    Ok(changed)
+    Ok((changed, took))
 }
 
 fn write_only_changed<P>(path: P, contents: &str) -> std::io::Result<bool>
