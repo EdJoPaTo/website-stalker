@@ -6,9 +6,13 @@ pub fn format(url: &Url, extension: &str) -> String {
     let domain = url.domain().expect("domain needed");
     let path = url.path().trim_end_matches(extension);
 
-    let domain_part = domain.split('.').rev().collect::<Vec<_>>().join("-");
+    let domain_part = domain
+        .trim_start_matches("www.")
+        .split('.')
+        .rev()
+        .collect::<Vec<_>>()
+        .join("-");
     let raw = format!("{}-{}", domain_part, path);
-
     let only_ascii = re.replace_all(&raw, "-");
     let trimmed = only_ascii.trim_matches('-');
     format!("{}.{}", trimmed, extension)
@@ -70,5 +74,13 @@ fn extension_does_not_duplicate() {
     assert_eq!(
         tf("http://edjopato.de/robot.html", "txt"),
         "de-edjopato-robot-html.txt",
+    );
+}
+
+#[test]
+fn domain_prefix_www_doesnt_matter() {
+    assert_eq!(
+        tf("https://edjopato.de/", "html"),
+        tf("https://www.edjopato.de/", "html"),
     );
 }
