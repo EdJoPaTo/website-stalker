@@ -21,7 +21,7 @@ pub fn warn(message: &str) {
 }
 
 pub fn hint(message: &str) {
-    eprintln!("Hint: {}", message);
+    eprintln!("HINT: {}", message);
 }
 
 pub fn begin_group(title: &str) {
