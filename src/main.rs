@@ -103,9 +103,11 @@ async fn run(do_commit: bool, site_filter: Option<&Regex>) -> anyhow::Result<()>
     std::fs::create_dir_all("sites").expect("failed to create sites directory");
 
     let filenames = sites.iter().map(Site::get_filename).collect::<Vec<_>>();
-    if sites_amount == sites_total {
-        remove_gone_sites(is_repo, do_commit, &filenames)?;
-    }
+    let something_removed = if sites_amount == sites_total {
+        remove_gone_sites(&filenames)?
+    } else {
+        false
+    };
 
     if sites_amount < sites_total {
         println!(
@@ -176,8 +178,8 @@ async fn run(do_commit: bool, site_filter: Option<&Regex>) -> anyhow::Result<()>
 
     if is_repo {
         println!();
-        if something_changed {
-            git_finishup(do_commit, filenames)?;
+        if something_removed || something_changed {
+            git_finishup(do_commit)?;
         }
         git::status_short()?;
     }
@@ -202,54 +204,30 @@ async fn do_site(http_agent: &Http, site: &Site) -> anyhow::Result<bool> {
     Ok(changed)
 }
 
-fn remove_gone_sites(
-    is_repo: bool,
-    do_commit: bool,
-    existing_filenames: &[String],
-) -> anyhow::Result<()> {
+fn remove_gone_sites(existing_filenames: &[String]) -> anyhow::Result<bool> {
     let mut any_removed = false;
 
     for file in std::fs::read_dir("sites")? {
         let file = file?;
-
         let name = file
             .file_name()
             .into_string()
             .map_err(|name| anyhow::anyhow!("filename has no valid Utf-8: {:?}", name))?;
-        let path = format!("sites/{}", name);
 
         let is_wanted = existing_filenames.as_ref().contains(&name);
         if !is_wanted {
+            let path = format!("sites/{}", name);
             std::fs::remove_file(&path)?;
-            if is_repo {
-                git::add(&[&path])?;
-            }
             any_removed = true;
-
             logger::warn(&format!("Remove superfluous {}", path));
         }
     }
 
-    if any_removed && do_commit {
-        logger::begin_group("git commit");
-        git::commit("remove superfluous \u{1f5d1}\u{1f310}\u{1f916}")?;
-        logger::end_group();
-    }
-
-    Ok(())
+    Ok(any_removed)
 }
 
-fn git_finishup<F, FT>(do_commit: bool, filenames: F) -> anyhow::Result<()>
-where
-    F: IntoIterator<Item = FT>,
-    FT: ToString,
-{
-    git::add(
-        filenames
-            .into_iter()
-            .map(|o| format!("sites/{}", o.to_string()))
-            .filter(|path| std::fs::metadata(path).is_ok()),
-    )?;
+fn git_finishup(do_commit: bool) -> anyhow::Result<()> {
+    git::add(&["sites"])?;
     git::diff(&["--staged", "--stat"])?;
 
     if do_commit {
