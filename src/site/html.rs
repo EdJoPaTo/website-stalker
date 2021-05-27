@@ -29,10 +29,16 @@ impl Html {
         let content = response.text().await?;
 
         #[allow(clippy::option_if_let_else)]
-        let content = if let Some(selector) = &self.css_selector {
-            let selector = Selector::parse(selector).unwrap();
+        let content = if let Some(selector_str) = &self.css_selector {
+            let selector = Selector::parse(selector_str).unwrap();
             let html = scraper::Html::parse_document(&content);
             let selected = html.select(&selector).map(|o| o.html()).collect::<Vec<_>>();
+            if selected.is_empty() {
+                return Err(anyhow::anyhow!(
+                    "css_selector ({}) selected nothing",
+                    selector_str
+                ));
+            }
             selected.join("\n")
         } else {
             content
