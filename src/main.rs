@@ -99,7 +99,7 @@ async fn run(do_commit: bool, site_filter: Option<&Regex>) -> anyhow::Result<()>
     let is_repo = git::is_repo();
     if is_repo {
         git::reset().unwrap();
-        git::cleanup("sites").unwrap();
+        git::cleanup(SITE_FOLDER).unwrap();
     } else {
         logger::warn("Not a git repo. Will run but won't do git actions.");
     }
