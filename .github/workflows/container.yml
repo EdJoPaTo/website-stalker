@@ -23,11 +23,9 @@ jobs:
         id: meta
         uses: docker/metadata-action@v3
         with:
-          # list of Docker images to use as base name for tags
           images: |
             docker.io/edjopato/website-stalker
             ghcr.io/${{ github.repository }}
-          # generate Docker tags based on the following events/attributes
           tags: |
             type=edge
             type=semver,pattern={{version}}
