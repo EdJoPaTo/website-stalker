@@ -14,6 +14,10 @@ edition = "2018"
 codegen-units = 1
 lto = true
 
+[build-dependencies]
+clap = "2"
+regex = "1"
+
 [dependencies]
 anyhow = "1"
 config = "0.11"

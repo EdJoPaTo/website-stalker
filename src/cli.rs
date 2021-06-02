@@ -1,6 +1,7 @@
 use clap::{App, AppSettings, Arg, SubCommand};
 use regex::Regex;
 
+#[must_use]
 pub fn build() -> App<'static, 'static> {
     App::new("Website Stalker")
         .version(env!("CARGO_PKG_VERSION"))

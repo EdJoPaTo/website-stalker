@@ -122,10 +122,12 @@ jobs:
         if: runner.os != 'Windows'
         run: >
           tar --gzip -cvf ${{ env.ARTIFACT_NAME }}.tar.gz
+          completions LICENSE
           -C target/${{ matrix.triple }}/release website-stalker
       - name: Pack release (windows)
         if: runner.os == 'Windows'
         run: |
+          7z a ${{ env.ARTIFACT_NAME }}.zip completions LICENSE
           cd target/${{ matrix.triple }}/release
           7z a ../../../${{ env.ARTIFACT_NAME }}.zip website-stalker.exe
           cd -
