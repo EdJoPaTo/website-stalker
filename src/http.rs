@@ -1,6 +1,8 @@
 use std::time::Duration;
 
-use reqwest::{header, Client, ClientBuilder};
+use chrono::{DateTime, Utc};
+use reqwest::header::{HeaderMap, HeaderValue};
+use reqwest::{header, Client, ClientBuilder, StatusCode};
 
 const USER_AGENT: &str = concat!(
     env!("CARGO_PKG_NAME"),
@@ -37,13 +39,37 @@ impl Http {
         }
     }
 
-    pub async fn get(&self, url: &str) -> anyhow::Result<Response> {
-        let response = self.client.get(url).send().await?.error_for_status()?;
+    pub async fn get<T>(&self, url: &str, last_change: Option<T>) -> anyhow::Result<Response>
+    where
+        T: Into<DateTime<Utc>>,
+    {
+        let mut headers = HeaderMap::new();
+
+        if let Some(last_change) = last_change {
+            let dt: DateTime<Utc> = last_change.into();
+            let last_change = dt.to_rfc2822().replace("+0000", "GMT");
+            headers.append(
+                header::IF_MODIFIED_SINCE,
+                HeaderValue::from_str(&last_change)?,
+            );
+        }
+
+        let response = self
+            .client
+            .get(url)
+            .headers(headers)
+            .send()
+            .await?
+            .error_for_status()?;
         Ok(Response { response })
     }
 }
 
 impl Response {
+    pub fn is_not_modified(&self) -> bool {
+        self.response.status() == StatusCode::NOT_MODIFIED
+    }
+
     pub async fn text(self) -> anyhow::Result<String> {
         let text = self.response.text().await?;
         Ok(text)

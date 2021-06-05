@@ -1,3 +1,4 @@
+use std::fmt::{Debug, Display};
 use std::sync::Arc;
 use std::time::{Duration, Instant};
 
@@ -20,6 +21,19 @@ mod site;
 mod site_store;
 
 const SITE_FOLDER: &str = "sites";
+
+#[derive(Debug)]
+enum ChangeKind {
+    Changed,
+    ContentSame,
+    NotModified,
+}
+
+impl Display for ChangeKind {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        Debug::fmt(self, f)
+    }
+}
 
 #[tokio::main]
 async fn main() {
@@ -153,12 +167,11 @@ async fn run(do_commit: bool, site_filter: Option<&Regex>) -> anyhow::Result<()>
 
                 match &result {
                     Ok((changed, took)) => {
-                        let change = if *changed { "  CHANGED" } else { "UNCHANGED" };
                         println!(
-                            "{:4}/{} {} {:5}ms {}",
+                            "{:4}/{} {:12} {:5}ms {}",
                             done,
                             sites_amount,
-                            change,
+                            changed.to_string(),
                             took.as_millis(),
                             url
                         );
@@ -178,7 +191,7 @@ async fn run(do_commit: bool, site_filter: Option<&Regex>) -> anyhow::Result<()>
     let mut error_occured = false;
     for handle in tasks {
         match handle.await.expect("failed to spawn task") {
-            Ok((true, _)) => {
+            Ok((ChangeKind::Changed, _)) => {
                 something_changed = true;
             }
             Ok(_) => {}
@@ -207,12 +220,25 @@ async fn stalk_and_save_site(
     site_store: &SiteStore,
     http_agent: &Http,
     site: &Site,
-) -> anyhow::Result<(bool, Duration)> {
+) -> anyhow::Result<(ChangeKind, Duration)> {
+    let filename = site.get_filename();
+    let last_change = site_store.last_change(&filename)?;
     let start = Instant::now();
-    let response = http_agent.get(site.get_url().as_str()).await?;
+    let response = http_agent.get(site.get_url().as_str(), last_change).await?;
     let took = Instant::now().saturating_duration_since(start);
+
+    if response.is_not_modified() {
+        return Ok((ChangeKind::NotModified, took));
+    }
+
     let contents = site.stalk(response).await?;
-    let changed = site_store.write_only_changed(&site.get_filename(), &contents)?;
+    let changed = site_store.write_only_changed(&filename, &contents)?;
+    let changed = if changed {
+        ChangeKind::Changed
+    } else {
+        ChangeKind::ContentSame
+    };
+
     Ok((changed, took))
 }
 

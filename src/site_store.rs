@@ -1,5 +1,6 @@
 use std::ffi::OsString;
-use std::fs::{create_dir_all, read_dir, read_to_string, remove_file, write};
+use std::fs::{create_dir_all, metadata, read_dir, read_to_string, remove_file, write};
+use std::time::SystemTime;
 
 #[derive(Clone)]
 pub struct SiteStore {
@@ -29,6 +30,17 @@ impl SiteStore {
 
         superfluous.sort();
         Ok(superfluous)
+    }
+
+    pub fn last_change(&self, filename: &str) -> std::io::Result<Option<SystemTime>> {
+        let path = format!("{}/{}", self.folder, filename);
+        match metadata(path) {
+            Ok(metadata) => {
+                let modified = metadata.modified()?;
+                Ok(Some(modified))
+            }
+            Err(_) => Ok(None),
+        }
     }
 
     pub fn write_only_changed(&self, filename: &str, contents: &str) -> std::io::Result<bool> {
