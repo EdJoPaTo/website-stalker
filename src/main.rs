@@ -133,16 +133,15 @@ async fn run(do_commit: bool, site_filter: Option<&Regex>) -> anyhow::Result<()>
     };
 
     if sites_amount < sites_total {
-        println!(
-            "Begin filtered stalking of {}/{} sites on {} domains...",
-            sites_amount, sites_total, distinct_domains
-        );
-    } else {
-        println!(
-            "Begin stalking {} sites on {} domains...",
-            sites_amount, distinct_domains
-        );
+        logger::hint(&format!(
+            "Your config contains {} sites of which {} are selected by your filter.",
+            sites_total, sites_amount
+        ));
     }
+    println!(
+        "Begin stalking of {} sites on {} domains...",
+        sites_amount, distinct_domains
+    );
     if distinct_domains < sites_amount {
         logger::hint("Some sites are on the same domain. There is a wait time of 5 seconds between each request to the same domain in order to reduce load on the server.");
     }
