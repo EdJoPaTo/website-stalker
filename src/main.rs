@@ -23,7 +23,8 @@ mod site_store;
 const SITE_FOLDER: &str = "sites";
 
 #[derive(Debug)]
-enum ChangeKind {
+pub enum ChangeKind {
+    Init,
     Changed,
     ContentSame,
     NotModified,
@@ -232,12 +233,6 @@ async fn stalk_and_save_site(
 
     let contents = site.stalk(response).await?;
     let changed = site_store.write_only_changed(&filename, &contents)?;
-    let changed = if changed {
-        ChangeKind::Changed
-    } else {
-        ChangeKind::ContentSame
-    };
-
     Ok((changed, took))
 }
 

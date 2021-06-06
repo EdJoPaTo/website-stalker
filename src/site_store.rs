@@ -2,6 +2,8 @@ use std::ffi::OsString;
 use std::fs::{create_dir_all, metadata, read_dir, read_to_string, remove_file, write};
 use std::time::SystemTime;
 
+use crate::ChangeKind;
+
 #[derive(Clone)]
 pub struct SiteStore {
     folder: String,
@@ -43,7 +45,11 @@ impl SiteStore {
         }
     }
 
-    pub fn write_only_changed(&self, filename: &str, contents: &str) -> std::io::Result<bool> {
+    pub fn write_only_changed(
+        &self,
+        filename: &str,
+        contents: &str,
+    ) -> std::io::Result<ChangeKind> {
         let path = format!("{}/{}", self.folder, filename);
         let contents = contents.trim().to_string() + "\n";
 
@@ -52,6 +58,13 @@ impl SiteStore {
         if changed {
             write(&path, contents)?;
         }
-        Ok(changed)
+
+        if current.is_empty() {
+            Ok(ChangeKind::Init)
+        } else if changed {
+            Ok(ChangeKind::Changed)
+        } else {
+            Ok(ChangeKind::ContentSame)
+        }
     }
 }
