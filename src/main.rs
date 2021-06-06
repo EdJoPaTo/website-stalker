@@ -134,7 +134,7 @@ async fn run(do_commit: bool, site_filter: Option<&Regex>) -> anyhow::Result<()>
     };
 
     if sites_amount < sites_total {
-        logger::hint(&format!(
+        logger::info(&format!(
             "Your config contains {} sites of which {} are selected by your filter.",
             sites_total, sites_amount
         ));
@@ -144,7 +144,7 @@ async fn run(do_commit: bool, site_filter: Option<&Regex>) -> anyhow::Result<()>
         sites_amount, distinct_domains
     );
     if distinct_domains < sites_amount {
-        logger::hint("Some sites are on the same domain. There is a wait time of 5 seconds between each request to the same domain in order to reduce load on the server.");
+        logger::info("Some sites are on the same domain. There is a wait time of 5 seconds between each request to the same domain in order to reduce load on the server.");
     }
 
     let mut tasks = Vec::with_capacity(sites_amount);

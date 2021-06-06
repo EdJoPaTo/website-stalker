@@ -20,8 +20,8 @@ pub fn warn(message: &str) {
     }
 }
 
-pub fn hint(message: &str) {
-    eprintln!("HINT: {}", message);
+pub fn info(message: &str) {
+    eprintln!("INFO: {}", message);
 }
 
 pub fn begin_group(title: &str) {
