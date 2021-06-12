@@ -86,11 +86,14 @@ pub fn diff(additional_args: &[&str]) -> anyhow::Result<()> {
 }
 
 pub fn reset() -> anyhow::Result<()> {
-    let status = Command::new("git")
-        .arg("--no-pager")
-        .arg("reset")
-        .status()?;
-    result_from_status(status, "reset")
+    let repo = Repository::open(&Path::new("."))?;
+    let oid = repo
+        .head()?
+        .target()
+        .ok_or_else(|| anyhow::anyhow!("HEAD reference is not a direct reference"))?;
+    let obj = repo.find_object(oid, None)?;
+    repo.reset(&obj, git2::ResetType::Mixed, None)?;
+    Ok(())
 }
 
 pub fn status_short() -> anyhow::Result<()> {
