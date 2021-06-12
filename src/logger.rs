@@ -1,3 +1,5 @@
+#![allow(dead_code)]
+
 use std::env;
 
 fn is_gha() -> bool {

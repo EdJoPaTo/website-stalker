@@ -268,10 +268,7 @@ fn git_finishup(do_commit: bool, handled_sites: &[(ChangeKind, Site)]) -> anyhow
                 body
             )
         };
-
-        logger::begin_group("git commit");
         git::commit(&message)?;
-        logger::end_group();
     } else {
         logger::warn("No commit is created without the --commit flag.");
     }

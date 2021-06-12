@@ -1,15 +1,12 @@
 use std::path::Path;
 use std::process::{Command, ExitStatus, Stdio};
 
-use git2::{IndexAddOption, IntoCString, Repository};
+use git2::{IndexAddOption, IntoCString, Repository, Signature};
 
-const GIT_COMMIT_AUTHOR: &str = concat!(
-    env!("CARGO_PKG_NAME"),
-    "/",
-    env!("CARGO_PKG_VERSION"),
-    " ",
-    "<website-stalker-git-commit@edjopato.de>"
-);
+const GIT_COMMIT_AUTHOR_NAME: &str =
+    concat!(env!("CARGO_PKG_NAME"), "/", env!("CARGO_PKG_VERSION"),);
+
+const GIT_COMMIT_AUTHOR_EMAIL: &str = "website-stalker-git-commit@edjopato.de";
 
 fn result_from_status(status: ExitStatus, command: &'static str) -> anyhow::Result<()> {
     if status.success() {
@@ -64,16 +61,19 @@ pub fn cleanup(path: &str) -> anyhow::Result<()> {
 }
 
 pub fn commit(message: &str) -> anyhow::Result<()> {
-    let status = Command::new("git")
-        .arg("--no-pager")
-        .arg("commit")
-        .arg("--no-gpg-sign")
-        .arg("--author")
-        .arg(GIT_COMMIT_AUTHOR)
-        .arg("-m")
-        .arg(message)
-        .status()?;
-    result_from_status(status, "commit")
+    let repo = Repository::open(&Path::new("."))?;
+    let signature = Signature::now(GIT_COMMIT_AUTHOR_NAME, GIT_COMMIT_AUTHOR_EMAIL)?;
+    let tree = repo.find_tree(repo.index()?.write_tree()?)?;
+    let parent_commit = repo.head()?.peel_to_commit()?;
+    repo.commit(
+        Some("HEAD"),
+        &signature,
+        &signature,
+        message,
+        &tree,
+        &[&parent_commit],
+    )?;
+    Ok(())
 }
 
 pub fn diff(additional_args: &[&str]) -> anyhow::Result<()> {
