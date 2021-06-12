@@ -97,7 +97,7 @@ fn serialize<T: Serialize>(node: &T) -> anyhow::Result<String> {
 fn prettify_works() {
     let ugly = r#"<html><body>Just a <div>test</div></body></html>"#;
     assert_eq!(
-        prettify(&ugly).unwrap(),
+        prettify(ugly).unwrap(),
         r#"<html>
 	<head>
 	</head>
