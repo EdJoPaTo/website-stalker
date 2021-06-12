@@ -1,8 +1,7 @@
-// the git2 crate requires openssl which is annoying to cross compile -> require git to be installed on host
-
-use std::ffi::OsStr;
 use std::path::Path;
 use std::process::{Command, ExitStatus, Stdio};
+
+use git2::{IndexAddOption, IntoCString, Repository};
 
 const GIT_COMMIT_AUTHOR: &str = concat!(
     env!("CARGO_PKG_NAME"),
@@ -31,14 +30,13 @@ pub fn is_repo() -> bool {
 pub fn add<I, S>(paths: I) -> anyhow::Result<()>
 where
     I: IntoIterator<Item = S>,
-    S: AsRef<OsStr>,
+    S: IntoCString,
 {
-    let status = Command::new("git")
-        .arg("--no-pager")
-        .arg("add")
-        .args(paths)
-        .status()?;
-    result_from_status(status, "add")
+    let repo = Repository::open(&Path::new("."))?;
+    let mut index = repo.index()?;
+    index.add_all(paths, IndexAddOption::DEFAULT, None)?;
+    index.write()?;
+    Ok(())
 }
 
 pub fn cleanup(path: &str) -> anyhow::Result<()> {
