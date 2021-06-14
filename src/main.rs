@@ -244,7 +244,10 @@ fn git_finishup(do_commit: bool, handled_sites: &[(ChangeKind, Site)]) -> anyhow
     git::diff(&["--staged", "--stat"])?;
 
     if do_commit {
-        let body = {
+        let message = if handled_sites.is_empty() {
+            "just background magic \u{1f9fd}\u{1f52e}\u{1f9f9}\n\ncleanup or updating meta files"
+                .to_string() // 🧽🔮🧹
+        } else {
             let mut lines = handled_sites
                 .iter()
                 .map(|(change_kind, site)| {
@@ -257,16 +260,15 @@ fn git_finishup(do_commit: bool, handled_sites: &[(ChangeKind, Site)]) -> anyhow
                 })
                 .collect::<Vec<_>>();
             lines.sort();
-            lines.join("\n")
+            let body = lines.join("\n");
+            format!(
+                "stalked some things \u{1f440}\u{1f310}\u{1f60e}\n\n{}", // 👀🌐😎
+                body
+            )
         };
 
         logger::begin_group("git commit");
-        git::commit(
-            &(format!(
-                "stalked some things \u{1f440}\u{1f310}\u{1f60e}\n\n{}",
-                body
-            )),
-        )?;
+        git::commit(&message)?;
         logger::end_group();
     } else {
         logger::warn("No commit is created without the --commit flag.");
