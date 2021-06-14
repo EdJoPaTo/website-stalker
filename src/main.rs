@@ -224,9 +224,10 @@ async fn stalk_and_save_site(
     site: &Site,
 ) -> anyhow::Result<(ChangeKind, Duration)> {
     let filename = site.get_filename();
-    let last_change = site_store.last_change(&filename)?;
+    // TODO: get last known etag
+    let etag = None;
     let start = Instant::now();
-    let response = http_agent.get(site.get_url().as_str(), last_change).await?;
+    let response = http_agent.get(site.get_url().as_str(), etag).await?;
     let took = Instant::now().saturating_duration_since(start);
 
     if response.is_not_modified() {

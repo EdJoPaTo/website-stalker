@@ -1,6 +1,5 @@
 use std::time::Duration;
 
-use chrono::{DateTime, Utc};
 use reqwest::header::{HeaderMap, HeaderValue};
 use reqwest::{header, Client, ClientBuilder, StatusCode};
 
@@ -39,19 +38,10 @@ impl Http {
         }
     }
 
-    pub async fn get<T>(&self, url: &str, last_change: Option<T>) -> anyhow::Result<Response>
-    where
-        T: Into<DateTime<Utc>>,
-    {
+    pub async fn get(&self, url: &str, last_known_etag: Option<&str>) -> anyhow::Result<Response> {
         let mut headers = HeaderMap::new();
-
-        if let Some(last_change) = last_change {
-            let dt: DateTime<Utc> = last_change.into();
-            let last_change = dt.to_rfc2822().replace("+0000", "GMT");
-            headers.append(
-                header::IF_MODIFIED_SINCE,
-                HeaderValue::from_str(&last_change)?,
-            );
+        if let Some(etag) = last_known_etag {
+            headers.append(header::IF_NONE_MATCH, HeaderValue::from_str(etag)?);
         }
 
         let response = self
