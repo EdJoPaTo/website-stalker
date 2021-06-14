@@ -187,17 +187,13 @@ async fn run(do_commit: bool, site_filter: Option<&Regex>) -> anyhow::Result<()>
         }
     }
 
-    let mut sites_init = Vec::new();
-    let mut sites_changed = Vec::new();
+    let mut sites_of_interest = Vec::new();
     let mut error_occured = false;
     for handle in tasks {
         match handle.await.expect("failed to spawn task") {
             Ok((site, change_kind, _)) => match change_kind {
-                ChangeKind::Init => {
-                    sites_init.push(site);
-                }
-                ChangeKind::Changed => {
-                    sites_changed.push(site);
+                ChangeKind::Init | ChangeKind::Changed => {
+                    sites_of_interest.push((change_kind, site));
                 }
                 ChangeKind::ContentSame | ChangeKind::NotModified => {}
             },
@@ -209,8 +205,8 @@ async fn run(do_commit: bool, site_filter: Option<&Regex>) -> anyhow::Result<()>
 
     if is_repo {
         println!();
-        if something_removed || !sites_init.is_empty() || !sites_changed.is_empty() {
-            git_finishup(do_commit, &sites_init, &sites_changed)?;
+        if something_removed || !sites_of_interest.is_empty() {
+            git_finishup(do_commit, &sites_of_interest)?;
         }
         git::status_short()?;
     }
@@ -242,18 +238,26 @@ async fn stalk_and_save_site(
     Ok((changed, took))
 }
 
-fn git_finishup(
-    do_commit: bool,
-    added_sites: &[Site],
-    changed_sites: &[Site],
-) -> anyhow::Result<()> {
+fn git_finishup(do_commit: bool, handled_sites: &[(ChangeKind, Site)]) -> anyhow::Result<()> {
     git::add(&[SITE_FOLDER])?;
     git::diff(&["--staged", "--stat"])?;
 
     if do_commit {
-        let mut body = String::new();
-        body += &site_url_lines("added", added_sites);
-        body += &site_url_lines("changed", changed_sites);
+        let body = {
+            let mut lines = handled_sites
+                .iter()
+                .map(|(change_kind, site)| {
+                    let letter = match change_kind {
+                        ChangeKind::Init => 'A',
+                        ChangeKind::Changed => 'M',
+                        ChangeKind::ContentSame | ChangeKind::NotModified => unreachable!(),
+                    };
+                    format!("{} {}", letter, site.get_url().as_str())
+                })
+                .collect::<Vec<_>>();
+            lines.sort();
+            lines.join("\n")
+        };
 
         logger::begin_group("git commit");
         git::commit(
@@ -268,16 +272,4 @@ fn git_finishup(
     }
 
     Ok(())
-}
-
-fn site_url_lines(title: &str, sites: &[Site]) -> String {
-    if sites.is_empty() {
-        String::with_capacity(0)
-    } else {
-        let lines = sites
-            .iter()
-            .map(|o| format!("- {}", o.get_url().as_str()))
-            .join("\n");
-        format!("{}:\n{}\n\n", title, lines)
-    }
 }
