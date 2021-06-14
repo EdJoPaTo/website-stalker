@@ -166,12 +166,12 @@ async fn run(do_commit: bool, site_filter: Option<&Regex>) -> anyhow::Result<()>
                 *done += 1;
 
                 match &result {
-                    Ok((changed, took)) => {
+                    Ok((change_kind, took)) => {
                         println!(
                             "{:4}/{} {:12} {:5}ms {}",
                             done,
                             sites_amount,
-                            changed.to_string(),
+                            change_kind.to_string(),
                             took.as_millis(),
                             url
                         );
@@ -180,21 +180,27 @@ async fn run(do_commit: bool, site_filter: Option<&Regex>) -> anyhow::Result<()>
                         logger::error(&format!("{} {}", url, err));
                     }
                 }
-                result
+                result.map(|(change_kind, took)| (site, change_kind, took))
             });
 
             tasks.push(handle);
         }
     }
 
-    let mut something_changed = false;
+    let mut sites_init = Vec::new();
+    let mut sites_changed = Vec::new();
     let mut error_occured = false;
     for handle in tasks {
         match handle.await.expect("failed to spawn task") {
-            Ok((ChangeKind::Changed, _)) => {
-                something_changed = true;
-            }
-            Ok(_) => {}
+            Ok((site, change_kind, _)) => match change_kind {
+                ChangeKind::Init => {
+                    sites_init.push(site);
+                }
+                ChangeKind::Changed => {
+                    sites_changed.push(site);
+                }
+                ChangeKind::ContentSame | ChangeKind::NotModified => {}
+            },
             Err(_) => {
                 error_occured = true;
             }
@@ -203,8 +209,8 @@ async fn run(do_commit: bool, site_filter: Option<&Regex>) -> anyhow::Result<()>
 
     if is_repo {
         println!();
-        if something_removed || something_changed {
-            git_finishup(do_commit)?;
+        if something_removed || !sites_init.is_empty() || !sites_changed.is_empty() {
+            git_finishup(do_commit, &sites_init, &sites_changed)?;
         }
         git::status_short()?;
     }
@@ -236,17 +242,42 @@ async fn stalk_and_save_site(
     Ok((changed, took))
 }
 
-fn git_finishup(do_commit: bool) -> anyhow::Result<()> {
+fn git_finishup(
+    do_commit: bool,
+    added_sites: &[Site],
+    changed_sites: &[Site],
+) -> anyhow::Result<()> {
     git::add(&[SITE_FOLDER])?;
     git::diff(&["--staged", "--stat"])?;
 
     if do_commit {
+        let mut body = String::new();
+        body += &site_url_lines("added", added_sites);
+        body += &site_url_lines("changed", changed_sites);
+
         logger::begin_group("git commit");
-        git::commit("stalked some things \u{1f440}\u{1f310}\u{1f60e}")?;
+        git::commit(
+            &(format!(
+                "stalked some things \u{1f440}\u{1f310}\u{1f60e}\n\n{}",
+                body
+            )),
+        )?;
         logger::end_group();
     } else {
         logger::warn("No commit is created without the --commit flag.");
     }
 
     Ok(())
+}
+
+fn site_url_lines(title: &str, sites: &[Site]) -> String {
+    if sites.is_empty() {
+        String::with_capacity(0)
+    } else {
+        let lines = sites
+            .iter()
+            .map(|o| format!("- {}", o.get_url().as_str()))
+            .join("\n");
+        format!("{}:\n{}\n\n", title, lines)
+    }
 }
