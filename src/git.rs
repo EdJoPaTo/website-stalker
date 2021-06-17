@@ -20,87 +20,95 @@ fn result_from_status(status: ExitStatus, command: &'static str) -> anyhow::Resu
     }
 }
 
-pub fn is_repo() -> bool {
-    Path::new(".git/HEAD").exists()
+pub struct Repo {
+    repo: Repository,
 }
 
-pub fn add<I, S>(paths: I) -> anyhow::Result<()>
-where
-    I: IntoIterator<Item = S>,
-    S: IntoCString,
-{
-    let repo = Repository::open(&Path::new("."))?;
-    let mut index = repo.index()?;
-    index.add_all(paths, IndexAddOption::DEFAULT, None)?;
-    index.write()?;
-    Ok(())
-}
+impl Repo {
+    pub fn new() -> Result<Self, git2::Error> {
+        let repo = Repository::open(&Path::new("."))?;
+        Ok(Self { repo })
+    }
 
-pub fn cleanup(path: &str) -> anyhow::Result<()> {
-    let status = Command::new("git")
-        .arg("--no-pager")
-        .arg("clean")
-        .arg("--force")
-        .arg("--quiet")
-        .arg("-x") // remove untracked files
-        .arg(path)
-        .status()?;
-    result_from_status(status, "clean")?;
+    pub fn add<I, S>(&self, paths: I) -> anyhow::Result<()>
+    where
+        I: IntoIterator<Item = S>,
+        S: IntoCString,
+    {
+        let mut index = self.repo.index()?;
+        index.add_all(paths, IndexAddOption::DEFAULT, None)?;
+        index.write()?;
+        Ok(())
+    }
 
-    let status = Command::new("git")
-        .arg("--no-pager")
-        .arg("checkout")
-        .arg("--quiet")
-        .arg(path)
-        .stdout(Stdio::null())
-        .stderr(Stdio::null())
-        .status();
-    drop(status);
+    #[allow(clippy::unused_self)]
+    pub fn cleanup(&self, path: &str) -> anyhow::Result<()> {
+        let status = Command::new("git")
+            .arg("--no-pager")
+            .arg("clean")
+            .arg("--force")
+            .arg("--quiet")
+            .arg("-x") // remove untracked files
+            .arg(path)
+            .status()?;
+        result_from_status(status, "clean")?;
 
-    Ok(())
-}
+        let status = Command::new("git")
+            .arg("--no-pager")
+            .arg("checkout")
+            .arg("--quiet")
+            .arg(path)
+            .stdout(Stdio::null())
+            .stderr(Stdio::null())
+            .status();
+        drop(status);
 
-pub fn commit(message: &str) -> anyhow::Result<()> {
-    let repo = Repository::open(&Path::new("."))?;
-    let signature = Signature::now(GIT_COMMIT_AUTHOR_NAME, GIT_COMMIT_AUTHOR_EMAIL)?;
-    let tree = repo.find_tree(repo.index()?.write_tree()?)?;
-    let parent_commit = repo.head()?.peel_to_commit()?;
-    repo.commit(
-        Some("HEAD"),
-        &signature,
-        &signature,
-        message,
-        &tree,
-        &[&parent_commit],
-    )?;
-    Ok(())
-}
+        Ok(())
+    }
 
-pub fn diff(additional_args: &[&str]) -> anyhow::Result<()> {
-    let status = Command::new("git")
-        .arg("--no-pager")
-        .arg("diff")
-        .args(additional_args)
-        .status()?;
-    result_from_status(status, "diff")
-}
+    pub fn commit(&self, message: &str) -> anyhow::Result<()> {
+        let signature = Signature::now(GIT_COMMIT_AUTHOR_NAME, GIT_COMMIT_AUTHOR_EMAIL)?;
+        let tree = self.repo.find_tree(self.repo.index()?.write_tree()?)?;
+        let parent_commit = self.repo.head()?.peel_to_commit()?;
+        self.repo.commit(
+            Some("HEAD"),
+            &signature,
+            &signature,
+            message,
+            &tree,
+            &[&parent_commit],
+        )?;
+        Ok(())
+    }
 
-pub fn reset() -> anyhow::Result<()> {
-    let repo = Repository::open(&Path::new("."))?;
-    let oid = repo
-        .head()?
-        .target()
-        .ok_or_else(|| anyhow::anyhow!("HEAD reference is not a direct reference"))?;
-    let obj = repo.find_object(oid, None)?;
-    repo.reset(&obj, git2::ResetType::Mixed, None)?;
-    Ok(())
-}
+    #[allow(clippy::unused_self)]
+    pub fn diff(&self, additional_args: &[&str]) -> anyhow::Result<()> {
+        let status = Command::new("git")
+            .arg("--no-pager")
+            .arg("diff")
+            .args(additional_args)
+            .status()?;
+        result_from_status(status, "diff")
+    }
 
-pub fn status_short() -> anyhow::Result<()> {
-    let status = Command::new("git")
-        .arg("--no-pager")
-        .arg("status")
-        .arg("--short")
-        .status()?;
-    result_from_status(status, "status")
+    pub fn reset(&self) -> anyhow::Result<()> {
+        let oid = self
+            .repo
+            .head()?
+            .target()
+            .ok_or_else(|| anyhow::anyhow!("HEAD reference is not a direct reference"))?;
+        let obj = self.repo.find_object(oid, None)?;
+        self.repo.reset(&obj, git2::ResetType::Mixed, None)?;
+        Ok(())
+    }
+
+    #[allow(clippy::unused_self)]
+    pub fn status_short(&self) -> anyhow::Result<()> {
+        let status = Command::new("git")
+            .arg("--no-pager")
+            .arg("status")
+            .arg("--short")
+            .status()?;
+        result_from_status(status, "status")
+    }
 }

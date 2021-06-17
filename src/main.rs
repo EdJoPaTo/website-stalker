@@ -113,10 +113,10 @@ async fn run(do_commit: bool, site_filter: Option<&Regex>) -> anyhow::Result<()>
         domains.len()
     };
 
-    let is_repo = git::is_repo();
-    if is_repo {
-        git::reset().unwrap();
-        git::cleanup(SITE_FOLDER).unwrap();
+    let repo = git::Repo::new();
+    if let Ok(repo) = &repo {
+        repo.reset().unwrap();
+        repo.cleanup(SITE_FOLDER).unwrap();
     } else {
         logger::warn("Not a git repo. Will run but won't do git actions.");
     }
@@ -205,12 +205,12 @@ async fn run(do_commit: bool, site_filter: Option<&Regex>) -> anyhow::Result<()>
         }
     }
 
-    if is_repo {
+    if let Ok(repo) = &repo {
         println!();
         if something_removed || !sites_of_interest.is_empty() {
-            git_finishup(do_commit, &sites_of_interest)?;
+            git_finishup(repo, do_commit, &sites_of_interest)?;
         }
-        git::status_short()?;
+        repo.status_short()?;
     }
 
     if error_occured {
@@ -241,9 +241,13 @@ async fn stalk_and_save_site(
     Ok((changed, took))
 }
 
-fn git_finishup(do_commit: bool, handled_sites: &[(ChangeKind, Site)]) -> anyhow::Result<()> {
-    git::add(&[SITE_FOLDER])?;
-    git::diff(&["--staged", "--stat"])?;
+fn git_finishup(
+    repo: &git::Repo,
+    do_commit: bool,
+    handled_sites: &[(ChangeKind, Site)],
+) -> anyhow::Result<()> {
+    repo.add(&[SITE_FOLDER])?;
+    repo.diff(&["--staged", "--stat"])?;
 
     if do_commit {
         let message = if handled_sites.is_empty() {
@@ -268,7 +272,7 @@ fn git_finishup(do_commit: bool, handled_sites: &[(ChangeKind, Site)]) -> anyhow
                 body
             )
         };
-        git::commit(&message)?;
+        repo.commit(&message)?;
     } else {
         logger::warn("No commit is created without the --commit flag.");
     }
