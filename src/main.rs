@@ -69,14 +69,16 @@ async fn main() {
             let site_filter = matches
                 .value_of("site filter")
                 .map(|v| Regex::new(v).unwrap());
-            match run(do_commit, site_filter.as_ref()).await {
-                Ok(_) => {
-                    println!("\nAll done. Thanks for using website-stalker!");
-                }
-                Err(err) => {
-                    println!("\n{} Thanks for using website-stalker!", err);
-                    std::process::exit(1);
-                }
+            let result = run(do_commit, site_filter.as_ref()).await;
+            println!();
+            if let Err(err) = &result {
+                logger::error(&err.to_string());
+            } else {
+                println!("All done.");
+            }
+            println!("Thanks for using website-stalker!");
+            if result.is_err() {
+                std::process::exit(1);
             }
         }
         (subcommand, matches) => {
