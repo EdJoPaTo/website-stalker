@@ -246,7 +246,7 @@ fn git_finishup(
     do_commit: bool,
     handled_sites: &[(ChangeKind, Site)],
 ) -> anyhow::Result<()> {
-    repo.add(&[SITE_FOLDER])?;
+    repo.add(SITE_FOLDER)?;
     repo.diff(&["--staged", "--stat"])?;
 
     if do_commit {

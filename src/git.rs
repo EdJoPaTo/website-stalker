@@ -1,7 +1,8 @@
+use std::fs;
 use std::path::Path;
 use std::process::{Command, ExitStatus, Stdio};
 
-use git2::{IndexAddOption, IntoCString, Repository, Signature};
+use git2::{IndexAddOption, Repository, Signature};
 
 const GIT_COMMIT_AUTHOR_NAME: &str =
     concat!(env!("CARGO_PKG_NAME"), "/", env!("CARGO_PKG_VERSION"),);
@@ -26,17 +27,22 @@ pub struct Repo {
 
 impl Repo {
     pub fn new() -> Result<Self, git2::Error> {
-        let repo = Repository::open(&Path::new("."))?;
+        let repo = Repository::open_from_env()?;
+
+        if repo.is_bare() {
+            panic!("Repo needs a work tree. This does not work with bare repos.");
+        }
+
         Ok(Self { repo })
     }
 
-    pub fn add<I, S>(&self, paths: I) -> anyhow::Result<()>
-    where
-        I: IntoIterator<Item = S>,
-        S: IntoCString,
-    {
+    pub fn add<P: AsRef<Path>>(&self, path: P) -> anyhow::Result<()> {
+        let workdir = self.repo.workdir().unwrap();
+        let abs = fs::canonicalize(path)?;
+        let relative = abs.strip_prefix(workdir)?;
+
         let mut index = self.repo.index()?;
-        index.add_all(paths, IndexAddOption::DEFAULT, None)?;
+        index.add_all(relative, IndexAddOption::DEFAULT, None)?;
         index.write()?;
         Ok(())
     }
