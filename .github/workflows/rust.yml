@@ -130,6 +130,7 @@ jobs:
         run: >
           tar --gzip -cvf ${{ env.ARTIFACT_NAME }}.tar.gz
           completions LICENSE README.md
+          systemd/*.service systemd/*.timer systemd/*.conf
           -C target/${{ matrix.triple }}/release website-stalker
       - name: Package (windows)
         if: runner.os == 'Windows'
