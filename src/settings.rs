@@ -23,7 +23,7 @@ impl Settings {
         let mut settings = config::Config::default();
         settings
             // Add in `./website-stalker.toml`, `./website-stalker.yaml`, ...
-            .merge(config::File::with_name("website-stalker").required(false))?
+            .merge(config::File::with_name("website-stalker").required(true))?
             // Add in settings from the environment (with a prefix of WEBSITE_STALKER)
             // Eg.. `WEBSITE_STALKER_DEBUG=1 network-stalker` would set the `debug` key
             .merge(config::Environment::with_prefix("WEBSITE_STALKER"))?;
