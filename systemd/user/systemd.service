@@ -1,0 +1,13 @@
+[Unit]
+Description=Run website-stalker
+Wants=network-online.target
+After=network-online.target
+StartLimitIntervalSec=0
+
+[Service]
+Type=simple
+ExecStart=%h/.local/bin/website-stalker run --all --commit
+WorkingDirectory=%h/.local/share/website-stalker
+
+[Install]
+WantedBy=default.target

@@ -1,0 +1,10 @@
+[Unit]
+Description=Run website-stalker
+
+[Timer]
+OnBootSec=5min
+OnUnitActiveSec=35min
+RandomizedDelaySec=1min
+
+[Install]
+WantedBy=timers.target

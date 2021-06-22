@@ -2,8 +2,7 @@
 
 name="website-stalker"
 
-sudo systemctl disable --now "$name.timer"
-sudo systemctl disable --now "$name.service"
+sudo systemctl disable --now "$name.timer" "$name.service"
 
 sudo rm -f "/usr/lib/tmpfiles.d/$name.conf"
 sudo rm -f "/usr/lib/sysusers.d/$name.conf"
