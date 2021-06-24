@@ -26,6 +26,4 @@ systemctl --user daemon-reload
 systemctl --user stop "$name.service" "$name.timer"
 cp -v "target/release/$name" "$HOME/.local/bin"
 
-# You probably only need one
-systemctl --user enable --now "$name.service"
 systemctl --user enable --now "$name.timer"
