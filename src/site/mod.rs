@@ -40,7 +40,8 @@ impl Site {
         vec![
             Site::Html(html::Html {
                 url: Url::parse("https://edjopato.de/post/").unwrap(),
-                css_selector: Some(html::CssSelector::parse("section").unwrap()),
+                css_selector: None,
+                css_selectors: vec![html::CssSelector::parse("section").unwrap()],
                 regex_replacers: vec![],
             }),
             Site::Utf8(utf8::Utf8 {
@@ -77,6 +78,7 @@ fn validate_finds_duplicates() {
         Site::Html(html::Html {
             url: Url::parse("https://edjopato.de/post/").unwrap(),
             css_selector: None,
+            css_selectors: vec![],
             regex_replacers: vec![],
         }),
         Site::Utf8(utf8::Utf8 {
@@ -86,6 +88,7 @@ fn validate_finds_duplicates() {
         Site::Html(html::Html {
             url: Url::parse("https://edjopato.de/post").unwrap(),
             css_selector: None,
+            css_selectors: vec![],
             regex_replacers: vec![],
         }),
     ];

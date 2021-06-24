@@ -15,8 +15,13 @@ mod prettify;
 pub struct Html {
     pub url: Url,
 
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub css_selector: Option<CssSelector>,
+    // TODO: remove migration
+    #[serde(default, skip_serializing)]
+    pub css_selector: Option<String>,
+
+    // TODO: allow for one (String) or many (array)?
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub css_selectors: Vec<CssSelector>,
 
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub regex_replacers: Vec<RegexReplacer>,
@@ -28,21 +33,11 @@ impl Html {
     }
 
     pub async fn stalk(&self, response: Response) -> anyhow::Result<String> {
-        let content = response.text().await?;
+        let mut content = response.text().await?;
 
-        #[allow(clippy::option_if_let_else)]
-        let content = if let Some(selector) = &self.css_selector {
-            let selected = selector.select(&content);
-            if selected.is_empty() {
-                return Err(anyhow::anyhow!(
-                    "css_selector ({}) selected nothing",
-                    selector
-                ));
-            }
-            selected.join("\n")
-        } else {
-            content
-        };
+        for selector in &self.css_selectors {
+            content = selector.apply(&content)?;
+        }
 
         let prettified = prettify::prettify(&content)?;
 
@@ -55,6 +50,12 @@ impl Html {
     }
 
     pub fn is_valid(&self) -> anyhow::Result<()> {
+        if self.css_selector.is_some() {
+            return Err(anyhow::anyhow!(
+                "css_selector is now an array and named css_selectors"
+            ));
+        }
+
         for rp in &self.regex_replacers {
             rp.is_valid()?;
         }
