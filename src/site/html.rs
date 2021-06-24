@@ -1,4 +1,3 @@
-use scraper::Selector;
 use serde::{Deserialize, Serialize};
 use url::Url;
 
@@ -7,6 +6,7 @@ use crate::regex_replacer::RegexReplacer;
 
 use super::url_filename;
 
+mod css_selection;
 mod prettify;
 
 #[derive(Debug, Deserialize, Serialize)]
@@ -30,9 +30,7 @@ impl Html {
 
         #[allow(clippy::option_if_let_else)]
         let content = if let Some(selector_str) = &self.css_selector {
-            let selector = Selector::parse(selector_str).unwrap();
-            let html = scraper::Html::parse_document(&content);
-            let selected = html.select(&selector).map(|o| o.html()).collect::<Vec<_>>();
+            let selected = css_selection::select(&content, selector_str)?;
             if selected.is_empty() {
                 return Err(anyhow::anyhow!(
                     "css_selector ({}) selected nothing",
@@ -56,13 +54,7 @@ impl Html {
 
     pub fn is_valid(&self) -> anyhow::Result<()> {
         if let Some(selector) = &self.css_selector {
-            if let Err(err) = Selector::parse(selector) {
-                return Err(anyhow::anyhow!(
-                    "css selector ({}) parse error: {:?}",
-                    selector,
-                    err
-                ));
-            }
+            css_selection::selector_is_valid(selector)?;
         }
 
         for rp in &self.regex_replacers {
