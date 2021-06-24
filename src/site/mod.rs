@@ -40,7 +40,7 @@ impl Site {
         vec![
             Site::Html(html::Html {
                 url: Url::parse("https://edjopato.de/post/").unwrap(),
-                css_selector: Some("section".to_string()),
+                css_selector: Some(html::CssSelector::parse("section").unwrap()),
                 regex_replacers: vec![],
             }),
             Site::Utf8(utf8::Utf8 {
