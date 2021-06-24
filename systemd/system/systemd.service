@@ -7,7 +7,7 @@ StartLimitIntervalSec=0
 [Service]
 Type=simple
 ExecStart=/usr/local/bin/website-stalker run --all --commit
-WorkingDirectory=~
+WorkingDirectory=/var/local/lib/website-stalker
 User=website-stalker
 Group=website-stalker
 
