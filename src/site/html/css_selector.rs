@@ -20,18 +20,15 @@ impl CssSelector {
         })
     }
 
-    fn select(&self, html: &str) -> Vec<String> {
-        let html = scraper::Html::parse_document(html);
-        html.select(&self.scrape_selector)
-            .map(|o| o.html())
-            .collect()
-    }
-
     pub fn apply(&self, html: &str) -> anyhow::Result<String> {
-        let selected = self.select(html);
+        let parsed_html = scraper::Html::parse_document(html);
+        let selected = parsed_html
+            .select(&self.scrape_selector)
+            .map(|o| o.html())
+            .collect::<Vec<_>>();
 
         if self.is_removal {
-            let mut html = scraper::Html::parse_document(html).root_element().html();
+            let mut html = parsed_html.root_element().html();
             for s in selected {
                 html = html.replace(&s, "");
             }
