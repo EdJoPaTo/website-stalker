@@ -16,6 +16,7 @@ mod editor;
 mod git;
 mod http;
 mod logger;
+mod serde_helper;
 mod settings;
 mod site;
 mod site_store;

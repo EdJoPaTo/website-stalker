@@ -71,8 +71,7 @@ sites:
   - url: "https://edjopato.de/post/"
     extension: html
     editors:
-      - css_selector:
-          selector: article
+      - css_selector: article
       - css_selector:
           selector: a
           remove: true

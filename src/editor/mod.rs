@@ -1,5 +1,7 @@
 use serde::{Deserialize, Serialize};
 
+use crate::serde_helper::string_or_struct;
+
 pub mod css_selector;
 pub mod html_prettify;
 pub mod regex_replacer;
@@ -7,6 +9,7 @@ pub mod regex_replacer;
 #[derive(Debug, Deserialize, Serialize)]
 #[serde(rename_all = "snake_case")]
 pub enum Editor {
+    #[serde(deserialize_with = "string_or_struct")]
     CssSelector(css_selector::CssSelector),
     HtmlPrettify,
     RegexReplacer(regex_replacer::RegexReplacer),

@@ -1,6 +1,6 @@
 use serde::{Deserialize, Serialize};
 
-// TODO: deserialize from string or struct
+// TODO: serialize to string when remove is false
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct CssSelector {
@@ -50,6 +50,17 @@ impl CssSelector {
             }
             Ok(selected.join("\n"))
         }
+    }
+}
+
+impl std::str::FromStr for CssSelector {
+    type Err = void::Void;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        Ok(CssSelector {
+            selector: s.to_string(),
+            remove: false,
+        })
     }
 }
 
