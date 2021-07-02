@@ -5,12 +5,12 @@ use html5ever::tendril::TendrilSink;
 use html5ever::QualName;
 
 struct HtmlPrettySerializer<Wr: Write> {
-    pub serializer: HtmlSerializer<Wr>,
+    serializer: HtmlSerializer<Wr>,
     depth: usize,
 }
 
 impl<Wr: Write> HtmlPrettySerializer<Wr> {
-    pub fn new(writer: Wr, opts: SerializeOpts) -> Self {
+    fn new(writer: Wr, opts: SerializeOpts) -> Self {
         Self {
             serializer: HtmlSerializer::new(writer, opts),
             depth: 0,
