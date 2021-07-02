@@ -1,17 +1,10 @@
+use serde::ser::SerializeStruct;
 use serde::{Deserialize, Serialize};
 
-// TODO: serialize to string when remove is false
-
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Deserialize)]
 pub struct CssSelector {
     pub selector: String,
-
-    #[serde(skip_serializing_if = "is_default")]
     pub remove: bool,
-}
-
-fn is_default<T: Default + PartialEq>(t: &T) -> bool {
-    t == &T::default()
 }
 
 impl CssSelector {
@@ -61,6 +54,22 @@ impl std::str::FromStr for CssSelector {
             selector: s.to_string(),
             remove: false,
         })
+    }
+}
+
+impl Serialize for CssSelector {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: serde::Serializer,
+    {
+        if self.remove {
+            let mut state = serializer.serialize_struct("CssSelector", 2)?;
+            state.serialize_field("selector", &self.selector)?;
+            state.serialize_field("remove", &self.remove)?;
+            state.end()
+        } else {
+            serializer.serialize_str(&self.selector)
+        }
     }
 }
 
