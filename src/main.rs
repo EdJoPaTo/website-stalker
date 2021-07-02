@@ -12,13 +12,14 @@ use tokio::sync::RwLock;
 use tokio::time::sleep;
 
 mod cli;
+mod editor;
 mod git;
 mod http;
 mod logger;
-mod regex_replacer;
 mod settings;
 mod site;
 mod site_store;
+mod url_filename;
 
 const SITE_FOLDER: &str = "sites";
 
@@ -96,7 +97,7 @@ async fn run(do_commit: bool, site_filter: Option<&Regex>) -> anyhow::Result<()>
     let sites = settings
         .sites
         .into_iter()
-        .filter(|site| site_filter.map_or(true, |filter| filter.is_match(site.get_url().as_str())))
+        .filter(|site| site_filter.map_or(true, |filter| filter.is_match(site.url.as_str())))
         .collect::<Vec<_>>();
     let sites_amount = sites.len();
     if sites.is_empty() {
@@ -106,7 +107,7 @@ async fn run(do_commit: bool, site_filter: Option<&Regex>) -> anyhow::Result<()>
     let distinct_domains = {
         let mut domains = sites
             .iter()
-            .map(|o| o.get_url().domain().unwrap().to_string())
+            .map(|o| o.url.domain().unwrap().to_string())
             .collect::<Vec<_>>();
         domains.sort();
         domains.dedup();
@@ -152,7 +153,7 @@ async fn run(do_commit: bool, site_filter: Option<&Regex>) -> anyhow::Result<()>
     let mut tasks = Vec::with_capacity(sites_amount);
     let groups = sites
         .into_iter()
-        .group_by(|a| a.get_url().domain().unwrap().to_string());
+        .group_by(|a| a.url.domain().unwrap().to_string());
     let amount_done = Arc::new(RwLock::new(0_usize));
     for (_, group) in &groups {
         for (i, site) in group.enumerate() {
@@ -162,7 +163,7 @@ async fn run(do_commit: bool, site_filter: Option<&Regex>) -> anyhow::Result<()>
             let handle = tokio::spawn(async move {
                 sleep(Duration::from_secs((i * 5) as u64)).await;
                 let result = stalk_and_save_site(&site_store, &http_agent, &site).await;
-                let url = site.get_url().as_str();
+                let url = site.url.as_str();
 
                 let mut done = amount_done.write().await;
                 *done += 1;
@@ -229,15 +230,16 @@ async fn stalk_and_save_site(
     // TODO: get last known etag
     let etag = None;
     let start = Instant::now();
-    let response = http_agent.get(site.get_url().as_str(), etag).await?;
+    let response = http_agent.get(site.url.as_str(), etag).await?;
     let took = Instant::now().saturating_duration_since(start);
 
     if response.is_not_modified() {
         return Ok((ChangeKind::NotModified, took));
     }
 
-    let contents = site.stalk(response).await?;
-    let changed = site_store.write_only_changed(&filename, &contents)?;
+    let content = response.text().await?;
+    let content = site.stalk(&content).await?;
+    let changed = site_store.write_only_changed(&filename, &content)?;
     Ok((changed, took))
 }
 
@@ -262,7 +264,7 @@ fn git_finishup(
                         ChangeKind::Changed => 'M',
                         ChangeKind::ContentSame | ChangeKind::NotModified => unreachable!(),
                     };
-                    format!("{} {}", letter, site.get_url().as_str())
+                    format!("{} {}", letter, site.url.as_str())
                 })
                 .collect::<Vec<_>>();
             lines.sort();

@@ -68,11 +68,20 @@ Check out [website-stalker-example](https://github.com/EdJoPaTo/website-stalker-
 ---
 from: my-email-address
 sites:
-  - html:
-      url: "https://edjopato.de/post/"
-      css_selector: section
-  - utf8:
-      url: "https://edjopato.de/robots.txt"
+  - url: "https://edjopato.de/post/"
+    extension: html
+    editors:
+      - css_selector:
+          selector: article
+      - css_selector:
+          selector: a
+          remove: true
+      - html_prettify
+      - regex_replacer:
+          pattern: "(Lesezeit): \\d+ \\w+"
+          replace: $1
+  - url: "https://edjopato.de/robots.txt"
+    extension: txt
 ```
 
 There is a bigger [config](https://github.com/EdJoPaTo/website-stalker-example/blob/main/website-stalker.yaml) in my [example repo](https://github.com/EdJoPaTo/website-stalker-example).
@@ -81,7 +90,7 @@ The example repo is also used by me to detect changes of interesting sites.
 ### Command Line Arguments
 
 ```plaintext
-Website Stalker 0.1.0
+Website Stalker 0.8.0
 EdJoPaTo <website-stalker-rust@edjopato.de>
 Track changes on websites via git
 

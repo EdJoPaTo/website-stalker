@@ -33,18 +33,14 @@ impl SiteStore {
         Ok(superfluous)
     }
 
-    pub fn write_only_changed(
-        &self,
-        filename: &str,
-        contents: &str,
-    ) -> std::io::Result<ChangeKind> {
+    pub fn write_only_changed(&self, filename: &str, content: &str) -> std::io::Result<ChangeKind> {
         let path = format!("{}/{}", self.folder, filename);
-        let contents = contents.trim().to_string() + "\n";
+        let content = content.trim().to_string() + "\n";
 
         let current = read_to_string(&path).unwrap_or_default();
-        let changed = current != contents;
+        let changed = current != content;
         if changed {
-            write(&path, contents)?;
+            write(&path, content)?;
         }
 
         if current.is_empty() {
