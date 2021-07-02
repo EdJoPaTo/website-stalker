@@ -94,8 +94,7 @@ FLAGS:
 
 SUBCOMMANDS:
     check             check if the config is fine but do not run
-    example-config    Prints an example config which can be piped into website-
-                      stalker.yaml
+    example-config    Prints an example config which can be piped into website-stalker.yaml
     help              Prints this message or the help of the given subcommand(s)
     run               stalk all the websites you specified
 ```
@@ -130,7 +129,7 @@ FLAGS:
     -V, --version    Prints version information
 
 ARGS:
-    <site filter>    filter the rules to be run
+    <site filter>    filter the rules to be run (regular expression)
 ```
 
 # Alternatives
