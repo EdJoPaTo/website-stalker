@@ -159,6 +159,46 @@ editors:
     replace: $1
 ```
 
+#### rss
+
+Creates an RSS 2.0 Feed from the input.
+An RSS item is generated for every `item_selector` result.
+The other selectors can be used to find relevant information of the items.
+The content is the full result of the `item_selector`.
+It can be further edited with with every available [editor](#editors).
+
+Defaults:
+- `title`: When a `<title>` exists, it will be used. Otherwise, it's empty.
+- `item_selector`: `article`
+- `title_selector`: `h2`
+- `link_selector`: `a`
+- `content_editors` can be omitted when empty
+
+Examples:
+
+```yaml
+  # Fully specified
+  - url: "https://edjopato.de/post/"
+    extension: xml
+    editors:
+      - rss:
+          title: EdJoPaTos Blog
+          item_selector: article
+          title_selector: h2
+          link_selector: a
+          content_editors:
+            - css_selector:
+                selector: "h2, article > a, div"
+                remove: true
+            - html_text
+
+  # Minimal working example
+  - url: "https://edjopato.de/post/"
+    extension: xml
+    editors:
+      - rss: {}
+```
+
 ### Command Line Arguments
 
 ```plaintext

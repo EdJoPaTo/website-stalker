@@ -23,7 +23,7 @@ impl Site {
         let mut content = content.to_string();
 
         for e in &self.editors {
-            content = e.apply(&content)?;
+            content = e.apply(&self.url, &content)?;
         }
 
         Ok(content)
