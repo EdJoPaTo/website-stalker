@@ -114,9 +114,23 @@ editors:
   - css_selector: h1 > a
 ```
 
+#### html_markdownify
+
+Formats the input HTML as Markdown.
+
+This is rather simple right now.
+Please report issues you find.
+
+Example:
+
+```yaml
+editors:
+  - html_markdownify
+```
+
 #### html_prettify
 
-Formats the input as pretty HTML.
+Formats the input HTML as pretty HTML.
 
 Example:
 
