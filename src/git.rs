@@ -47,9 +47,9 @@ impl Repo {
         Ok(())
     }
 
-    #[allow(clippy::unused_self)]
     pub fn cleanup(&self, path: &str) -> anyhow::Result<()> {
         let status = Command::new("git")
+            .current_dir(self.repo.path().parent().unwrap())
             .arg("--no-pager")
             .arg("clean")
             .arg("--force")
@@ -60,6 +60,7 @@ impl Repo {
         result_from_status(status, "clean")?;
 
         let status = Command::new("git")
+            .current_dir(self.repo.path().parent().unwrap())
             .arg("--no-pager")
             .arg("checkout")
             .arg("--quiet")
@@ -87,9 +88,9 @@ impl Repo {
         Ok(())
     }
 
-    #[allow(clippy::unused_self)]
     pub fn diff(&self, additional_args: &[&str]) -> anyhow::Result<()> {
         let status = Command::new("git")
+            .current_dir(self.repo.path().parent().unwrap())
             .arg("--no-pager")
             .arg("diff")
             .args(additional_args)
@@ -108,13 +109,152 @@ impl Repo {
         Ok(())
     }
 
-    #[allow(clippy::unused_self)]
     pub fn status_short(&self) -> anyhow::Result<()> {
         let status = Command::new("git")
+            .current_dir(self.repo.path().parent().unwrap())
             .arg("--no-pager")
             .arg("status")
             .arg("--short")
             .status()?;
         result_from_status(status, "status")
     }
+}
+
+#[cfg(target_os = "linux")]
+#[cfg(test)]
+fn simple_command<P: AsRef<Path>>(dir: P, command: &str) -> anyhow::Result<String> {
+    let output = Command::new("bash")
+        .current_dir(dir)
+        .arg("-c")
+        .arg(command)
+        .output()?;
+    if output.status.success() {
+        let stdout = String::from_utf8(output.stdout)?;
+        Ok(stdout.trim().to_string())
+    } else {
+        Err(anyhow::anyhow!(
+            "failed command \"{}\" with status code {}",
+            command,
+            output.status
+        ))
+    }
+}
+
+#[cfg(target_os = "linux")]
+#[cfg(test)]
+fn init_repo() -> anyhow::Result<(tempfile::TempDir, Repo)> {
+    let tempdir = tempfile::Builder::new()
+        .prefix("website-stalker-testing-")
+        .tempdir()?;
+    let dir = tempdir.path();
+
+    let repo = Repository::init(&dir)?;
+    let repo = Repo { repo };
+    simple_command(dir, "git config user.email bla@blubb.de")?;
+    simple_command(dir, "git config user.name Bla")?;
+    simple_command(dir, "git commit -m init --allow-empty")?;
+    Ok((tempdir, repo))
+}
+
+#[cfg(target_os = "linux")]
+#[cfg(test)]
+fn println_command<P: AsRef<Path>>(dir: P, command: &str) {
+    println!("# {}", command);
+    match simple_command(dir, command) {
+        Ok(output) => println!("{}", output),
+        Err(err) => println!("{}", err),
+    };
+}
+
+#[cfg(target_os = "linux")]
+#[cfg(test)]
+fn overview<P: AsRef<Path>>(dir: P) {
+    println_command(&dir, "pwd");
+    println_command(&dir, "ls -al");
+    println_command(&dir, "git status --short");
+    println_command(&dir, "git log");
+}
+
+#[cfg(target_os = "linux")]
+#[test]
+fn reset_works() -> anyhow::Result<()> {
+    let (tempdir, repo) = init_repo()?;
+    let dir = tempdir.path();
+    simple_command(dir, "touch bla.txt")?;
+    simple_command(dir, "git add bla.txt")?;
+    overview(dir);
+    assert_eq!(simple_command(dir, "git status --short")?, "A  bla.txt");
+    repo.reset()?;
+    assert_eq!(simple_command(dir, "git status --short")?, "?? bla.txt");
+    Ok(())
+}
+
+#[cfg(target_os = "linux")]
+#[test]
+fn cleanup_resets_existing_file() -> anyhow::Result<()> {
+    let (tempdir, repo) = init_repo()?;
+    let dir = tempdir.path();
+    simple_command(dir, "mkdir foo")?;
+    simple_command(dir, "echo stuff > foo/bar.txt")?;
+    assert_eq!(simple_command(dir, "du -b foo/bar.txt")?, "6\tfoo/bar.txt");
+    simple_command(dir, "git add foo")?;
+    simple_command(dir, "git commit -m bla")?;
+    simple_command(dir, "echo longstuff > foo/bar.txt")?;
+    assert_eq!(simple_command(dir, "du -b foo/bar.txt")?, "10\tfoo/bar.txt");
+    repo.cleanup("foo")?;
+    overview(dir);
+    assert_eq!(simple_command(dir, "du -b foo/bar.txt")?, "6\tfoo/bar.txt");
+    Ok(())
+}
+
+#[cfg(target_os = "linux")]
+#[test]
+fn cleanup_removes_superfluous() -> anyhow::Result<()> {
+    let (tempdir, repo) = init_repo()?;
+    let dir = tempdir.path();
+    simple_command(dir, "mkdir foo")?;
+    simple_command(dir, "echo stuff > foo/bar.txt")?;
+    simple_command(dir, "git add foo")?;
+    simple_command(dir, "git commit -m bla")?;
+    simple_command(dir, "echo longstuff > foo/other.txt")?;
+    assert_eq!(
+        simple_command(dir, "git status --short")?,
+        "?? foo/other.txt"
+    );
+    repo.cleanup("foo")?;
+    overview(dir);
+    assert_eq!(simple_command(dir, "ls foo")?, "bar.txt");
+    Ok(())
+}
+
+#[cfg(target_os = "linux")]
+#[test]
+fn cleanup_keeps_outside_changed_file() -> anyhow::Result<()> {
+    let (tempdir, repo) = init_repo()?;
+    let dir = tempdir.path();
+    simple_command(dir, "mkdir foo")?;
+    simple_command(dir, "echo stuff > foo/bar.txt")?;
+    simple_command(dir, "git add foo")?;
+    simple_command(dir, "git commit -m bla")?;
+    simple_command(dir, "echo longstuff > other.txt")?;
+    assert_eq!(simple_command(dir, "git status --short")?, "?? other.txt");
+    repo.cleanup("foo")?;
+    overview(dir);
+    assert_eq!(simple_command(dir, "git status --short")?, "?? other.txt");
+    Ok(())
+}
+
+#[cfg(target_os = "linux")]
+#[test]
+fn commit_commits() -> anyhow::Result<()> {
+    let (tempdir, repo) = init_repo()?;
+    let dir = tempdir.path();
+    simple_command(dir, "echo stuff > bla.txt")?;
+    simple_command(dir, "git add bla.txt")?;
+    overview(dir);
+    assert_eq!(simple_command(dir, "git log")?.lines().count(), 5);
+    repo.commit("bla")?;
+    overview(dir);
+    assert_eq!(simple_command(dir, "git log")?.lines().count(), 11);
+    Ok(())
 }

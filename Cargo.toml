@@ -57,3 +57,6 @@ features = ["full"]
 [dependencies.url]
 version = "2"
 features = ["serde"]
+
+[dev-dependencies]
+tempfile = "3"
