@@ -3,6 +3,7 @@ use std::io::Write;
 use html5ever::serialize::{AttrRef, HtmlSerializer, Serialize, SerializeOpts, Serializer};
 use html5ever::tendril::TendrilSink;
 use html5ever::QualName;
+use regex::Regex;
 
 struct HtmlTextSerializer<Wr: Write> {
     serializer: HtmlSerializer<Wr>,
@@ -51,9 +52,12 @@ pub fn extract(html: &str) -> anyhow::Result<String> {
     let result = serialize(&doc)?
         .lines()
         .map(str::trim)
-        .filter(|s| !s.is_empty())
         .collect::<Vec<_>>()
         .join("\n");
+    let result = Regex::new("\n{3,}")
+        .unwrap()
+        .replace_all(&result, "\n\n")
+        .to_string();
     Ok(result)
 }
 
