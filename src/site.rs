@@ -48,16 +48,16 @@ impl Site {
                 url: Url::parse("https://edjopato.de/post/").unwrap(),
                 extension: "html".to_string(),
                 editors: vec![
-                    Editor::CssSelector(CssSelector {
+                    Editor::CssSelect(CssSelector {
                         selector: "article".to_string(),
                         remove: false,
                     }),
-                    Editor::CssSelector(CssSelector {
+                    Editor::CssSelect(CssSelector {
                         selector: "a".to_string(),
                         remove: true,
                     }),
                     Editor::HtmlPrettify,
-                    Editor::RegexReplacer(RegexReplacer {
+                    Editor::RegexReplace(RegexReplacer {
                         pattern: "(Lesezeit): \\d+ \\w+".to_string(),
                         replace: "$1".to_string(),
                     }),

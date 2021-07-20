@@ -139,7 +139,7 @@ editors:
   - html_prettify
 ```
 
-#### html_text
+#### html_textify
 
 Only returns text content of HTML elements within the input.
 
@@ -147,7 +147,7 @@ Example:
 
 ```yaml
 editors:
-  - html_text
+  - html_textify
 ```
 
 #### regex_replacer

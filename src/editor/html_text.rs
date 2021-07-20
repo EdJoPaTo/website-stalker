@@ -47,7 +47,7 @@ impl<Wr: Write> Serializer for HtmlTextSerializer<Wr> {
     }
 }
 
-pub fn extract(html: &str) -> anyhow::Result<String> {
+pub fn textify(html: &str) -> anyhow::Result<String> {
     let doc = kuchiki::parse_html().one(html);
     let result = serialize(&doc)?
         .lines()
@@ -75,9 +75,9 @@ fn serialize<T: Serialize>(node: &T) -> anyhow::Result<String> {
 
 #[test]
 fn works() {
-    let ugly = r#"<html><body>Just a <div>test</div></body></html>"#;
+    let html = r#"<html><body>Just a <div>test</div></body></html>"#;
     assert_eq!(
-        extract(ugly).unwrap(),
+        textify(html).unwrap(),
         r#"Just a
 test"#
     );
