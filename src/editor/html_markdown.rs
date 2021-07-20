@@ -165,6 +165,7 @@ pub fn markdownify(html: &str) -> anyhow::Result<String> {
     let result = Regex::new("\n{3,}")
         .unwrap()
         .replace_all(&result, "\n\n")
+        .trim_matches('\n')
         .to_string();
     Ok(result)
 }
