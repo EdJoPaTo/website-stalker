@@ -1,0 +1,29 @@
+name: Test Coverage
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  tarpaulin:
+    name: Tarpaulin
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Setup Rust
+        uses: actions-rs/toolchain@v1
+        with:
+          override: true
+          toolchain: stable
+
+      - name: Run cargo-tarpaulin
+        uses: actions-rs/tarpaulin@v0.1
+        with:
+          out-type: Html
+
+      - name: Upload Report
+        uses: actions/upload-artifact@v2
+        with:
+          name: report
+          path: tarpaulin-report.html
