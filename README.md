@@ -6,7 +6,7 @@ This tool checks all the websites listed in its config.
 When a change is detected, the new site is added to a git commit.
 It can then be inspected via normal git tooling.
 
-Basically its just `curl`, `sed` and then `git commit` in a neat package.
+Basically its `curl`, [`sed`++](#editors) and then `git commit` in a neat package.
 
 See it [in action](https://github.com/EdJoPaTo/website-stalker-example) (literally in GitHub **Action**s).
 
@@ -59,7 +59,7 @@ Check out [website-stalker-example](https://github.com/EdJoPaTo/website-stalker-
 ### Config Example
 
 The config describes a list of sites.
-Each site has an URL and a file extension which is used to save the file.
+Each site has a URL and a file extension which is used to save the file.
 Additionally, each site can have editors which are used before saving the file.
 Each [editor](#editors) manipulates the content of the URL.
 
@@ -152,7 +152,7 @@ editors:
 
 #### regex_replacer
 
-Searches the input with a RegEx pattern and replaces all occurrences with the given replace phrase.
+Searches the input with a Regex pattern and replaces all occurrences with the given replace phrase.
 Grouping and replacing with `$1` also works.
 
 Examples:
@@ -179,7 +179,7 @@ Creates an RSS 2.0 Feed from the input.
 An RSS item is generated for every `item_selector` result.
 The other selectors can be used to find relevant information of the items.
 The content is the full result of the `item_selector`.
-It can be further edited with with every available [editor](#editors).
+It can be further edited with every available [editor](#editors).
 
 Defaults:
 - `title`: When a `<title>` exists, it will be used. Otherwise, it's empty.
