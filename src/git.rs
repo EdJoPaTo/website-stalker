@@ -95,16 +95,6 @@ impl Repo {
         Ok(())
     }
 
-    pub fn diff(&self, additional_args: &[&str]) -> anyhow::Result<()> {
-        let status = Command::new("git")
-            .current_dir(self.repo.workdir().unwrap())
-            .arg("--no-pager")
-            .arg("diff")
-            .args(additional_args)
-            .status()?;
-        result_from_status(status, "diff")
-    }
-
     pub fn reset(&self) -> anyhow::Result<()> {
         let oid = self
             .repo
@@ -114,16 +104,6 @@ impl Repo {
         let obj = self.repo.find_object(oid, None)?;
         self.repo.reset(&obj, git2::ResetType::Mixed, None)?;
         Ok(())
-    }
-
-    pub fn status_short(&self) -> anyhow::Result<()> {
-        let status = Command::new("git")
-            .current_dir(self.repo.workdir().unwrap())
-            .arg("--no-pager")
-            .arg("status")
-            .arg("--short")
-            .status()?;
-        result_from_status(status, "status")
     }
 }
 

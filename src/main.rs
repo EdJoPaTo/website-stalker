@@ -212,7 +212,6 @@ async fn run(do_commit: bool, site_filter: Option<&Regex>) -> anyhow::Result<()>
         if something_removed || !sites_of_interest.is_empty() {
             git_finishup(repo, do_commit, &sites_of_interest)?;
         }
-        repo.status_short()?;
     }
 
     if error_occured {
@@ -250,7 +249,6 @@ fn git_finishup(
     handled_sites: &[(ChangeKind, Site)],
 ) -> anyhow::Result<()> {
     repo.add(SITE_FOLDER)?;
-    repo.diff(&["--staged", "--stat"])?;
 
     if do_commit {
         let message = if handled_sites.is_empty() {
