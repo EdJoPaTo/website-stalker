@@ -1,5 +1,5 @@
 use std::fs;
-use std::path::Path;
+use std::path::{Path, PathBuf};
 use std::process::{Command, ExitStatus, Stdio};
 
 use git2::{IndexAddOption, Repository, Signature};
@@ -36,18 +36,25 @@ impl Repo {
         Ok(Self { repo })
     }
 
-    pub fn add<P: AsRef<Path>>(&self, path: P) -> anyhow::Result<()> {
+    fn relative_to_repo<P: AsRef<Path>>(&self, path: P) -> anyhow::Result<PathBuf> {
         let workdir = self.repo.workdir().unwrap();
         let abs = fs::canonicalize(path)?;
         let relative = abs.strip_prefix(workdir)?;
+        Ok(relative.to_owned())
+    }
+
+    pub fn add<P: AsRef<Path>>(&self, path: P) -> anyhow::Result<()> {
+        let relative = self.relative_to_repo(path)?;
 
         let mut index = self.repo.index()?;
-        index.add_all(relative, IndexAddOption::DEFAULT, None)?;
+        index.add_all(relative.as_path(), IndexAddOption::DEFAULT, None)?;
         index.write()?;
         Ok(())
     }
 
-    pub fn cleanup(&self, path: &str) -> anyhow::Result<()> {
+    pub fn cleanup<P: AsRef<Path>>(&self, path: P) -> anyhow::Result<()> {
+        let relative = self.relative_to_repo(path)?;
+
         let status = Command::new("git")
             .current_dir(self.repo.workdir().unwrap())
             .arg("--no-pager")
@@ -55,7 +62,7 @@ impl Repo {
             .arg("--force")
             .arg("--quiet")
             .arg("-x") // remove untracked files
-            .arg(path)
+            .arg(relative.as_path())
             .status()?;
         result_from_status(status, "clean")?;
 
@@ -64,7 +71,7 @@ impl Repo {
             .arg("--no-pager")
             .arg("checkout")
             .arg("--quiet")
-            .arg(path)
+            .arg(relative.as_path())
             .stdout(Stdio::null())
             .stderr(Stdio::null())
             .status();
@@ -201,7 +208,7 @@ fn cleanup_resets_existing_file() -> anyhow::Result<()> {
     simple_command(dir, "git commit -m bla")?;
     simple_command(dir, "echo longstuff > foo/bar.txt")?;
     assert_eq!(simple_command(dir, "du -b foo/bar.txt")?, "10\tfoo/bar.txt");
-    repo.cleanup("foo")?;
+    repo.cleanup(dir.join("foo"))?;
     overview(dir);
     assert_eq!(simple_command(dir, "du -b foo/bar.txt")?, "6\tfoo/bar.txt");
     Ok(())
@@ -221,7 +228,7 @@ fn cleanup_removes_superfluous() -> anyhow::Result<()> {
         simple_command(dir, "git status --short")?,
         "?? foo/other.txt"
     );
-    repo.cleanup("foo")?;
+    repo.cleanup(dir.join("foo"))?;
     overview(dir);
     assert_eq!(simple_command(dir, "ls foo")?, "bar.txt");
     Ok(())
@@ -238,7 +245,7 @@ fn cleanup_keeps_outside_changed_file() -> anyhow::Result<()> {
     simple_command(dir, "git commit -m bla")?;
     simple_command(dir, "echo longstuff > other.txt")?;
     assert_eq!(simple_command(dir, "git status --short")?, "?? other.txt");
-    repo.cleanup("foo")?;
+    repo.cleanup(dir.join("foo"))?;
     overview(dir);
     assert_eq!(simple_command(dir, "git status --short")?, "?? other.txt");
     Ok(())
