@@ -76,12 +76,12 @@ sites:
   - url: "https://edjopato.de/post/"
     extension: html
     editors:
-      - css_selector: article
-      - css_selector:
+      - css_select: article
+      - css_select:
           selector: a
           remove: true
       - html_prettify
-      - regex_replacer:
+      - regex_replace:
           pattern: "(Lesezeit): \\d+ \\w+"
           replace: $1
   - url: "https://edjopato.de/robots.txt"
@@ -93,7 +93,7 @@ The example repo is also used by me to detect changes of interesting sites.
 
 ### Editors
 
-#### css_selector
+#### css_select
 
 Tries to grab every instance of matching HTML elements and returns all of them (in a still valid HTML).
 Optionally with a `remove: true` it returns everything excluding the matching HTML elements.
@@ -104,14 +104,14 @@ Examples:
 
 ```yaml
 editors:
-  - css_selector: article
-  - css_selector:
+  - css_select: article
+  - css_select:
       selector: article
-  - css_selector:
+  - css_select:
       selector: a
       remove: true
-  - css_selector: h1 a
-  - css_selector: h1 > a
+  - css_select: h1 a
+  - css_select: h1 > a
 ```
 
 #### html_markdownify
@@ -150,7 +150,7 @@ editors:
   - html_textify
 ```
 
-#### regex_replacer
+#### regex_replace
 
 Searches the input with a Regex pattern and replaces all occurrences with the given replace phrase.
 Grouping and replacing with `$1` also works.
@@ -160,15 +160,15 @@ Examples:
 ```yaml
 editors:
   # Remove all occurences of that word
-  - regex_replacer:
+  - regex_replace:
     pattern: "tree"
     replace: ""
   # Remove all numbers
-  - regex_replacer:
+  - regex_replace:
     pattern: "\\d+"
     replace: ""
   # Find all css files and remove the extension
-  - regex_replacer:
+  - regex_replace:
     pattern: "(\\w+)\\.css"
     replace: $1
 ```
@@ -201,10 +201,10 @@ Examples:
           title_selector: h2
           link_selector: a
           content_editors:
-            - css_selector:
+            - css_select:
                 selector: "h2, article > a, div"
                 remove: true
-            - html_text
+            - html_textify
 
   # Minimal working example
   - url: "https://edjopato.de/post/"
