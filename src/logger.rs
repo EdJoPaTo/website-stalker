@@ -1,5 +1,3 @@
-#![allow(dead_code)]
-
 use std::env;
 
 fn is_gha() -> bool {
@@ -24,16 +22,4 @@ pub fn warn(message: &str) {
 
 pub fn info(message: &str) {
     eprintln!("INFO: {}", message);
-}
-
-pub fn begin_group(title: &str) {
-    if is_gha() {
-        println!("::group::{}", title);
-    }
-}
-
-pub fn end_group() {
-    if is_gha() {
-        println!("::endgroup::");
-    }
 }
