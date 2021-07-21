@@ -49,7 +49,7 @@ impl Repo {
 
     pub fn cleanup(&self, path: &str) -> anyhow::Result<()> {
         let status = Command::new("git")
-            .current_dir(self.repo.path().parent().unwrap())
+            .current_dir(self.repo.workdir().unwrap())
             .arg("--no-pager")
             .arg("clean")
             .arg("--force")
@@ -60,7 +60,7 @@ impl Repo {
         result_from_status(status, "clean")?;
 
         let status = Command::new("git")
-            .current_dir(self.repo.path().parent().unwrap())
+            .current_dir(self.repo.workdir().unwrap())
             .arg("--no-pager")
             .arg("checkout")
             .arg("--quiet")
@@ -90,7 +90,7 @@ impl Repo {
 
     pub fn diff(&self, additional_args: &[&str]) -> anyhow::Result<()> {
         let status = Command::new("git")
-            .current_dir(self.repo.path().parent().unwrap())
+            .current_dir(self.repo.workdir().unwrap())
             .arg("--no-pager")
             .arg("diff")
             .args(additional_args)
@@ -111,7 +111,7 @@ impl Repo {
 
     pub fn status_short(&self) -> anyhow::Result<()> {
         let status = Command::new("git")
-            .current_dir(self.repo.path().parent().unwrap())
+            .current_dir(self.repo.workdir().unwrap())
             .arg("--no-pager")
             .arg("status")
             .arg("--short")
