@@ -178,6 +178,18 @@ fn reset_works() -> anyhow::Result<()> {
 
 #[cfg(target_os = "linux")]
 #[test]
+fn add_works() -> anyhow::Result<()> {
+    let (tempdir, repo) = init_repo()?;
+    let dir = tempdir.path();
+    simple_command(dir, "touch bla.txt")?;
+    assert_eq!(simple_command(dir, "git status --short")?, "?? bla.txt");
+    repo.add(dir.join("bla.txt"))?;
+    assert_eq!(simple_command(dir, "git status --short")?, "A  bla.txt");
+    Ok(())
+}
+
+#[cfg(target_os = "linux")]
+#[test]
 fn cleanup_resets_existing_file() -> anyhow::Result<()> {
     let (tempdir, repo) = init_repo()?;
     let dir = tempdir.path();
