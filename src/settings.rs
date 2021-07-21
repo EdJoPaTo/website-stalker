@@ -72,6 +72,12 @@ fn can_parse_example_config() {
 }
 
 #[test]
+fn example_config_sites_are_valid() {
+    let settings = Settings::example();
+    settings.validate_each_site().unwrap();
+}
+
+#[test]
 fn validate_fails_on_empty_sites_list() {
     let settings = Settings {
         from: "dummy".to_string(),
