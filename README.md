@@ -93,6 +93,21 @@ The example repo is also used by me to detect changes of interesting sites.
 
 ### Editors
 
+Editors are manipulating the content of a webpage to simplify comparing them later on.
+
+For example: If you are interested in the content of a webpage the `<head>` with changing stylesheets isn't interesting to you.
+When keeping it, it will still create diffs which end up being commits.
+This will create noise you're probably just going to ignore.
+That's why editors exist.
+
+Think of editors like a pipeline, the next one gets the input of the one before.
+As some editors are assuming HTML input, they won't work (well) with non HTML input.
+For example its kinda useless to use `html_prettify` after `html_textify` as text won't end up being pretty HTML.
+For this reason editors like `css_select` are still producing valid HTML output.
+
+There are probably more tasks out there that might be useful as editors.
+Feel free to provide an issue for an editor idea or create a Pull Request with a new editor.
+
 #### css_select
 
 Tries to grab every instance of matching HTML elements and returns all of them (in a still valid HTML).
@@ -191,7 +206,7 @@ Defaults:
 Examples:
 
 ```yaml
-  # Fully specified
+  # Fully specified example
   - url: "https://edjopato.de/post/"
     extension: xml
     editors:
