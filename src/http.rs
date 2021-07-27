@@ -2,6 +2,7 @@ use std::time::Duration;
 
 use reqwest::header::{HeaderMap, HeaderValue};
 use reqwest::{header, Client, ClientBuilder, StatusCode};
+use url::Url;
 
 const USER_AGENT: &str = concat!(
     env!("CARGO_PKG_NAME"),
@@ -63,6 +64,11 @@ impl Response {
     pub async fn text(self) -> anyhow::Result<String> {
         let text = self.response.text().await?;
         Ok(text)
+    }
+
+    /// Get the final `Url` of this `Response`.
+    pub fn url(&self) -> &Url {
+        self.response.url()
     }
 }
 
