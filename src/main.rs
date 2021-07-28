@@ -125,6 +125,11 @@ async fn run(do_commit: bool, site_filter: Option<&Regex>) -> anyhow::Result<()>
             logger::warn("The repo is unclean.");
         }
     } else {
+        if do_commit {
+            return Err(anyhow::anyhow!(
+                "Not a git repo. --commit only works in git repos."
+            ));
+        }
         logger::warn("Not a git repo. Will run but won't do git actions.");
     }
 
