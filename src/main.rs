@@ -276,9 +276,8 @@ fn git_finishup(
     do_commit: bool,
     handled_sites: &[(ChangeKind, Site)],
 ) -> anyhow::Result<()> {
-    repo.add(SITE_FOLDER)?;
-
     if do_commit {
+        repo.add(SITE_FOLDER)?;
         let message = if handled_sites.is_empty() {
             "just background magic \u{1f9fd}\u{1f52e}\u{1f9f9}\n\ncleanup or updating meta files"
                 .to_string() // 🧽🔮🧹
