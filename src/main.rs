@@ -72,7 +72,6 @@ async fn main() {
                 .value_of("site filter")
                 .map(|v| Regex::new(&format!("(?i){}", v)).unwrap());
             let result = run(do_commit, site_filter.as_ref()).await;
-            println!();
             if let Err(err) = &result {
                 logger::error(&err.to_string());
             } else {
@@ -208,7 +207,6 @@ async fn run(do_commit: bool, site_filter: Option<&Regex>) -> anyhow::Result<()>
     }
 
     if let Ok(repo) = &repo {
-        println!();
         if something_removed || !sites_of_interest.is_empty() {
             git_finishup(repo, do_commit, &sites_of_interest)?;
         }
