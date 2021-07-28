@@ -42,15 +42,15 @@ jobs:
           # Also some specified lints are not yet existing in the older rust version -> allow unknown lints.
           # - os: ubuntu-latest
           #   toolchain: 1.41.1 # Debian 10 Buster
-          #   clippyargs: -W clippy::pedantic -A unknown-lints -A clippy::unknown-clippy-lints
+          #   clippyargs: -A unknown-lints -A clippy::unknown-clippy-lints
           #   experimental: false
           - os: ubuntu-latest
             toolchain: 1.48.0 # Debian 11 Bullseye
-            clippyargs: -W clippy::pedantic -A unknown-lints -A clippy::unknown-clippy-lints
+            clippyargs: -A unknown-lints -A clippy::unknown-clippy-lints
             experimental: false
           - os: ubuntu-latest
             toolchain: 1.52.0 # Alpine 3.14
-            clippyargs: -W clippy::pedantic -A unknown-lints
+            clippyargs: -A unknown-lints
             experimental: false
     steps:
       - uses: actions/checkout@v2
