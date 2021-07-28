@@ -1,7 +1,7 @@
 use std::fs;
 use std::path::{Path, PathBuf};
 
-use git2::{Diff, DiffOptions, IndexAddOption, Repository, Signature};
+use git2::{Diff, DiffOptions, IndexAddOption, Repository, RepositoryInitOptions, Signature};
 
 const GIT_COMMIT_AUTHOR_NAME: &str =
     concat!(env!("CARGO_PKG_NAME"), "/", env!("CARGO_PKG_VERSION"),);
@@ -20,6 +20,11 @@ impl Repo {
             panic!("Repo needs a work tree. This does not work with bare repos.");
         }
 
+        Ok(Self { repo })
+    }
+
+    pub fn init<P: AsRef<Path>>(path: P) -> Result<Self, git2::Error> {
+        let repo = Repository::init_opts(path, RepositoryInitOptions::new().initial_head("main"))?;
         Ok(Self { repo })
     }
 
@@ -91,7 +96,7 @@ mod tests {
         }
     }
 
-    fn init_repo() -> anyhow::Result<(tempfile::TempDir, Repo)> {
+    fn init_test_env() -> anyhow::Result<(tempfile::TempDir, Repo)> {
         let tempdir = tempfile::Builder::new()
             .prefix("website-stalker-testing-")
             .tempdir()?;
@@ -121,8 +126,32 @@ mod tests {
     }
 
     #[test]
+    fn init_works() -> anyhow::Result<()> {
+        let tempdir = tempfile::Builder::new()
+            .prefix("website-stalker-testing-")
+            .tempdir()?;
+        let dir = tempdir.path();
+        Repo::init(dir)?;
+        assert_eq!(simple_command(dir, "git status --short")?, "");
+        simple_command(dir, "touch bla.txt")?;
+        assert_eq!(simple_command(dir, "git status --short")?, "?? bla.txt");
+        Ok(())
+    }
+
+    #[test]
+    fn init_default_branch_is_main() -> anyhow::Result<()> {
+        let tempdir = tempfile::Builder::new()
+            .prefix("website-stalker-testing-")
+            .tempdir()?;
+        let dir = tempdir.path();
+        Repo::init(dir)?;
+        assert_eq!(simple_command(dir, "git branch --show-current")?, "main");
+        Ok(())
+    }
+
+    #[test]
     fn add_works() -> anyhow::Result<()> {
-        let (tempdir, repo) = init_repo()?;
+        let (tempdir, repo) = init_test_env()?;
         let dir = tempdir.path();
         simple_command(dir, "touch bla.txt")?;
         assert_eq!(simple_command(dir, "git status --short")?, "?? bla.txt");
@@ -133,7 +162,7 @@ mod tests {
 
     #[test]
     fn commit_commits() -> anyhow::Result<()> {
-        let (tempdir, repo) = init_repo()?;
+        let (tempdir, repo) = init_test_env()?;
         let dir = tempdir.path();
         simple_command(dir, "echo stuff > bla.txt")?;
         simple_command(dir, "git add bla.txt")?;
@@ -147,7 +176,7 @@ mod tests {
 
     #[test]
     fn is_something_modified_untracked() -> anyhow::Result<()> {
-        let (tempdir, repo) = init_repo()?;
+        let (tempdir, repo) = init_test_env()?;
         let dir = tempdir.path();
         assert!(!repo.is_something_modified()?);
 
@@ -164,7 +193,7 @@ mod tests {
 
     #[test]
     fn is_something_modified_changed() -> anyhow::Result<()> {
-        let (tempdir, repo) = init_repo()?;
+        let (tempdir, repo) = init_test_env()?;
         let dir = tempdir.path();
         assert!(!repo.is_something_modified()?);
 

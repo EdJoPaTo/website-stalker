@@ -13,6 +13,9 @@ pub fn build() -> App<'static, 'static> {
             SubCommand::with_name("example-config")
                 .about("Prints an example config which can be piped into website-stalker.yaml"),
         )
+        .subcommand(SubCommand::with_name("init").about(
+            "Initialize the current directory with a git repo and a config (website-stalker.yaml)",
+        ))
         .subcommand(
             SubCommand::with_name("check").about("check if the config is fine but do not run"),
         )

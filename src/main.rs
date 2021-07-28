@@ -50,10 +50,31 @@ async fn main() {
 # and it should be in the working directory where you run website-stalker.
 #
 # For example run `website-stalker example-config > website-stalker.yaml`.
-# And then do a run via `website-stalker run`.
+# And then do a run via `website-stalker run --all`.
 {}",
                 config
             );
+        }
+        ("init", Some(_)) => {
+            if git::Repo::new().is_err() {
+                git::Repo::init(std::env::current_dir().expect("failed to get working dir path"))
+                    .expect("failed to init repo");
+                println!("Git repo initialized.");
+            }
+            if Settings::load().is_err() {
+                let config = serde_yaml::to_string(&Settings::example()).unwrap();
+                let contents = format!(
+                    "# This is an example config
+# Adapt it to your needs and check if its valid via `website-stalker check`.
+# In order to run use `website-stalker run --all`.
+{}",
+                    config
+                );
+                std::fs::write("website-stalker.yaml", contents)
+                    .expect("failed to write example config file");
+                println!("Example config file generated.");
+            }
+            println!("Init complete.\nNext step: adapt the config file to your needs.");
         }
         ("check", Some(_)) => {
             match Settings::load() {
