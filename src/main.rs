@@ -238,7 +238,7 @@ async fn stalk_and_save_site(
     let took = Instant::now().saturating_duration_since(start);
 
     if site.url.as_str() != response.url().as_str() {
-        logger::warn(&format!("The URL {} was redirected to {}. This caused additional traffic which can be reduced by changing the URL to the target one.", site.url, response.url()))
+        logger::warn(&format!("The URL {} was redirected to {}. This caused additional traffic which can be reduced by changing the URL to the target one.", site.url, response.url()));
     }
 
     if response.is_not_modified() {
