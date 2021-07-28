@@ -63,25 +63,27 @@ impl Repo {
     }
 }
 
-#[cfg(target_os = "linux")]
 #[cfg(test)]
 mod tests {
     use super::*;
+    use std::fs;
+    use std::process::Command;
 
     fn simple_command<P: AsRef<Path>>(dir: P, command: &str) -> anyhow::Result<String> {
-        let output = std::process::Command::new("bash")
-            .current_dir(dir)
-            .arg("-c")
-            .arg(command)
-            .output()?;
+        let splitted = command.split(' ').collect::<Vec<_>>();
+        let program = splitted[0];
+        let args = &splitted[1..];
+        let output = Command::new(program).args(args).current_dir(dir).output()?;
         if output.status.success() {
             let stdout = String::from_utf8(output.stdout)?;
             Ok(stdout.trim().to_string())
         } else {
             Err(anyhow::anyhow!(
-                "failed command \"{}\" with status code {}",
+                "failed command \"{}\" with status code {}\nStdout: {}\nStderr: {}",
                 command,
-                output.status
+                output.status,
+                String::from_utf8_lossy(&output.stdout),
+                String::from_utf8_lossy(&output.stderr),
             ))
         }
     }
@@ -123,7 +125,7 @@ mod tests {
         let dir = tempdir.path();
         Repo::init(dir)?;
         assert_eq!(simple_command(dir, "git status --short")?, "");
-        simple_command(dir, "touch bla.txt")?;
+        fs::write(dir.join("bla.txt"), "stuff")?;
         assert_eq!(simple_command(dir, "git status --short")?, "?? bla.txt");
         Ok(())
     }
@@ -143,7 +145,7 @@ mod tests {
     fn add_all_works() -> anyhow::Result<()> {
         let (tempdir, repo) = init_test_env()?;
         let dir = tempdir.path();
-        simple_command(dir, "touch bla.txt")?;
+        fs::write(dir.join("bla.txt"), "stuff")?;
         assert_eq!(simple_command(dir, "git status --short")?, "?? bla.txt");
         repo.add_all()?;
         assert_eq!(simple_command(dir, "git status --short")?, "A  bla.txt");
@@ -154,7 +156,7 @@ mod tests {
     fn commit_commits() -> anyhow::Result<()> {
         let (tempdir, repo) = init_test_env()?;
         let dir = tempdir.path();
-        simple_command(dir, "echo stuff > bla.txt")?;
+        fs::write(dir.join("bla.txt"), "stuff")?;
         simple_command(dir, "git add bla.txt")?;
         overview(dir);
         assert_eq!(simple_command(dir, "git log")?.lines().count(), 5);
@@ -170,7 +172,7 @@ mod tests {
         let dir = tempdir.path();
         assert!(!repo.is_something_modified()?);
 
-        simple_command(dir, "echo stuff > bla.txt")?;
+        fs::write(dir.join("bla.txt"), "stuff")?;
         assert!(repo.is_something_modified()?);
         simple_command(dir, "git add bla.txt")?;
         assert!(repo.is_something_modified()?);
@@ -187,12 +189,12 @@ mod tests {
         let dir = tempdir.path();
         assert!(!repo.is_something_modified()?);
 
-        simple_command(dir, "echo stuff > bla.txt")?;
+        fs::write(dir.join("bla.txt"), "foo")?;
         simple_command(dir, "git add bla.txt")?;
         simple_command(dir, "git commit -m bla")?;
         assert!(!repo.is_something_modified()?);
 
-        simple_command(dir, "echo foo > bla.txt")?;
+        fs::write(dir.join("bla.txt"), "bar")?;
         assert!(repo.is_something_modified()?);
         simple_command(dir, "git add bla.txt")?;
         assert!(repo.is_something_modified()?);
