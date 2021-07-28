@@ -76,17 +76,13 @@ async fn main() {
             }
             println!("Init complete.\nNext step: adapt the config file to your needs.");
         }
-        ("check", Some(_)) => {
-            match Settings::load() {
-                Ok(_) => println!("config ok"),
-                Err(err) => {
-                    eprintln!("{}", err);
-                    // TODO: dont panic, just exit code != 0
-                    eprintln!();
-                    panic!("config not ok");
-                }
+        ("check", Some(_)) => match Settings::load() {
+            Ok(_) => println!("config ok"),
+            Err(err) => {
+                eprintln!("{}\n\nconfig not ok", err);
+                std::process::exit(1);
             }
-        }
+        },
         ("run", Some(matches)) => {
             let do_commit = matches.is_present("commit");
             let site_filter = matches
