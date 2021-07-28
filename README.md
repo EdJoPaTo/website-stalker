@@ -29,11 +29,12 @@ Check out [website-stalker-example](https://github.com/EdJoPaTo/website-stalker-
     ```bash
     mkdir personal-stalker
     cd personal-stalker
-    git init
+    website-stalker init
     ```
 
-- Create the config file which contains all the websites to be stalked.
-    Add your favorite website.
+    `website-stalker init` will create a git repo (`git init`) and the example config (`website-stalker example-config > website-stalker.yaml`) for you.
+
+- Add your favorite website to the config file `website-stalker.yaml`.
     Also make sure to set the value of [from](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/From) to an email address of yours.
 
     ```bash
@@ -51,7 +52,7 @@ Check out [website-stalker-example](https://github.com/EdJoPaTo/website-stalker-
     website-stalker run apple
     ```
 
-- Set up a cronjob / systemd.timer executing the following command every now and then
+- Set up a cronjob / [systemd.timer](systemd) executing the following command every now and then
     ```bash
     website-stalker run --all --commit
     ```
@@ -231,7 +232,7 @@ Examples:
 ### Command Line Arguments
 
 ```plaintext
-Website Stalker 0.8.0
+Website Stalker 0.11.0
 EdJoPaTo <website-stalker-rust@edjopato.de>
 Track changes on websites via git
 
@@ -246,6 +247,7 @@ SUBCOMMANDS:
     check             check if the config is fine but do not run
     example-config    Prints an example config which can be piped into website-stalker.yaml
     help              Prints this message or the help of the given subcommand(s)
+    init              Initialize the current directory with a git repo and a config (website-stalker.yaml)
     run               stalk all the websites you specified
 ```
 
@@ -263,6 +265,14 @@ Prints an example config which can be piped into website-stalker.yaml
 
 USAGE:
     website-stalker example-config
+```
+
+```plaintext
+website-stalker-init
+Initialize the current directory with a git repo and a config (website-stalker.yaml)
+
+USAGE:
+    website-stalker init
 ```
 
 ```plaintext
