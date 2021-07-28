@@ -116,6 +116,15 @@ async fn run(do_commit: bool, site_filter: Option<&Regex>) -> anyhow::Result<()>
 
     let repo = git::Repo::new();
     if let Ok(repo) = &repo {
+        if repo.is_something_modified()? {
+            if do_commit {
+                return Err(anyhow::anyhow!(
+                    "The repo is unclean. --commit can only be used in a clean repo."
+                ));
+            }
+            logger::warn("The repo is unclean.");
+        }
+
         repo.reset().unwrap();
         repo.cleanup(SITE_FOLDER).unwrap();
     } else {

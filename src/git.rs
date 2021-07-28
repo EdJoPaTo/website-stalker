@@ -2,7 +2,7 @@ use std::fs;
 use std::path::{Path, PathBuf};
 use std::process::{Command, ExitStatus, Stdio};
 
-use git2::{IndexAddOption, Repository, Signature};
+use git2::{Diff, DiffOptions, IndexAddOption, Repository, Signature};
 
 const GIT_COMMIT_AUTHOR_NAME: &str =
     concat!(env!("CARGO_PKG_NAME"), "/", env!("CARGO_PKG_VERSION"),);
@@ -104,6 +104,19 @@ impl Repo {
         let obj = self.repo.find_object(oid, None)?;
         self.repo.reset(&obj, git2::ResetType::Mixed, None)?;
         Ok(())
+    }
+
+    fn diff(&self) -> Result<Diff, git2::Error> {
+        let mut opts = DiffOptions::new();
+        opts.include_untracked(true);
+        self.repo.diff_tree_to_workdir_with_index(
+            self.repo.head()?.peel_to_tree().ok().as_ref(),
+            Some(&mut opts),
+        )
+    }
+
+    pub fn is_something_modified(&self) -> anyhow::Result<bool> {
+        Ok(self.diff()?.stats()?.files_changed() > 0)
     }
 }
 
