@@ -1,5 +1,4 @@
-use std::fs;
-use std::path::{Path, PathBuf};
+use std::path::Path;
 
 use git2::{Diff, DiffOptions, IndexAddOption, Repository, RepositoryInitOptions, Signature};
 
@@ -28,18 +27,9 @@ impl Repo {
         Ok(Self { repo })
     }
 
-    fn relative_to_repo<P: AsRef<Path>>(&self, path: P) -> anyhow::Result<PathBuf> {
-        let workdir = self.repo.workdir().unwrap();
-        let abs = fs::canonicalize(path)?;
-        let relative = abs.strip_prefix(workdir)?;
-        Ok(relative.to_owned())
-    }
-
-    pub fn add<P: AsRef<Path>>(&self, path: P) -> anyhow::Result<()> {
-        let relative = self.relative_to_repo(path)?;
-
+    pub fn add_all(&self) -> anyhow::Result<()> {
         let mut index = self.repo.index()?;
-        index.add_all(relative.as_path(), IndexAddOption::DEFAULT, None)?;
+        index.add_all(["."], IndexAddOption::DEFAULT, None)?;
         index.write()?;
         Ok(())
     }
@@ -150,12 +140,12 @@ mod tests {
     }
 
     #[test]
-    fn add_works() -> anyhow::Result<()> {
+    fn add_all_works() -> anyhow::Result<()> {
         let (tempdir, repo) = init_test_env()?;
         let dir = tempdir.path();
         simple_command(dir, "touch bla.txt")?;
         assert_eq!(simple_command(dir, "git status --short")?, "?? bla.txt");
-        repo.add(dir.join("bla.txt"))?;
+        repo.add_all()?;
         assert_eq!(simple_command(dir, "git status --short")?, "A  bla.txt");
         Ok(())
     }

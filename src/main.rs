@@ -151,16 +151,13 @@ async fn run(do_commit: bool, site_filter: Option<&Regex>) -> anyhow::Result<()>
     let site_store = site_store::SiteStore::new(SITE_FOLDER.to_string())
         .expect("failed to create sites directory");
 
-    let something_removed = if sites_amount == sites_total {
+    if sites_amount == sites_total {
         let filenames = sites.iter().map(Site::get_filename).collect::<Vec<_>>();
         let removed = site_store.remove_gone(&filenames)?;
-        for filename in &removed {
+        for filename in removed {
             logger::warn(&format!("Remove superfluous {:?}", filename));
         }
-        !removed.is_empty()
-    } else {
-        false
-    };
+    }
 
     if sites_amount < sites_total {
         logger::info(&format!(
@@ -233,9 +230,7 @@ async fn run(do_commit: bool, site_filter: Option<&Regex>) -> anyhow::Result<()>
     }
 
     if let Ok(repo) = &repo {
-        if something_removed || !sites_of_interest.is_empty() {
-            git_finishup(repo, do_commit, &sites_of_interest)?;
-        }
+        git_finishup(repo, do_commit, &sites_of_interest)?;
     }
 
     if error_occured {
@@ -276,34 +271,35 @@ fn git_finishup(
     do_commit: bool,
     handled_sites: &[(ChangeKind, Site)],
 ) -> anyhow::Result<()> {
-    if do_commit {
-        repo.add(SITE_FOLDER)?;
-        let message = if handled_sites.is_empty() {
-            "just background magic \u{1f9fd}\u{1f52e}\u{1f9f9}\n\ncleanup or updating meta files"
-                .to_string() // 🧽🔮🧹
+    if repo.is_something_modified()? {
+        if do_commit {
+            let message = if handled_sites.is_empty() {
+                "just background magic \u{1f9fd}\u{1f52e}\u{1f9f9}\n\ncleanup or updating meta files"
+                    .to_string() // 🧽🔮🧹
+            } else {
+                let mut lines = handled_sites
+                    .iter()
+                    .map(|(change_kind, site)| {
+                        let letter = match change_kind {
+                            ChangeKind::Init => 'A',
+                            ChangeKind::Changed => 'M',
+                            ChangeKind::ContentSame | ChangeKind::NotModified => unreachable!(),
+                        };
+                        format!("{} {}", letter, site.url.as_str())
+                    })
+                    .collect::<Vec<_>>();
+                lines.sort();
+                let body = lines.join("\n");
+                format!(
+                    "stalked some things \u{1f440}\u{1f310}\u{1f60e}\n\n{}", // 👀🌐😎
+                    body
+                )
+            };
+            repo.add_all()?;
+            repo.commit(&message)?;
         } else {
-            let mut lines = handled_sites
-                .iter()
-                .map(|(change_kind, site)| {
-                    let letter = match change_kind {
-                        ChangeKind::Init => 'A',
-                        ChangeKind::Changed => 'M',
-                        ChangeKind::ContentSame | ChangeKind::NotModified => unreachable!(),
-                    };
-                    format!("{} {}", letter, site.url.as_str())
-                })
-                .collect::<Vec<_>>();
-            lines.sort();
-            let body = lines.join("\n");
-            format!(
-                "stalked some things \u{1f440}\u{1f310}\u{1f60e}\n\n{}", // 👀🌐😎
-                body
-            )
-        };
-        repo.commit(&message)?;
-    } else {
-        logger::warn("No commit is created without the --commit flag.");
+            logger::warn("No commit is created without the --commit flag.");
+        }
     }
-
     Ok(())
 }
