@@ -70,7 +70,7 @@ async fn main() {
             let do_commit = matches.is_present("commit");
             let site_filter = matches
                 .value_of("site filter")
-                .map(|v| Regex::new(v).unwrap());
+                .map(|v| Regex::new(&format!("(?i){}", v)).unwrap());
             let result = run(do_commit, site_filter.as_ref()).await;
             println!();
             if let Err(err) = &result {

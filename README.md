@@ -279,7 +279,7 @@ FLAGS:
     -V, --version    Prints version information
 
 ARGS:
-    <site filter>    filter the rules to be run (regular expression)
+    <site filter>    filter the rules to be run (case insensitive regular expression)
 ```
 
 # Alternatives
