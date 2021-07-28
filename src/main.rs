@@ -2,22 +2,22 @@ use std::fmt::{Debug, Display};
 use std::sync::Arc;
 use std::time::{Duration, Instant};
 
+use config::Config;
 use http::Http;
 use itertools::Itertools;
 use regex::Regex;
-use settings::Settings;
 use site::Site;
 use site_store::SiteStore;
 use tokio::sync::RwLock;
 use tokio::time::sleep;
 
 mod cli;
+mod config;
 mod editor;
 mod git;
 mod http;
 mod logger;
 mod serde_helper;
-mod settings;
 mod site;
 mod site_store;
 mod url_filename;
@@ -43,7 +43,6 @@ async fn main() {
     let matches = cli::build().get_matches();
     match matches.subcommand() {
         ("example-config", Some(_)) => {
-            let config = serde_yaml::to_string(&Settings::example()).unwrap();
             println!(
                 "# This is an example config
 # The filename should be `website-stalker.yaml`
@@ -52,7 +51,7 @@ async fn main() {
 # For example run `website-stalker example-config > website-stalker.yaml`.
 # And then do a run via `website-stalker run --all`.
 {}",
-                config
+                Config::example_yaml_string()
             );
         }
         ("init", Some(_)) => {
@@ -61,14 +60,13 @@ async fn main() {
                     .expect("failed to init repo");
                 println!("Git repo initialized.");
             }
-            if Settings::load().is_err() {
-                let config = serde_yaml::to_string(&Settings::example()).unwrap();
+            if Config::load_yaml_file().is_err() {
                 let contents = format!(
                     "# This is an example config
 # Adapt it to your needs and check if its valid via `website-stalker check`.
 # In order to run use `website-stalker run --all`.
 {}",
-                    config
+                    Config::example_yaml_string()
                 );
                 std::fs::write("website-stalker.yaml", contents)
                     .expect("failed to write example config file");
@@ -76,7 +74,7 @@ async fn main() {
             }
             println!("Init complete.\nNext step: adapt the config file to your needs.");
         }
-        ("check", Some(_)) => match Settings::load() {
+        ("check", Some(_)) => match Config::load_yaml_file() {
             Ok(_) => println!("config ok"),
             Err(err) => {
                 eprintln!("{}\n\nconfig not ok", err);
@@ -107,11 +105,11 @@ async fn main() {
 
 #[allow(clippy::too_many_lines)]
 async fn run(do_commit: bool, site_filter: Option<&Regex>) -> anyhow::Result<()> {
-    let settings = Settings::load().expect("failed to load settings");
-    let http_agent = http::Http::new(&settings.from);
+    let config = Config::load_yaml_file().expect("failed to load config");
+    let http_agent = http::Http::new(&config.from);
 
-    let sites_total = settings.sites.len();
-    let sites = settings
+    let sites_total = config.sites.len();
+    let sites = config
         .sites
         .into_iter()
         .filter(|site| site_filter.map_or(true, |filter| filter.is_match(site.url.as_str())))
