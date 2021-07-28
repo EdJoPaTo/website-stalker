@@ -29,7 +29,7 @@ impl Repo {
 
     pub fn add_all(&self) -> anyhow::Result<()> {
         let mut index = self.repo.index()?;
-        index.add_all(["."], IndexAddOption::DEFAULT, None)?;
+        index.add_all(&["."], IndexAddOption::DEFAULT, None)?;
         index.write()?;
         Ok(())
     }
