@@ -144,4 +144,43 @@ mod tests {
         assert_eq!(simple_command(dir, "git log")?.lines().count(), 11);
         Ok(())
     }
+
+    #[test]
+    fn is_something_modified_untracked() -> anyhow::Result<()> {
+        let (tempdir, repo) = init_repo()?;
+        let dir = tempdir.path();
+        assert!(!repo.is_something_modified()?);
+
+        simple_command(dir, "echo stuff > bla.txt")?;
+        assert!(repo.is_something_modified()?);
+        simple_command(dir, "git add bla.txt")?;
+        assert!(repo.is_something_modified()?);
+        simple_command(dir, "git reset")?;
+        assert!(repo.is_something_modified()?);
+        simple_command(dir, "git clean -xdf")?;
+        assert!(!repo.is_something_modified()?);
+        Ok(())
+    }
+
+    #[test]
+    fn is_something_modified_changed() -> anyhow::Result<()> {
+        let (tempdir, repo) = init_repo()?;
+        let dir = tempdir.path();
+        assert!(!repo.is_something_modified()?);
+
+        simple_command(dir, "echo stuff > bla.txt")?;
+        simple_command(dir, "git add bla.txt")?;
+        simple_command(dir, "git commit -m bla")?;
+        assert!(!repo.is_something_modified()?);
+
+        simple_command(dir, "echo foo > bla.txt")?;
+        assert!(repo.is_something_modified()?);
+        simple_command(dir, "git add bla.txt")?;
+        assert!(repo.is_something_modified()?);
+        simple_command(dir, "git reset")?;
+        assert!(repo.is_something_modified()?);
+        simple_command(dir, "git checkout bla.txt")?;
+        assert!(!repo.is_something_modified()?);
+        Ok(())
+    }
 }
