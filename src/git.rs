@@ -70,82 +70,78 @@ impl Repo {
 
 #[cfg(target_os = "linux")]
 #[cfg(test)]
-fn simple_command<P: AsRef<Path>>(dir: P, command: &str) -> anyhow::Result<String> {
-    let output = std::process::Command::new("bash")
-        .current_dir(dir)
-        .arg("-c")
-        .arg(command)
-        .output()?;
-    if output.status.success() {
-        let stdout = String::from_utf8(output.stdout)?;
-        Ok(stdout.trim().to_string())
-    } else {
-        Err(anyhow::anyhow!(
-            "failed command \"{}\" with status code {}",
-            command,
-            output.status
-        ))
+mod tests {
+    use super::*;
+
+    fn simple_command<P: AsRef<Path>>(dir: P, command: &str) -> anyhow::Result<String> {
+        let output = std::process::Command::new("bash")
+            .current_dir(dir)
+            .arg("-c")
+            .arg(command)
+            .output()?;
+        if output.status.success() {
+            let stdout = String::from_utf8(output.stdout)?;
+            Ok(stdout.trim().to_string())
+        } else {
+            Err(anyhow::anyhow!(
+                "failed command \"{}\" with status code {}",
+                command,
+                output.status
+            ))
+        }
     }
-}
 
-#[cfg(target_os = "linux")]
-#[cfg(test)]
-fn init_repo() -> anyhow::Result<(tempfile::TempDir, Repo)> {
-    let tempdir = tempfile::Builder::new()
-        .prefix("website-stalker-testing-")
-        .tempdir()?;
-    let dir = tempdir.path();
+    fn init_repo() -> anyhow::Result<(tempfile::TempDir, Repo)> {
+        let tempdir = tempfile::Builder::new()
+            .prefix("website-stalker-testing-")
+            .tempdir()?;
+        let dir = tempdir.path();
 
-    let repo = Repository::init(&dir)?;
-    let repo = Repo { repo };
-    simple_command(dir, "git config user.email bla@blubb.de")?;
-    simple_command(dir, "git config user.name Bla")?;
-    simple_command(dir, "git commit -m init --allow-empty")?;
-    Ok((tempdir, repo))
-}
+        let repo = Repository::init(&dir)?;
+        let repo = Repo { repo };
+        simple_command(dir, "git config user.email bla@blubb.de")?;
+        simple_command(dir, "git config user.name Bla")?;
+        simple_command(dir, "git commit -m init --allow-empty")?;
+        Ok((tempdir, repo))
+    }
 
-#[cfg(target_os = "linux")]
-#[cfg(test)]
-fn println_command<P: AsRef<Path>>(dir: P, command: &str) {
-    println!("# {}", command);
-    match simple_command(dir, command) {
-        Ok(output) => println!("{}", output),
-        Err(err) => println!("{}", err),
-    };
-}
+    fn println_command<P: AsRef<Path>>(dir: P, command: &str) {
+        println!("# {}", command);
+        match simple_command(dir, command) {
+            Ok(output) => println!("{}", output),
+            Err(err) => println!("{}", err),
+        };
+    }
 
-#[cfg(target_os = "linux")]
-#[cfg(test)]
-fn overview<P: AsRef<Path>>(dir: P) {
-    println_command(&dir, "pwd");
-    println_command(&dir, "ls -al");
-    println_command(&dir, "git status --short");
-    println_command(&dir, "git log");
-}
+    fn overview<P: AsRef<Path>>(dir: P) {
+        println_command(&dir, "pwd");
+        println_command(&dir, "ls -al");
+        println_command(&dir, "git status --short");
+        println_command(&dir, "git log");
+    }
 
-#[cfg(target_os = "linux")]
-#[test]
-fn add_works() -> anyhow::Result<()> {
-    let (tempdir, repo) = init_repo()?;
-    let dir = tempdir.path();
-    simple_command(dir, "touch bla.txt")?;
-    assert_eq!(simple_command(dir, "git status --short")?, "?? bla.txt");
-    repo.add(dir.join("bla.txt"))?;
-    assert_eq!(simple_command(dir, "git status --short")?, "A  bla.txt");
-    Ok(())
-}
+    #[test]
+    fn add_works() -> anyhow::Result<()> {
+        let (tempdir, repo) = init_repo()?;
+        let dir = tempdir.path();
+        simple_command(dir, "touch bla.txt")?;
+        assert_eq!(simple_command(dir, "git status --short")?, "?? bla.txt");
+        repo.add(dir.join("bla.txt"))?;
+        assert_eq!(simple_command(dir, "git status --short")?, "A  bla.txt");
+        Ok(())
+    }
 
-#[cfg(target_os = "linux")]
-#[test]
-fn commit_commits() -> anyhow::Result<()> {
-    let (tempdir, repo) = init_repo()?;
-    let dir = tempdir.path();
-    simple_command(dir, "echo stuff > bla.txt")?;
-    simple_command(dir, "git add bla.txt")?;
-    overview(dir);
-    assert_eq!(simple_command(dir, "git log")?.lines().count(), 5);
-    repo.commit("bla")?;
-    overview(dir);
-    assert_eq!(simple_command(dir, "git log")?.lines().count(), 11);
-    Ok(())
+    #[test]
+    fn commit_commits() -> anyhow::Result<()> {
+        let (tempdir, repo) = init_repo()?;
+        let dir = tempdir.path();
+        simple_command(dir, "echo stuff > bla.txt")?;
+        simple_command(dir, "git add bla.txt")?;
+        overview(dir);
+        assert_eq!(simple_command(dir, "git log")?.lines().count(), 5);
+        repo.commit("bla")?;
+        overview(dir);
+        assert_eq!(simple_command(dir, "git log")?.lines().count(), 11);
+        Ok(())
+    }
 }
