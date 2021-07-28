@@ -39,7 +39,7 @@ impl Repo {
         Ok(())
     }
 
-    pub fn commit(&self, message: &str) -> anyhow::Result<()> {
+    pub fn commit(&self, message: &str) -> Result<(), git2::Error> {
         let signature = Signature::now(GIT_COMMIT_AUTHOR_NAME, GIT_COMMIT_AUTHOR_EMAIL)?;
         let tree = self.repo.find_tree(self.repo.index()?.write_tree()?)?;
         let parent_commit = self.repo.head()?.peel_to_commit()?;
@@ -63,7 +63,7 @@ impl Repo {
         )
     }
 
-    pub fn is_something_modified(&self) -> anyhow::Result<bool> {
+    pub fn is_something_modified(&self) -> Result<bool, git2::Error> {
         Ok(self.diff()?.stats()?.files_changed() > 0)
     }
 }
