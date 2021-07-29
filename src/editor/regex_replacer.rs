@@ -23,7 +23,7 @@ impl RegexReplacer {
 }
 
 #[test]
-fn example_is_valid() {
+fn is_valid_true_example() {
     let example = RegexReplacer {
         pattern: r#"(class)="[^"]+"#.to_string(),
         replace: "$1".to_string(),
@@ -34,7 +34,7 @@ fn example_is_valid() {
 }
 
 #[test]
-fn example_is_invalid() {
+fn is_valid_false_example() {
     let example = RegexReplacer {
         pattern: "(class".to_string(),
         replace: "".to_string(),
@@ -42,4 +42,15 @@ fn example_is_invalid() {
     let result = example.is_valid();
     println!("{:?}", result);
     assert!(result.is_err());
+}
+
+#[test]
+fn replaces() -> anyhow::Result<()> {
+    let example = RegexReplacer {
+        pattern: r#"(\w)\w*"#.to_string(),
+        replace: "$1".to_string(),
+    };
+    let result = example.replace_all("Hello world")?;
+    assert_eq!(result, "H w");
+    Ok(())
 }
