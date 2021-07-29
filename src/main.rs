@@ -192,7 +192,7 @@ async fn run(do_commit: bool, site_filter: Option<&Regex>) -> anyhow::Result<()>
                 let mut done = amount_done.write().await;
                 *done += 1;
 
-                match &result {
+                match result {
                     Ok((change_kind, took)) => {
                         println!(
                             "{:4}/{} {:12} {:5}ms {}",
@@ -202,12 +202,13 @@ async fn run(do_commit: bool, site_filter: Option<&Regex>) -> anyhow::Result<()>
                             took.as_millis(),
                             url
                         );
+                        Ok((site, change_kind))
                     }
                     Err(err) => {
                         logger::error(&format!("{} {}", url, err));
+                        Err(err)
                     }
                 }
-                result.map(|(change_kind, took)| (site, change_kind, took))
             });
 
             tasks.push(handle);
@@ -218,7 +219,7 @@ async fn run(do_commit: bool, site_filter: Option<&Regex>) -> anyhow::Result<()>
     let mut error_occured = false;
     for handle in tasks {
         match handle.await.expect("failed to spawn task") {
-            Ok((site, change_kind, _)) => match change_kind {
+            Ok((site, change_kind)) => match change_kind {
                 ChangeKind::Init | ChangeKind::Changed => {
                     sites_of_interest.push((change_kind, site));
                 }
@@ -257,13 +258,13 @@ async fn stalk_and_save_site(
         logger::warn(&format!("The URL {} was redirected to {}. This caused additional traffic which can be reduced by changing the URL to the target one.", site.url, response.url()));
     }
 
-    if response.is_not_modified() {
-        return Ok((ChangeKind::NotModified, took));
-    }
-
-    let content = response.text().await?;
-    let content = site.stalk(&content).await?;
-    let changed = site_store.write_only_changed(&filename, &content)?;
+    let changed = if response.is_not_modified() {
+        ChangeKind::NotModified
+    } else {
+        let content = response.text().await?;
+        let content = site.stalk(&content).await?;
+        site_store.write_only_changed(&filename, &content)?
+    };
     Ok((changed, took))
 }
 
