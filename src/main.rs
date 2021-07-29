@@ -193,13 +193,14 @@ async fn run(do_commit: bool, site_filter: Option<&Regex>) -> anyhow::Result<()>
                 *done += 1;
 
                 match result {
-                    Ok((change_kind, took)) => {
+                    Ok((change_kind, ip_version, took)) => {
                         println!(
-                            "{:4}/{} {:12} {:5}ms {}",
+                            "{:4}/{} {:12} {:5}ms {} {}",
                             done,
                             sites_amount,
                             change_kind.to_string(),
                             took.as_millis(),
+                            ip_version.to_string(),
                             url
                         );
                         Ok((site, change_kind))
@@ -246,13 +247,14 @@ async fn stalk_and_save_site(
     site_store: &SiteStore,
     http_agent: &Http,
     site: &Site,
-) -> anyhow::Result<(ChangeKind, Duration)> {
+) -> anyhow::Result<(ChangeKind, http::IpVersion, Duration)> {
     let filename = site.get_filename();
     // TODO: get last known etag
     let etag = None;
     let start = Instant::now();
     let response = http_agent.get(site.url.as_str(), etag).await?;
     let took = Instant::now().saturating_duration_since(start);
+    let ip_version = response.ip_version();
 
     if site.url.as_str() != response.url().as_str() {
         logger::warn(&format!("The URL {} was redirected to {}. This caused additional traffic which can be reduced by changing the URL to the target one.", site.url, response.url()));
@@ -265,7 +267,7 @@ async fn stalk_and_save_site(
         let content = site.stalk(&content).await?;
         site_store.write_only_changed(&filename, &content)?
     };
-    Ok((changed, took))
+    Ok((changed, ip_version, took))
 }
 
 fn git_finishup(

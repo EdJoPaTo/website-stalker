@@ -21,6 +21,19 @@ pub struct Response {
     response: reqwest::Response,
 }
 
+#[derive(Debug)]
+pub enum IpVersion {
+    IPv4,
+    IPv6,
+    None,
+}
+
+impl std::fmt::Display for IpVersion {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        std::fmt::Debug::fmt(self, f)
+    }
+}
+
 impl Http {
     /// Create an http agent with an email address to be contacted in case of problems.
     ///
@@ -69,6 +82,21 @@ impl Response {
     /// Get the final `Url` of this `Response`.
     pub fn url(&self) -> &Url {
         self.response.url()
+    }
+
+    pub fn ip_version(&self) -> IpVersion {
+        match self.response.remote_addr() {
+            Some(a) => {
+                if a.is_ipv6() {
+                    IpVersion::IPv6
+                } else if a.is_ipv4() {
+                    IpVersion::IPv4
+                } else {
+                    IpVersion::None
+                }
+            }
+            None => IpVersion::None,
+        }
     }
 }
 
