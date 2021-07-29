@@ -114,3 +114,103 @@ impl Rss {
         Ok(feed)
     }
 }
+
+#[test]
+fn minimal_options_are_valid() {
+    let rss = Rss {
+        title: None,
+        item_selector: None,
+        title_selector: None,
+        link_selector: None,
+        content_editors: vec![],
+    };
+    let result = rss.is_valid();
+    println!("{:?}", result);
+    assert!(result.is_ok());
+}
+
+#[test]
+fn example_with_defaults_works() -> anyhow::Result<()> {
+    let html = r#"<html>
+	<head>
+        <title>Whatever</title>
+	</head>
+	<body>
+		ignore
+		<article>
+			<h2>First</h2>
+            <a href="a/">Link</a>
+            content
+		</article>
+		<article>
+			<h2>Second</h2>
+            <a href="b/">Link</a>
+            lorem
+		</article>
+	</body>
+</html>"#;
+    let rss = Rss {
+        title: None,
+        item_selector: None,
+        title_selector: None,
+        link_selector: None,
+        content_editors: vec![],
+    };
+    let result = rss.generate(&Url::parse("https://edjopato.de/posts/")?, html)?;
+    println!("{}", result);
+    assert!(result.contains(r#"website-stalker"#));
+    assert!(result.contains(r#"<rss version="2.0" "#));
+    assert!(result.contains(r#"<link>https://edjopato.de/posts/a/</link>"#));
+    assert!(result.contains(r#"<link>https://edjopato.de/posts/b/</link>"#));
+    assert!(result.contains(r#"<title>Whatever</title>"#));
+    assert!(result.contains(r#"<title>First</title>"#));
+    assert!(result.contains(r#"<title>Second</title>"#));
+    assert!(!result.contains(r#"ignore"#));
+    Ok(())
+}
+
+#[test]
+fn ugly_example_works() -> anyhow::Result<()> {
+    let html = r#"<html>
+	<head>
+        <title>Whatever</title>
+	</head>
+	<body>
+		<div class="entry">
+			<h6>First</h6>
+            <a href="/buy-now/">Ad</a>
+            <a href="a/">Link</a>
+            content
+		</div>
+		<div class="entry">
+			<h6>Second</h6>
+            <a href="/buy-now/">Ad</a>
+            <a href="b/">Link</a>
+            lorem
+		</div>
+	</body>
+</html>"#;
+    let rss = Rss {
+        title: Some("My title".to_string()),
+        item_selector: Some(".entry".to_string()),
+        title_selector: Some("h6".to_string()),
+        link_selector: Some("a:last-of-type".to_string()),
+        content_editors: vec![Editor::HtmlTextify],
+    };
+    let valid = rss.is_valid();
+    println!("is_valid {:?}", valid);
+    assert!(valid.is_ok(), "is_valid");
+
+    let result = rss.generate(&Url::parse("https://edjopato.de/posts/")?, html)?;
+    println!("{}", result);
+    assert!(result.contains(r#"website-stalker"#));
+    assert!(result.contains(r#"<rss version="2.0" "#));
+    assert!(result.contains(r#"<link>https://edjopato.de/posts/a/</link>"#));
+    assert!(result.contains(r#"<link>https://edjopato.de/posts/b/</link>"#));
+    assert!(result.contains(r#"<title>My title</title>"#));
+    assert!(result.contains(r#"<title>First</title>"#));
+    assert!(result.contains(r#"<title>Second</title>"#));
+    assert!(!result.contains(r#"buy-now"#));
+    assert!(!result.contains(r#"Whatever"#));
+    Ok(())
+}
