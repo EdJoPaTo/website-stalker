@@ -1,6 +1,7 @@
 use std::fmt::{Debug, Display};
 use std::sync::Arc;
 use std::time::{Duration, Instant};
+use std::{fs, process};
 
 use config::Config;
 use http::Http;
@@ -68,7 +69,7 @@ async fn main() {
 {}",
                     Config::example_yaml_string()
                 );
-                std::fs::write("website-stalker.yaml", contents)
+                fs::write("website-stalker.yaml", contents)
                     .expect("failed to write example config file");
                 println!("Example config file generated.");
             }
@@ -78,7 +79,7 @@ async fn main() {
             Ok(_) => println!("config ok"),
             Err(err) => {
                 eprintln!("{}\n\nconfig not ok", err);
-                std::process::exit(1);
+                process::exit(1);
             }
         },
         ("run", Some(matches)) => {
@@ -94,7 +95,7 @@ async fn main() {
             }
             println!("Thanks for using website-stalker!");
             if result.is_err() {
-                std::process::exit(1);
+                process::exit(1);
             }
         }
         (subcommand, matches) => {

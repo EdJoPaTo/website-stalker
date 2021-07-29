@@ -26,8 +26,8 @@ impl Http {
     ///
     /// See [http From header](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/From)
     pub fn new(from: &str) -> Self {
-        let mut headers = header::HeaderMap::new();
-        headers.insert(header::FROM, header::HeaderValue::from_str(from).unwrap());
+        let mut headers = HeaderMap::new();
+        headers.insert(header::FROM, HeaderValue::from_str(from).unwrap());
 
         Self {
             client: ClientBuilder::new()
@@ -73,7 +73,7 @@ impl Response {
 }
 
 pub fn validate_from(from: &str) -> anyhow::Result<()> {
-    let value = header::HeaderValue::from_str(from)?;
+    let value = HeaderValue::from_str(from)?;
     let value = value.to_str()?;
     if !value.contains('@') || !value.contains('.') {
         return Err(anyhow::anyhow!(
