@@ -7,6 +7,7 @@ pub mod css_selector;
 pub mod html_markdown;
 pub mod html_pretty;
 pub mod html_text;
+pub mod html_url;
 pub mod json_prettify;
 pub mod regex_replacer;
 pub mod rss;
@@ -19,6 +20,7 @@ pub enum Editor {
     HtmlMarkdownify,
     HtmlPrettify,
     HtmlTextify,
+    HtmlUrlCanonicalize,
     JsonPrettify,
     RegexReplace(regex_replacer::RegexReplacer),
     Rss(rss::Rss),
@@ -33,6 +35,7 @@ impl Editor {
             Editor::HtmlMarkdownify
             | Editor::HtmlPrettify
             | Editor::HtmlTextify
+            | Editor::HtmlUrlCanonicalize
             | Editor::JsonPrettify => {}
         }
         Ok(())
@@ -44,6 +47,7 @@ impl Editor {
             Editor::HtmlMarkdownify => html_markdown::markdownify(input),
             Editor::HtmlPrettify => html_pretty::prettify(input),
             Editor::HtmlTextify => html_text::textify(input),
+            Editor::HtmlUrlCanonicalize => html_url::canonicalize(url, input),
             Editor::JsonPrettify => json_prettify::prettify(input),
             Editor::RegexReplace(e) => Ok(e.replace_all(input)?.to_string()),
             Editor::Rss(e) => e.generate(url, input),

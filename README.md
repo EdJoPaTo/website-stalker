@@ -166,6 +166,18 @@ editors:
   - html_textify
 ```
 
+#### html_url_canonicalize
+
+Parses the input HTML for URLs.
+URLs are parsed into their canonical, absolute form.
+
+Example:
+
+```yaml
+editors:
+  - html_url_canonicalize
+```
+
 #### json_prettify
 
 Formats the input JSON as pretty JSON.
