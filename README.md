@@ -166,6 +166,17 @@ editors:
   - html_textify
 ```
 
+#### json_prettify
+
+Formats the input JSON as pretty JSON.
+
+Example:
+
+```yaml
+editors:
+  - json_prettify
+```
+
 #### regex_replace
 
 Searches the input with a Regex pattern and replaces all occurrences with the given replace phrase.
