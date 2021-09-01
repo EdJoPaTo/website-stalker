@@ -91,6 +91,11 @@ impl Rss {
                 builder.title(title.text().map(str::trim).join("\n").trim().to_string());
             }
 
+            // When the item is the link itself
+            if let Some(link) = item.value().attr("href") {
+                builder.link(url.join(link)?.to_string());
+            }
+
             if let Some(link) = item.select(&link).find_map(|o| o.value().attr("href")) {
                 builder.link(url.join(link)?.to_string());
             }
@@ -152,6 +157,45 @@ fn example_with_defaults_works() -> anyhow::Result<()> {
     let rss = Rss {
         title: None,
         item_selector: None,
+        title_selector: None,
+        link_selector: None,
+        content_editors: vec![],
+    };
+    let result = rss.generate(&Url::parse("https://edjopato.de/posts/")?, html)?;
+    println!("{}", result);
+    assert!(result.contains(r#"website-stalker"#));
+    assert!(result.contains(r#"<rss version="2.0" "#));
+    assert!(result.contains(r#"<link>https://edjopato.de/posts/a/</link>"#));
+    assert!(result.contains(r#"<link>https://edjopato.de/posts/b/</link>"#));
+    assert!(result.contains(r#"<title>Whatever</title>"#));
+    assert!(result.contains(r#"<title>First</title>"#));
+    assert!(result.contains(r#"<title>Second</title>"#));
+    assert!(!result.contains(r#"ignore"#));
+    Ok(())
+}
+
+#[test]
+fn example_with_item_equals_link() -> anyhow::Result<()> {
+    let html = r#"<html>
+	<head>
+        <title>Whatever</title>
+	</head>
+	<body>
+		ignore
+		<article>
+        <a href="a/">
+			<h2>First</h2>
+            content
+		</a>
+		<a href="b/">
+			<h2>Second</h2>
+            lorem
+		</a>
+	</body>
+</html>"#;
+    let rss = Rss {
+        title: None,
+        item_selector: Some("a".to_string()),
         title_selector: None,
         link_selector: None,
         content_editors: vec![],
