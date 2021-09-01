@@ -8,7 +8,7 @@ jobs:
   test:
     name: Test ${{ matrix.os }} ${{ matrix.toolchain }}
     runs-on: ${{ matrix.os }}
-    continue-on-error: ${{ matrix.experimental }}
+    continue-on-error: ${{ matrix.toolchain == 'nightly' }}
     strategy:
       fail-fast: false
       matrix:
@@ -17,25 +17,20 @@ jobs:
           - os: ubuntu-latest
             toolchain: stable
             clippyargs: -D clippy::pedantic -D warnings
-            experimental: false
           - os: macOS-latest
             toolchain: stable
             clippyargs: -D clippy::pedantic -D warnings
-            experimental: false
           - os: windows-latest
             toolchain: stable
             clippyargs: -D clippy::pedantic -D warnings
-            experimental: false
 
-          # Check beta/nightly (potentially buggy) and maybe get some glances on soon to be lints
+          # Check future versions and maybe get some glances on soon to be lints
           - os: ubuntu-latest
             toolchain: beta
             clippyargs: -W clippy::pedantic
-            experimental: true
           - os: ubuntu-latest
             toolchain: nightly
             clippyargs: -W clippy::pedantic
-            experimental: true
 
           # Check if it is still running on older Rust versions.
           # Sometimes they dont have lint bugfixes which results in false positives -> Dont error, just warn.
@@ -43,11 +38,9 @@ jobs:
           - os: ubuntu-latest
             toolchain: 1.48.0 # Debian 11 Bullseye
             clippyargs: -A unknown-lints -A clippy::unknown-clippy-lints
-            experimental: false
           - os: ubuntu-latest
             toolchain: 1.52.0 # Alpine 3.14
             clippyargs: -A unknown-lints
-            experimental: false
     steps:
       - name: Setup Rust
         uses: actions-rs/toolchain@v1
