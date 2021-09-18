@@ -25,6 +25,19 @@ impl<Wr: Write> HtmlMarkdownSerializer<Wr> {
     }
 }
 
+fn get_attr_value<'a, AttrIter>(attrs: &mut AttrIter, name: &str) -> Option<&'a str>
+where
+    AttrIter: Iterator<Item = AttrRef<'a>>,
+{
+    attrs.find_map(|(q, value)| {
+        if q.local.to_string() == name {
+            Some(value)
+        } else {
+            None
+        }
+    })
+}
+
 impl<Wr: Write> Serializer for HtmlMarkdownSerializer<Wr> {
     fn start_elem<'a, AttrIter>(
         &mut self,
@@ -75,10 +88,9 @@ impl<Wr: Write> Serializer for HtmlMarkdownSerializer<Wr> {
                 self.italic = true;
             }
             "a" => {
-                self.a_href = attrs
-                    .find(|(name, _value)| name.local.to_string() == "href")
-                    .map(|o| o.1.to_string())
-                    .filter(|o| !o.is_empty());
+                self.a_href = get_attr_value(&mut attrs, "href")
+                    .filter(|o| !o.is_empty())
+                    .map(std::string::ToString::to_string);
             }
             _ => {}
         }
