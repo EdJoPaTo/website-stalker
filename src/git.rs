@@ -37,14 +37,21 @@ impl Repo {
     pub fn commit(&self, message: &str) -> Result<(), git2::Error> {
         let signature = Signature::now(GIT_COMMIT_AUTHOR_NAME, GIT_COMMIT_AUTHOR_EMAIL)?;
         let tree = self.repo.find_tree(self.repo.index()?.write_tree()?)?;
-        let parent_commit = self.repo.head()?.peel_to_commit()?;
+
+        let parent_commit = self.repo.head().and_then(|o| o.peel_to_commit());
+        let parents = if let Ok(parent) = parent_commit.as_ref() {
+            vec![parent]
+        } else {
+            vec![]
+        };
+
         self.repo.commit(
             Some("HEAD"),
             &signature,
             &signature,
             message,
             &tree,
-            &[&parent_commit],
+            &parents,
         )?;
         Ok(())
     }
@@ -52,10 +59,9 @@ impl Repo {
     fn diff(&self) -> Result<Diff, git2::Error> {
         let mut opts = DiffOptions::new();
         opts.include_untracked(true);
-        self.repo.diff_tree_to_workdir_with_index(
-            self.repo.head()?.peel_to_tree().ok().as_ref(),
-            Some(&mut opts),
-        )
+        let old_tree = self.repo.head().ok().and_then(|o| o.peel_to_tree().ok());
+        self.repo
+            .diff_tree_to_workdir_with_index(old_tree.as_ref(), Some(&mut opts))
     }
 
     pub fn is_something_modified(&self) -> Result<bool, git2::Error> {
@@ -98,7 +104,6 @@ mod tests {
         let repo = Repo { repo };
         simple_command(dir, "git config user.email bla@blubb.de")?;
         simple_command(dir, "git config user.name Bla")?;
-        simple_command(dir, "git commit -m init --allow-empty")?;
         Ok((tempdir, repo))
     }
 
@@ -153,9 +158,10 @@ mod tests {
     }
 
     #[test]
-    fn commit_commits() -> anyhow::Result<()> {
+    fn commit_commits_with_existing_commits() -> anyhow::Result<()> {
         let (tempdir, repo) = init_test_env()?;
         let dir = tempdir.path();
+        simple_command(dir, "git commit -m init --allow-empty")?;
         fs::write(dir.join("bla.txt"), "stuff")?;
         simple_command(dir, "git add bla.txt")?;
         overview(dir);
@@ -163,6 +169,19 @@ mod tests {
         repo.commit("bla")?;
         overview(dir);
         assert_eq!(simple_command(dir, "git log")?.lines().count(), 11);
+        Ok(())
+    }
+
+    #[test]
+    fn commit_commits_empty_repo() -> anyhow::Result<()> {
+        let (tempdir, repo) = init_test_env()?;
+        let dir = tempdir.path();
+        fs::write(dir.join("bla.txt"), "stuff")?;
+        simple_command(dir, "git add bla.txt")?;
+        overview(dir);
+        repo.commit("bla")?;
+        overview(dir);
+        assert_eq!(simple_command(dir, "git log")?.lines().count(), 5);
         Ok(())
     }
 
