@@ -18,7 +18,6 @@ mod editor;
 mod git;
 mod http;
 mod logger;
-mod serde_helper;
 mod site;
 mod site_store;
 mod url_filename;

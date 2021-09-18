@@ -1,17 +1,12 @@
-use serde::ser::SerializeStruct;
 use serde::{Deserialize, Serialize};
 
-#[derive(Debug, Deserialize)]
-pub struct CssSelector {
-    pub selector: String,
-    pub remove: bool,
-}
+#[derive(Debug, Deserialize, Serialize)]
+pub struct CssSelector(String);
 
 impl CssSelector {
     fn parse(&self) -> anyhow::Result<scraper::Selector> {
-        let scrape_selector = scraper::Selector::parse(&self.selector).map_err(|err| {
-            anyhow::anyhow!("css selector ({}) parse error: {:?}", self.selector, err)
-        })?;
+        let scrape_selector = scraper::Selector::parse(&self.0)
+            .map_err(|err| anyhow::anyhow!("css selector ({}) parse error: {:?}", self.0, err))?;
 
         Ok(scrape_selector)
     }
@@ -28,57 +23,28 @@ impl CssSelector {
             .map(|o| o.html())
             .collect::<Vec<_>>();
 
-        if self.remove {
-            let mut html = parsed_html.root_element().html();
-            for s in selected {
-                html = html.replace(&s, "");
-            }
-            Ok(html)
-        } else {
-            if selected.is_empty() {
-                return Err(anyhow::anyhow!(
-                    "css_selector ({}) selected nothing",
-                    self.selector
-                ));
-            }
-            Ok(selected.join("\n"))
+        if selected.is_empty() {
+            return Err(anyhow::anyhow!(
+                "css_selector ({}) selected nothing",
+                self.0
+            ));
         }
+        Ok(selected.join("\n"))
     }
 }
 
 impl std::str::FromStr for CssSelector {
-    type Err = void::Void;
-
+    type Err = anyhow::Error;
     fn from_str(s: &str) -> Result<Self, Self::Err> {
-        Ok(CssSelector {
-            selector: s.to_string(),
-            remove: false,
-        })
-    }
-}
-
-impl Serialize for CssSelector {
-    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
-    where
-        S: serde::Serializer,
-    {
-        if self.remove {
-            let mut state = serializer.serialize_struct("CssSelector", 2)?;
-            state.serialize_field("selector", &self.selector)?;
-            state.serialize_field("remove", &self.remove)?;
-            state.end()
-        } else {
-            serializer.serialize_str(&self.selector)
-        }
+        let s = Self(s.to_string());
+        s.parse()?;
+        Ok(s)
     }
 }
 
 #[test]
 fn valid() {
-    let s = CssSelector {
-        selector: "body".to_string(),
-        remove: false,
-    };
+    let s = CssSelector("body".to_string());
     let result = s.is_valid();
     println!("{:?}", result);
     assert!(result.is_ok());
@@ -86,10 +52,7 @@ fn valid() {
 
 #[test]
 fn invalid() {
-    let s = CssSelector {
-        selector: ".".to_string(),
-        remove: false,
-    };
+    let s = CssSelector(".".to_string());
     let result = s.is_valid();
     println!("{:?}", result);
     assert!(result.is_err());
@@ -101,43 +64,29 @@ const EXAMPLE_HTML: &str =
 
 #[test]
 fn selects_classes_a() {
-    let selector = CssSelector {
-        selector: ".a".to_string(),
-        remove: false,
-    };
+    let selector = CssSelector(".a".to_string());
     let html = selector.apply(EXAMPLE_HTML).unwrap();
     assert_eq!(html, r#"<div class="a"><p>A</p></div>"#);
 }
 
 #[test]
 fn selects_classes_b() {
-    let selector = CssSelector {
-        selector: ".b".to_string(),
-        remove: false,
-    };
+    let selector = CssSelector(".b".to_string());
     let html = selector.apply(EXAMPLE_HTML).unwrap();
     assert_eq!(html, r#"<div class="b">B</div>"#);
 }
 
 #[test]
 fn selects_tag() {
-    let selector = CssSelector {
-        selector: "p".to_string(),
-        remove: false,
-    };
+    let selector = CssSelector("p".to_string());
     let html = selector.apply(EXAMPLE_HTML).unwrap();
     assert_eq!(html, r#"<p>A</p>"#);
 }
 
 #[test]
-fn removes_tag() {
-    let selector = CssSelector {
-        selector: "p".to_string(),
-        remove: true,
-    };
-    let html = selector.apply(EXAMPLE_HTML).unwrap();
-    assert_eq!(
-        html,
-        r#"<html><head></head><body><div class="a"></div><div class="b">B</div></body></html>"#
-    );
+fn select_not_found() {
+    let selector = CssSelector("p".to_string());
+    let result = selector.apply(r#"<html><head></head><body>test</body></html>"#);
+    dbg!(&result);
+    assert!(result.is_err());
 }

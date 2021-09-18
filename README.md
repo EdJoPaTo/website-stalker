@@ -78,9 +78,7 @@ sites:
     extension: html
     editors:
       - css_select: article
-      - css_select:
-          selector: a
-          remove: true
+      - css_remove: a
       - html_prettify
       - regex_replace:
           pattern: "(Lesezeit): \\d+ \\w+"
@@ -109,6 +107,20 @@ For this reason editors like `css_select` are still producing valid HTML output.
 There are probably more tasks out there that might be useful as editors.
 Feel free to provide an issue for an editor idea or create a Pull Request with a new editor.
 
+#### css_remove
+
+Tries to remove every instance of matching HTML elements and returns the remaining HTML.
+Opposite of [`css_select`](#css_select).
+
+Examples:
+
+```yaml
+editors:
+  - css_remove: article
+  - css_remove: h1 a
+  - css_remove: h1 > a
+```
+
 #### css_select
 
 Tries to grab every instance of matching HTML elements and returns all of them (in a still valid HTML).
@@ -121,11 +133,6 @@ Examples:
 ```yaml
 editors:
   - css_select: article
-  - css_select:
-      selector: article
-  - css_select:
-      selector: a
-      remove: true
   - css_select: h1 a
   - css_select: h1 > a
 ```

@@ -1,7 +1,6 @@
 use serde::{Deserialize, Serialize};
 use url::Url;
 
-use crate::editor::css_selector::CssSelector;
 use crate::editor::regex_replacer::RegexReplacer;
 use crate::editor::Editor;
 
@@ -48,14 +47,8 @@ impl Site {
                 url: Url::parse("https://edjopato.de/post/").unwrap(),
                 extension: "html".to_string(),
                 editors: vec![
-                    Editor::CssSelect(CssSelector {
-                        selector: "article".to_string(),
-                        remove: false,
-                    }),
-                    Editor::CssSelect(CssSelector {
-                        selector: "a".to_string(),
-                        remove: true,
-                    }),
+                    Editor::CssSelect("article".parse().unwrap()),
+                    Editor::CssRemove("a".parse().unwrap()),
                     Editor::HtmlPrettify,
                     Editor::RegexReplace(RegexReplacer {
                         pattern: "(Lesezeit): \\d+ \\w+".to_string(),

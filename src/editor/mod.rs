@@ -1,8 +1,7 @@
 use serde::{Deserialize, Serialize};
 use url::Url;
 
-use crate::serde_helper::string_or_struct;
-
+pub mod css_remove;
 pub mod css_selector;
 pub mod html_markdown;
 pub mod html_pretty;
@@ -15,7 +14,7 @@ pub mod rss;
 #[derive(Debug, Deserialize, Serialize)]
 #[serde(rename_all = "snake_case")]
 pub enum Editor {
-    #[serde(deserialize_with = "string_or_struct")]
+    CssRemove(css_remove::CssRemover),
     CssSelect(css_selector::CssSelector),
     HtmlMarkdownify,
     HtmlPrettify,
@@ -29,6 +28,7 @@ pub enum Editor {
 impl Editor {
     pub fn is_valid(&self) -> anyhow::Result<()> {
         match &self {
+            Editor::CssRemove(e) => e.is_valid()?,
             Editor::CssSelect(e) => e.is_valid()?,
             Editor::RegexReplace(e) => e.is_valid()?,
             Editor::Rss(e) => e.is_valid()?,
@@ -43,6 +43,7 @@ impl Editor {
 
     pub fn apply(&self, url: &Url, input: &str) -> anyhow::Result<String> {
         match &self {
+            Editor::CssRemove(e) => e.apply(input),
             Editor::CssSelect(e) => e.apply(input),
             Editor::HtmlMarkdownify => html_markdown::markdownify(input),
             Editor::HtmlPrettify => html_pretty::prettify(input),
