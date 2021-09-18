@@ -49,6 +49,9 @@ async fn main() {
 # and it should be in the working directory where you run website-stalker.
 #
 # For example run `website-stalker example-config > website-stalker.yaml`.
+# Adapt the config to your needs and set the FROM email address which is used as a request header:
+# https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/From
+#
 # And then do a run via `website-stalker run --all`.
 {}",
                 Config::example_yaml_string()

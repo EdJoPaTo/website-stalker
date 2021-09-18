@@ -70,7 +70,10 @@ Each [editor](#editors) manipulates the content of the URL.
 # and it should be in the working directory where you run website-stalker.
 #
 # For example run `website-stalker example-config > website-stalker.yaml`.
-# And then do a run via `website-stalker run`.
+# Adapt the config to your needs and set the FROM email address which is used as a request header:
+# https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/From
+#
+# And then do a run via `website-stalker run --all`.
 ---
 from: my-email-address
 sites:
