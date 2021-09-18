@@ -92,6 +92,14 @@ impl<Wr: Write> Serializer for HtmlMarkdownSerializer<Wr> {
                     .filter(|o| !o.is_empty())
                     .map(std::string::ToString::to_string);
             }
+            "img" => {
+                let alt = get_attr_value(&mut attrs, "alt").unwrap_or_default();
+                let src = get_attr_value(&mut attrs, "src").filter(|o| !o.is_empty());
+                if let Some(src) = src {
+                    let line = format!("![{}]({})\n", alt, src);
+                    self.serializer.write_text(&line)?;
+                }
+            }
             _ => {}
         }
 
@@ -219,6 +227,18 @@ fn link_works() {
         markdownify(html).unwrap(),
         r#"Just
 [some](https://edjopato.de/)
+test"#
+    );
+}
+
+#[test]
+fn img_works() {
+    let html =
+        r#"<html><body>Just<img src="some.jpg" title="Titel" alt="Alternative">test</body></html>"#;
+    assert_eq!(
+        markdownify(html).unwrap(),
+        r#"Just
+![Alternative](some.jpg)
 test"#
     );
 }
