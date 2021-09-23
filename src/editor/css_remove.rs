@@ -49,11 +49,9 @@ fn valid() {
 }
 
 #[test]
+#[should_panic = "parse error"]
 fn invalid() {
-    let s = CssRemover(".".to_string());
-    let result = s.is_valid();
-    println!("{:?}", result);
-    assert!(result.is_err());
+    CssRemover(".".to_string()).is_valid().unwrap();
 }
 
 #[cfg(test)]

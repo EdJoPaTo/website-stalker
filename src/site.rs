@@ -79,6 +79,7 @@ impl Site {
 }
 
 #[test]
+#[should_panic = "duplicates"]
 fn validate_finds_duplicates() {
     let sites = vec![
         Site {
@@ -97,8 +98,5 @@ fn validate_finds_duplicates() {
             editors: vec![],
         },
     ];
-
-    let result = Site::validate_no_duplicate(&sites);
-    println!("{:?}", result);
-    assert!(result.is_err());
+    Site::validate_no_duplicate(&sites).unwrap();
 }

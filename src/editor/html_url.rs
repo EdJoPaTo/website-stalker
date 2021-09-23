@@ -136,12 +136,9 @@ fn works_with_already_absolute_url() {
 }
 
 #[test]
+#[should_panic = "failed to parse url /// empty host"]
 fn garbage_results_in_error() {
     let base_url = Url::parse("https://edjopato.de/index.html").unwrap();
     let ugly = r#"<html><body>Just a <a href="///">test</a></body></html>"#;
-    let result = canonicalize(&base_url, ugly);
-    let debug_text = format!("{:?}", result);
-    println!("{}", debug_text);
-    assert!(result.is_err());
-    assert_eq!(debug_text, "Err(failed to parse url /// empty host)");
+    canonicalize(&base_url, ugly).unwrap();
 }

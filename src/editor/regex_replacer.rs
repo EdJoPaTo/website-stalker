@@ -34,14 +34,13 @@ fn is_valid_true_example() {
 }
 
 #[test]
+#[should_panic = "unclosed group"]
 fn is_valid_false_example() {
     let example = RegexReplacer {
         pattern: "(class".to_string(),
         replace: "".to_string(),
     };
-    let result = example.is_valid();
-    println!("{:?}", result);
-    assert!(result.is_err());
+    example.is_valid().unwrap();
 }
 
 #[test]

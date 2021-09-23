@@ -69,11 +69,11 @@ fn example_sites_are_valid() {
 }
 
 #[test]
+#[should_panic = "site list is empty"]
 fn validate_fails_on_empty_sites_list() {
     let config = Config {
         from: "dummy".to_string(),
         sites: vec![],
     };
-    let result = config.validate_min_one_site();
-    assert!(result.is_err());
+    config.validate_min_one_site().unwrap();
 }

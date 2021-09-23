@@ -115,21 +115,17 @@ pub fn validate_from(from: &str) -> anyhow::Result<()> {
 
 #[test]
 fn from_is_email() {
-    let result = validate_from("foo@bar.de");
-    println!("{:?}", result);
-    assert!(result.is_ok());
+    validate_from("foo@bar.de").unwrap();
 }
 
 #[test]
+#[should_panic = "doesnt look like an email address"]
 fn from_is_no_email() {
-    let result = validate_from("bla.de");
-    println!("{:?}", result);
-    assert!(result.is_err());
+    validate_from("bla.de").unwrap();
 }
 
 #[test]
+#[should_panic]
 fn from_is_no_ascii() {
-    let result = validate_from("f\u{f6}o@b\u{e4}r.de");
-    println!("{:?}", result);
-    assert!(result.is_err());
+    validate_from("f\u{f6}o@b\u{e4}r.de").unwrap();
 }

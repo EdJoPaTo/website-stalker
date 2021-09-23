@@ -51,11 +51,9 @@ fn valid() {
 }
 
 #[test]
+#[should_panic = "parse error"]
 fn invalid() {
-    let s = CssSelector(".".to_string());
-    let result = s.is_valid();
-    println!("{:?}", result);
-    assert!(result.is_err());
+    CssSelector(".".to_string()).is_valid().unwrap();
 }
 
 #[cfg(test)]
@@ -84,9 +82,9 @@ fn selects_tag() {
 }
 
 #[test]
+#[should_panic = "selected nothing"]
 fn select_not_found() {
-    let selector = CssSelector("p".to_string());
-    let result = selector.apply(r#"<html><head></head><body>test</body></html>"#);
-    dbg!(&result);
-    assert!(result.is_err());
+    CssSelector("p".to_string())
+        .apply(r#"<html><head></head><body>test</body></html>"#)
+        .unwrap();
 }
