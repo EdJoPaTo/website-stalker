@@ -93,6 +93,26 @@ sites:
 There is a bigger [config](https://github.com/EdJoPaTo/website-stalker-example/blob/main/website-stalker.yaml) in my [example repo](https://github.com/EdJoPaTo/website-stalker-example).
 The example repo is also used by me to detect changes of interesting sites.
 
+### Config Options
+
+Besides the [editors](#editors) which are explained below the other options are listed here.
+
+#### FROM
+
+FROM is used as a [FROM header](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/From) on the web requests.
+It is a required field.
+
+The idea here is to provide a way for a website hosts to contact whoever is doing something to their web server
+As this tool is self-hosted and can be run as often as the user likes this can annoy website hosts.
+While this tool is named "stalker" and is made to track websites it is not intended to annoy people.
+
+This tool sets the [USER-AGENT header](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/User-Agent) always to `website-stalker/<version> https://github.com/EdJoPaTo/website-stalker` and the [FROM header](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/From) to the config value.
+This way both the creator and the user of this tool can be reached in case of problems.
+
+```yaml
+from: my-email-address
+```
+
 ### Editors
 
 Editors are manipulating the content of a webpage to simplify comparing them later on.
