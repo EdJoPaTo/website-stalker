@@ -41,6 +41,7 @@ version = "0.11"
 default-features = false
 features = [
     "rustls-tls",
+    "socks", # Socks5 Proxy support
     "brotli", # response body decompression
     "deflate", # response body decompression
     "gzip", # response body decompression
