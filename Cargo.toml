@@ -39,7 +39,12 @@ default-features = false
 [dependencies.reqwest]
 version = "0.11"
 default-features = false
-features = ["rustls-tls", "gzip", "brotli"]
+features = [
+    "rustls-tls",
+    "brotli", # response body decompression
+    "deflate", # response body decompression
+    "gzip", # response body decompression
+]
 
 [dependencies.rss]
 version = "1"
