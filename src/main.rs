@@ -301,6 +301,7 @@ fn create_commit_message(handled_sites: &[(ChangeKind, Site)]) -> String {
         .map(handled_site_line)
         .collect::<Vec<_>>();
     lines.sort();
+    lines.dedup();
     let body = lines.join("\n");
 
     let head = match domains.as_slice() {
