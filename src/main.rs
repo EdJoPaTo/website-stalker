@@ -279,33 +279,139 @@ fn git_finishup(
 ) -> anyhow::Result<()> {
     if repo.is_something_modified()? {
         if do_commit {
-            let message = if handled_sites.is_empty() {
-                "just background magic \u{1f9fd}\u{1f52e}\u{1f9f9}\n\ncleanup or updating meta files"
-                    .to_string() // 🧽🔮🧹
-            } else {
-                let mut lines = handled_sites
-                    .iter()
-                    .map(|(change_kind, site)| {
-                        let letter = match change_kind {
-                            ChangeKind::Init => 'A',
-                            ChangeKind::Changed => 'M',
-                            ChangeKind::ContentSame | ChangeKind::NotModified => unreachable!(),
-                        };
-                        format!("{} {}", letter, site.url.as_str())
-                    })
-                    .collect::<Vec<_>>();
-                lines.sort();
-                let body = lines.join("\n");
-                format!(
-                    "stalked some things \u{1f440}\u{1f310}\u{1f60e}\n\n{}", // 👀🌐😎
-                    body
-                )
-            };
             repo.add_all()?;
-            repo.commit(&message)?;
+            repo.commit(&create_commit_message(handled_sites))?;
         } else {
             logger::warn("No commit is created without the --commit flag.");
         }
     }
     Ok(())
+}
+
+fn create_commit_message(handled_sites: &[(ChangeKind, Site)]) -> String {
+    let mut domains = handled_sites
+        .iter()
+        .filter_map(|(_, site)| site.url.domain())
+        .collect::<Vec<_>>();
+    domains.sort_unstable();
+    domains.dedup();
+
+    let mut lines = handled_sites
+        .iter()
+        .map(handled_site_line)
+        .collect::<Vec<_>>();
+    lines.sort();
+    let body = lines.join("\n");
+
+    let head = match domains.as_slice() {
+        [] => "just background magic \u{1f9fd}\u{1f52e}\u{1f9f9}\n\ncleanup or updating meta files"
+            .to_string(), // 🧽🔮🧹
+        [single] => format!("\u{1f310}\u{1f440} {}", single), // 🌐👀
+        _ => format!(
+            "\u{1f310}\u{1f440} stalked {} website changes", // 🌐👀
+            handled_sites.len()
+        ),
+    };
+
+    let text = format!("{}\n\n{}", head, body);
+    text.trim().to_string()
+}
+
+fn handled_site_line(handled_site: &(ChangeKind, Site)) -> String {
+    let (change_kind, site) = handled_site;
+    let letter = match change_kind {
+        ChangeKind::Init => 'A',
+        ChangeKind::Changed => 'M',
+        ChangeKind::ContentSame | ChangeKind::NotModified => unreachable!(),
+    };
+    format!("{} {}", letter, site.url.as_str())
+}
+
+#[test]
+fn commit_message_for_no_site() {
+    let handled = vec![];
+    let result = create_commit_message(&handled);
+    assert_eq!(
+        result,
+        "just background magic \u{1f9fd}\u{1f52e}\u{1f9f9}\n\ncleanup or updating meta files"
+    );
+}
+
+#[test]
+fn commit_message_for_one_site() {
+    let handled = vec![(
+        ChangeKind::Changed,
+        Site {
+            url: url::Url::parse("https://edjopato.de/post/").unwrap(),
+            extension: "html".to_string(),
+            editors: vec![],
+        },
+    )];
+    let result = create_commit_message(&handled);
+    assert_eq!(
+        result,
+        "\u{1f310}\u{1f440} edjopato.de
+
+M https://edjopato.de/post/"
+    );
+}
+
+#[test]
+fn commit_message_for_two_same_domain_sites() {
+    let handled = vec![
+        (
+            ChangeKind::Changed,
+            Site {
+                url: url::Url::parse("https://edjopato.de/").unwrap(),
+                extension: "html".to_string(),
+                editors: vec![],
+            },
+        ),
+        (
+            ChangeKind::Changed,
+            Site {
+                url: url::Url::parse("https://edjopato.de/post/").unwrap(),
+                extension: "html".to_string(),
+                editors: vec![],
+            },
+        ),
+    ];
+    let result = create_commit_message(&handled);
+    assert_eq!(
+        result,
+        "\u{1f310}\u{1f440} edjopato.de
+
+M https://edjopato.de/
+M https://edjopato.de/post/"
+    );
+}
+
+#[test]
+fn commit_message_for_two_different_domain_sites() {
+    let handled = vec![
+        (
+            ChangeKind::Changed,
+            Site {
+                url: url::Url::parse("https://edjopato.de/post/").unwrap(),
+                extension: "html".to_string(),
+                editors: vec![],
+            },
+        ),
+        (
+            ChangeKind::Changed,
+            Site {
+                url: url::Url::parse("https://foo.bar/").unwrap(),
+                extension: "html".to_string(),
+                editors: vec![],
+            },
+        ),
+    ];
+    let result = create_commit_message(&handled);
+    assert_eq!(
+        result,
+        "\u{1f310}\u{1f440} stalked 2 website changes
+
+M https://edjopato.de/post/
+M https://foo.bar/"
+    );
 }
