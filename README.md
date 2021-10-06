@@ -129,6 +129,9 @@ From [reqwests documentation](https://docs.rs/reqwest/0.11.4/reqwest/struct.Clie
 > introduces significant vulnerabilities, and should only be used
 > as a last resort.
 
+Do you have a need for self-signed certificates or the usage of the system certificate store?
+Please share about it in [Issue #39](https://github.com/EdJoPaTo/website-stalker/issues/39).
+
 ```yaml
 sites:
   - url: "https://edjopato.de/post/"
