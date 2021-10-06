@@ -9,6 +9,9 @@ pub struct Site {
     pub url: Url,
     pub extension: String,
 
+    #[serde(default, skip_serializing_if = "std::ops::Not::not")]
+    pub accept_invalid_certs: bool,
+
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub editors: Vec<Editor>,
 }
@@ -46,6 +49,7 @@ impl Site {
             Site {
                 url: Url::parse("https://edjopato.de/post/").unwrap(),
                 extension: "html".to_string(),
+                accept_invalid_certs: false,
                 editors: vec![
                     Editor::CssSelect("article".parse().unwrap()),
                     Editor::CssRemove("a".parse().unwrap()),
@@ -59,6 +63,7 @@ impl Site {
             Site {
                 url: Url::parse("https://edjopato.de/robots.txt").unwrap(),
                 extension: "txt".to_string(),
+                accept_invalid_certs: false,
                 editors: vec![],
             },
         ]
@@ -85,16 +90,19 @@ fn validate_finds_duplicates() {
         Site {
             url: Url::parse("https://edjopato.de/post/").unwrap(),
             extension: "html".to_string(),
+            accept_invalid_certs: false,
             editors: vec![],
         },
         Site {
             url: Url::parse("https://edjopato.de/robots.txt").unwrap(),
             extension: "txt".to_string(),
+            accept_invalid_certs: false,
             editors: vec![],
         },
         Site {
             url: Url::parse("https://edjopato.de/post").unwrap(),
             extension: "html".to_string(),
+            accept_invalid_certs: false,
             editors: vec![],
         },
     ];

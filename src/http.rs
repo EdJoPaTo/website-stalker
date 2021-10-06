@@ -1,7 +1,7 @@
-use std::time::Duration;
+use std::time::{Duration, Instant};
 
 use reqwest::header::{HeaderMap, HeaderValue};
-use reqwest::{header, Client, ClientBuilder, StatusCode};
+use reqwest::{header, ClientBuilder, StatusCode};
 use url::Url;
 
 const USER_AGENT: &str = concat!(
@@ -12,13 +12,9 @@ const USER_AGENT: &str = concat!(
     env!("CARGO_PKG_REPOSITORY"),
 );
 
-#[derive(Clone)]
-pub struct Http {
-    client: Client,
-}
-
 pub struct Response {
     response: reqwest::Response,
+    took: Duration,
 }
 
 #[derive(Debug)]
@@ -34,42 +30,41 @@ impl std::fmt::Display for IpVersion {
     }
 }
 
-impl Http {
-    /// Create an http agent with an email address to be contacted in case of problems.
-    ///
-    /// See [http From header](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/From)
-    pub fn new(from: &str) -> Self {
-        let mut headers = HeaderMap::new();
-        headers.insert(header::FROM, HeaderValue::from_str(from).unwrap());
-
-        Self {
-            client: ClientBuilder::new()
-                .default_headers(headers)
-                .timeout(Duration::from_secs(30))
-                .user_agent(USER_AGENT)
-                .build()
-                .expect("failed to create reqwest client"),
-        }
+/// HTTP GET Request
+///
+/// FROM provides an email address for the target host to be contacted in case of problems.
+/// See [http From header](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/From)
+pub async fn get(
+    url: &str,
+    from: &str,
+    accept_invalid_certs: bool,
+    last_known_etag: Option<&str>,
+) -> anyhow::Result<Response> {
+    let mut headers = HeaderMap::new();
+    headers.insert(header::FROM, HeaderValue::from_str(from).unwrap());
+    if let Some(etag) = last_known_etag {
+        headers.append(header::IF_NONE_MATCH, HeaderValue::from_str(etag)?);
     }
 
-    pub async fn get(&self, url: &str, last_known_etag: Option<&str>) -> anyhow::Result<Response> {
-        let mut headers = HeaderMap::new();
-        if let Some(etag) = last_known_etag {
-            headers.append(header::IF_NONE_MATCH, HeaderValue::from_str(etag)?);
-        }
+    let client = ClientBuilder::new()
+        .danger_accept_invalid_certs(accept_invalid_certs)
+        .default_headers(headers)
+        .timeout(Duration::from_secs(30))
+        .user_agent(USER_AGENT)
+        .build()?;
 
-        let response = self
-            .client
-            .get(url)
-            .headers(headers)
-            .send()
-            .await?
-            .error_for_status()?;
-        Ok(Response { response })
-    }
+    let start = Instant::now();
+    let response = client.get(url).send().await?.error_for_status()?;
+    let took = Instant::now().saturating_duration_since(start);
+
+    Ok(Response { response, took })
 }
 
 impl Response {
+    pub fn took(&self) -> Duration {
+        self.took
+    }
+
     pub fn is_not_modified(&self) -> bool {
         self.response.status() == StatusCode::NOT_MODIFIED
     }

@@ -1,10 +1,9 @@
 use std::fmt::{Debug, Display};
 use std::sync::Arc;
-use std::time::{Duration, Instant};
+use std::time::Duration;
 use std::{fs, process};
 
 use config::Config;
-use http::Http;
 use itertools::Itertools;
 use regex::Regex;
 use site::Site;
@@ -109,7 +108,6 @@ async fn main() {
 #[allow(clippy::too_many_lines)]
 async fn run(do_commit: bool, site_filter: Option<&Regex>) -> anyhow::Result<()> {
     let config = Config::load_yaml_file().expect("failed to load config");
-    let http_agent = http::Http::new(&config.from);
 
     let sites_total = config.sites.len();
     let sites = config
@@ -184,11 +182,11 @@ async fn run(do_commit: bool, site_filter: Option<&Regex>) -> anyhow::Result<()>
     for (_, group) in &groups {
         for (i, site) in group.enumerate() {
             let site_store = site_store.clone();
-            let http_agent = http_agent.clone();
+            let from = config.from.clone();
             let amount_done = amount_done.clone();
             let handle = tokio::spawn(async move {
                 sleep(Duration::from_secs((i * 5) as u64)).await;
-                let result = stalk_and_save_site(&site_store, &http_agent, &site).await;
+                let result = stalk_and_save_site(&site_store, &from, &site).await;
                 let url = site.url.as_str();
 
                 let mut done = amount_done.write().await;
@@ -247,15 +245,14 @@ async fn run(do_commit: bool, site_filter: Option<&Regex>) -> anyhow::Result<()>
 
 async fn stalk_and_save_site(
     site_store: &SiteStore,
-    http_agent: &Http,
+    from: &str,
     site: &Site,
 ) -> anyhow::Result<(ChangeKind, http::IpVersion, Duration)> {
     let filename = site.get_filename();
     // TODO: get last known etag
     let etag = None;
-    let start = Instant::now();
-    let response = http_agent.get(site.url.as_str(), etag).await?;
-    let took = Instant::now().saturating_duration_since(start);
+    let response = http::get(site.url.as_str(), from, site.accept_invalid_certs, etag).await?;
+    let took = response.took();
     let ip_version = response.ip_version();
 
     if site.url.as_str() != response.url().as_str() {
@@ -345,6 +342,7 @@ fn commit_message_for_one_site() {
         Site {
             url: url::Url::parse("https://edjopato.de/post/").unwrap(),
             extension: "html".to_string(),
+            accept_invalid_certs: false,
             editors: vec![],
         },
     )];
@@ -365,6 +363,7 @@ fn commit_message_for_two_same_domain_sites() {
             Site {
                 url: url::Url::parse("https://edjopato.de/").unwrap(),
                 extension: "html".to_string(),
+                accept_invalid_certs: false,
                 editors: vec![],
             },
         ),
@@ -373,6 +372,7 @@ fn commit_message_for_two_same_domain_sites() {
             Site {
                 url: url::Url::parse("https://edjopato.de/post/").unwrap(),
                 extension: "html".to_string(),
+                accept_invalid_certs: false,
                 editors: vec![],
             },
         ),
@@ -395,6 +395,7 @@ fn commit_message_for_two_different_domain_sites() {
             Site {
                 url: url::Url::parse("https://edjopato.de/post/").unwrap(),
                 extension: "html".to_string(),
+                accept_invalid_certs: false,
                 editors: vec![],
             },
         ),
@@ -403,6 +404,7 @@ fn commit_message_for_two_different_domain_sites() {
             Site {
                 url: url::Url::parse("https://foo.bar/").unwrap(),
                 extension: "html".to_string(),
+                accept_invalid_certs: false,
                 editors: vec![],
             },
         ),

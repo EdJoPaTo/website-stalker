@@ -93,9 +93,9 @@ sites:
 There is a bigger [config](https://github.com/EdJoPaTo/website-stalker-example/blob/main/website-stalker.yaml) in my [example repo](https://github.com/EdJoPaTo/website-stalker-example).
 The example repo is also used by me to detect changes of interesting sites.
 
-### Config Options
+### Global Config Options
 
-Besides the [editors](#editors) which are explained below the other options are listed here.
+Options which are globally configured at the root level of the configuration file `website-stalker.yaml`.
 
 #### FROM
 
@@ -111,6 +111,29 @@ This way both the creator and the user of this tool can be reached in case of pr
 
 ```yaml
 from: my-email-address
+```
+
+### Per Site Config Options
+
+Options available per site besides the [editors](#editors) which are explained below.
+
+#### accept_invalid_certs
+
+Allows HTTPS connections with self-signed or invalid / expired certificates.
+
+From [reqwests documentation](https://docs.rs/reqwest/0.11.4/reqwest/struct.ClientBuilder.html#method.danger_accept_invalid_certs):
+
+> You should think very carefully before using this method. If
+> invalid certificates are trusted, *any* certificate for *any* site
+> will be trusted for use. This includes expired certificates. This
+> introduces significant vulnerabilities, and should only be used
+> as a last resort.
+
+```yaml
+sites:
+  - url: "https://edjopato.de/post/"
+    extension: html
+    accept_invalid_certs: true
 ```
 
 ### Editors
