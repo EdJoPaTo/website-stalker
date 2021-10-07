@@ -28,26 +28,30 @@ pub struct Rss {
 }
 
 impl Rss {
+    fn item_selector(&self) -> &str {
+        self.item_selector.as_deref().unwrap_or("article")
+    }
+    fn title_selector(&self) -> &str {
+        self.title_selector.as_deref().unwrap_or("h2")
+    }
+    fn link_selector(&self) -> &str {
+        self.link_selector.as_deref().unwrap_or("a")
+    }
+
     /// Returns (item, title, link)
     fn parse_selectors(&self) -> anyhow::Result<(Selector, Selector, Selector)> {
-        let item = if let Some(selector) = &self.item_selector {
-            Selector::parse(selector)
-                .map_err(|err| anyhow!("item_selector ({}) parse error: {:?}", selector, err))?
-        } else {
-            Selector::parse("article").unwrap()
-        };
-        let title = if let Some(selector) = &self.title_selector {
-            Selector::parse(selector)
-                .map_err(|err| anyhow!("title_selector ({}) parse error: {:?}", selector, err))?
-        } else {
-            Selector::parse("h2").unwrap()
-        };
-        let link = if let Some(selector) = &self.link_selector {
-            Selector::parse(selector)
-                .map_err(|err| anyhow!("link_selector ({}) parse error: {:?}", selector, err))?
-        } else {
-            Selector::parse("a").unwrap()
-        };
+        let item = self.item_selector();
+        let item = Selector::parse(item)
+            .map_err(|err| anyhow!("item_selector ({}) parse error: {:?}", item, err))?;
+
+        let title = self.title_selector();
+        let title = Selector::parse(title)
+            .map_err(|err| anyhow!("title_selector ({}) parse error: {:?}", title, err))?;
+
+        let link = self.link_selector();
+        let link = Selector::parse(link)
+            .map_err(|err| anyhow!("link_selector ({}) parse error: {:?}", link, err))?;
+
         Ok((item, title, link))
     }
 
@@ -107,6 +111,12 @@ impl Rss {
             builder.content(content);
 
             items.push(builder.build().unwrap()); // panics on missing required
+        }
+        if items.is_empty() {
+            return Err(anyhow::anyhow!(
+                "rss item_selector ({}) selected nothing",
+                self.item_selector()
+            ));
         }
         channel.items(items);
 
@@ -175,7 +185,29 @@ fn example_with_defaults_works() -> anyhow::Result<()> {
 }
 
 #[test]
-fn example_with_item_equals_link() -> anyhow::Result<()> {
+#[should_panic = "item_selector (article) selected nothing"]
+fn example_with_no_items_errors() {
+    let html = r#"<html>
+	<head>
+        <title>Whatever</title>
+	</head>
+	<body>
+		ignore
+	</body>
+</html>"#;
+    let rss = Rss {
+        title: None,
+        item_selector: None,
+        title_selector: None,
+        link_selector: None,
+        content_editors: vec![],
+    };
+    let url = Url::parse("https://edjopato.de/posts/").unwrap();
+    rss.generate(&url, html).unwrap();
+}
+
+#[test]
+fn example_with_item_equals_link() {
     let html = r#"<html>
 	<head>
         <title>Whatever</title>
@@ -200,7 +232,8 @@ fn example_with_item_equals_link() -> anyhow::Result<()> {
         link_selector: None,
         content_editors: vec![],
     };
-    let result = rss.generate(&Url::parse("https://edjopato.de/posts/")?, html)?;
+    let url = &Url::parse("https://edjopato.de/posts/").unwrap();
+    let result = rss.generate(url, html).unwrap();
     println!("{}", result);
     assert!(result.contains(r#"website-stalker"#));
     assert!(result.contains(r#"<rss version="2.0" "#));
@@ -210,11 +243,10 @@ fn example_with_item_equals_link() -> anyhow::Result<()> {
     assert!(result.contains(r#"<title>First</title>"#));
     assert!(result.contains(r#"<title>Second</title>"#));
     assert!(!result.contains(r#"ignore"#));
-    Ok(())
 }
 
 #[test]
-fn ugly_example_works() -> anyhow::Result<()> {
+fn ugly_example_works() {
     let html = r#"<html>
 	<head>
         <title>Whatever</title>
@@ -245,7 +277,8 @@ fn ugly_example_works() -> anyhow::Result<()> {
     println!("is_valid {:?}", valid);
     assert!(valid.is_ok(), "is_valid");
 
-    let result = rss.generate(&Url::parse("https://edjopato.de/posts/")?, html)?;
+    let url = &Url::parse("https://edjopato.de/posts/").unwrap();
+    let result = rss.generate(url, html).unwrap();
     println!("{}", result);
     assert!(result.contains(r#"website-stalker"#));
     assert!(result.contains(r#"<rss version="2.0" "#));
@@ -256,5 +289,4 @@ fn ugly_example_works() -> anyhow::Result<()> {
     assert!(result.contains(r#"<title>Second</title>"#));
     assert!(!result.contains(r#"buy-now"#));
     assert!(!result.contains(r#"Whatever"#));
-    Ok(())
 }
