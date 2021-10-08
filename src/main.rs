@@ -153,7 +153,7 @@ async fn run(do_commit: bool, site_filter: Option<&Regex>) -> anyhow::Result<()>
         .expect("failed to create sites directory");
 
     if sites_amount == sites_total {
-        let filenames = sites.iter().map(Site::get_filename).collect::<Vec<_>>();
+        let filenames = Site::get_all_filenames(&sites);
         let removed = site_store.remove_gone(&filenames)?;
         for filename in removed {
             logger::warn(&format!("Remove superfluous {:?}", filename));
