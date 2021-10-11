@@ -14,11 +14,7 @@ pub struct Repo {
 impl Repo {
     pub fn new() -> Result<Self, git2::Error> {
         let repo = Repository::open_from_env()?;
-
-        if repo.is_bare() {
-            panic!("Repo needs a work tree. This does not work with bare repos.");
-        }
-
+        assert!(!repo.is_bare(), "This does not work with bare repos.");
         Ok(Self { repo })
     }
 
