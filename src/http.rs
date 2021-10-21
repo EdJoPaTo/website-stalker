@@ -1,6 +1,6 @@
 use std::time::{Duration, Instant};
 
-use reqwest::header::{HeaderMap, HeaderValue};
+use reqwest::header::HeaderValue;
 use reqwest::{header, ClientBuilder, StatusCode};
 use url::Url;
 
@@ -34,27 +34,17 @@ impl std::fmt::Display for IpVersion {
 ///
 /// FROM provides an email address for the target host to be contacted in case of problems.
 /// See [http From header](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/From)
-pub async fn get(
-    url: &str,
-    from: &str,
-    accept_invalid_certs: bool,
-    last_known_etag: Option<&str>,
-) -> anyhow::Result<Response> {
-    let mut headers = HeaderMap::new();
-    headers.insert(header::FROM, HeaderValue::from_str(from).unwrap());
-    if let Some(etag) = last_known_etag {
-        headers.append(header::IF_NONE_MATCH, HeaderValue::from_str(etag)?);
-    }
-
-    let client = ClientBuilder::new()
+pub async fn get(url: &str, from: &str, accept_invalid_certs: bool) -> anyhow::Result<Response> {
+    let request = ClientBuilder::new()
         .danger_accept_invalid_certs(accept_invalid_certs)
-        .default_headers(headers)
         .timeout(Duration::from_secs(30))
         .user_agent(USER_AGENT)
-        .build()?;
+        .build()?
+        .get(url)
+        .header(header::FROM, HeaderValue::from_str(from)?);
 
     let start = Instant::now();
-    let response = client.get(url).send().await?.error_for_status()?;
+    let response = request.send().await?.error_for_status()?;
     let took = Instant::now().saturating_duration_since(start);
 
     Ok(Response { response, took })

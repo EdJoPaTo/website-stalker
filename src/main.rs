@@ -246,9 +246,7 @@ async fn stalk_and_save_site(
     site: &Site,
 ) -> anyhow::Result<(ChangeKind, http::IpVersion, Duration)> {
     let filename = site.get_filename();
-    // TODO: get last known etag
-    let etag = None;
-    let response = http::get(site.url.as_str(), from, site.accept_invalid_certs, etag).await?;
+    let response = http::get(site.url.as_str(), from, site.accept_invalid_certs).await?;
     let took = response.took();
     let ip_version = response.ip_version();
 
