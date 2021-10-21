@@ -2,7 +2,10 @@ use std::fs;
 
 use anyhow::anyhow;
 use serde::{Deserialize, Serialize};
+use url::Url;
 
+use crate::editor::regex_replacer::RegexReplacer;
+use crate::editor::Editor;
 use crate::http::validate_from;
 use crate::site::Site;
 
@@ -17,7 +20,28 @@ impl Config {
     pub fn example() -> Self {
         Self {
             from: "my-email-address".to_string(),
-            sites: Site::examples(),
+            sites: vec![
+                Site {
+                    url: Url::parse("https://edjopato.de/post/").unwrap(),
+                    extension: "html".to_string(),
+                    accept_invalid_certs: false,
+                    editors: vec![
+                        Editor::CssSelect("article".parse().unwrap()),
+                        Editor::CssRemove("a".parse().unwrap()),
+                        Editor::HtmlPrettify,
+                        Editor::RegexReplace(RegexReplacer {
+                            pattern: "(Lesezeit): \\d+ \\w+".to_string(),
+                            replace: "$1".to_string(),
+                        }),
+                    ],
+                },
+                Site {
+                    url: Url::parse("https://edjopato.de/robots.txt").unwrap(),
+                    extension: "txt".to_string(),
+                    accept_invalid_certs: false,
+                    editors: vec![],
+                },
+            ],
         }
     }
 
