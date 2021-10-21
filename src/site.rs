@@ -21,16 +21,6 @@ impl Site {
         crate::url_filename::format(&self.url, &self.extension)
     }
 
-    pub async fn stalk(&self, content: &str) -> anyhow::Result<String> {
-        let mut content = content.to_string();
-
-        for e in &self.editors {
-            content = e.apply(&self.url, &content)?;
-        }
-
-        Ok(content)
-    }
-
     pub fn is_valid(&self) -> anyhow::Result<()> {
         if self.extension.is_empty() || self.extension.len() > 12 || !self.extension.is_ascii() {
             return Err(anyhow::anyhow!(

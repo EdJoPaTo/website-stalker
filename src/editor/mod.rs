@@ -55,3 +55,10 @@ impl Editor {
         }
     }
 }
+
+pub fn apply_many(editors: &[Editor], url: &Url, mut content: String) -> anyhow::Result<String> {
+    for e in editors {
+        content = e.apply(url, &content)?;
+    }
+    Ok(content)
+}

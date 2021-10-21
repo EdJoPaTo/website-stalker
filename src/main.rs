@@ -260,8 +260,9 @@ async fn stalk_and_save_site(
     let changed = if response.is_not_modified() {
         ChangeKind::NotModified
     } else {
+        let url = response.url().clone();
         let content = response.text().await?;
-        let content = site.stalk(&content).await?;
+        let content = editor::apply_many(&site.editors, &url, content)?;
         site_store.write_only_changed(&filename, &content)?
     };
     Ok((changed, ip_version, took))
