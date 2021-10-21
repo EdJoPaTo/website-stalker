@@ -111,13 +111,11 @@ impl Config {
     fn validate(&self) -> anyhow::Result<()> {
         validate_from(&self.from)
             .map_err(|err| anyhow!("from ({}) is invalid: {}", self.from, err))?;
-        self.validate_min_one_site()?;
-        Site::validate_no_duplicate(&self.get_sites()).map_err(|err| anyhow!("{}", err))?;
-        self.validate_each_site()?;
+        self.validate_sites()?;
         Ok(())
     }
 
-    fn validate_min_one_site(&self) -> anyhow::Result<()> {
+    fn validate_sites(&self) -> anyhow::Result<()> {
         if self.sites.is_empty() {
             return Err(anyhow!("site list is empty"));
         }
@@ -126,11 +124,10 @@ impl Config {
                 return Err(anyhow!("site entry has no urls"));
             }
         }
-        Ok(())
-    }
 
-    fn validate_each_site(&self) -> anyhow::Result<()> {
-        for site in self.get_sites() {
+        let sites = self.get_sites();
+        Site::validate_no_duplicate(&sites).map_err(|err| anyhow!("{}", err))?;
+        for site in sites {
             if let Err(err) = site.is_valid() {
                 return Err(anyhow!("site entry is invalid: {}\n{:?}", err, site));
             }
@@ -147,7 +144,7 @@ fn can_parse_example() {
 #[test]
 fn example_sites_are_valid() {
     let config = Config::example();
-    config.validate_each_site().unwrap();
+    config.validate_sites().unwrap();
 }
 
 #[test]
@@ -157,7 +154,7 @@ fn validate_fails_on_empty_sites_list() {
         from: "dummy".to_string(),
         sites: vec![],
     };
-    config.validate_min_one_site().unwrap();
+    config.validate_sites().unwrap();
 }
 
 #[test]
@@ -174,5 +171,5 @@ fn validate_fails_on_sites_list_with_empty_many() {
             },
         }],
     };
-    config.validate_min_one_site().unwrap();
+    config.validate_sites().unwrap();
 }
