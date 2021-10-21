@@ -16,7 +16,7 @@ const GENERATOR: &str = concat!(
     env!("CARGO_PKG_REPOSITORY"),
 );
 
-#[derive(Debug, Deserialize, Serialize)]
+#[derive(Debug, Clone, Deserialize, Serialize)]
 pub struct Rss {
     pub title: Option<String>,
     pub item_selector: Option<String>,

@@ -117,6 +117,30 @@ from: my-email-address
 
 Options available per site besides the [editors](#editors) which are explained below.
 
+#### url
+
+One or multiple URLs can be specified.
+The simple form is a single URL:
+
+```yaml
+sites:
+  - url: "https://edjopato.de/"
+    extension: html
+  - url: "https://edjopato.de/post/"
+    extension: html
+```
+
+It's also possible to specify multiple URL at the same time.
+This is helpful when multiple sites are sharing the same options (like editors).
+
+```yaml
+sites:
+  - url:
+      - "https://edjopato.de/"
+      - "https://edjopato.de/post/"
+    extension: html
+```
+
 #### accept_invalid_certs
 
 Allows HTTPS connections with self-signed or invalid / expired certificates.

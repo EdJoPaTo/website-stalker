@@ -3,7 +3,7 @@ use std::borrow::Cow;
 use regex::Regex;
 use serde::{Deserialize, Serialize};
 
-#[derive(Debug, Deserialize, Serialize)]
+#[derive(Debug, Clone, Deserialize, Serialize)]
 pub struct RegexReplacer {
     pub pattern: String,
     pub replace: String,

@@ -11,7 +11,7 @@ pub mod json_prettify;
 pub mod regex_replacer;
 pub mod rss;
 
-#[derive(Debug, Deserialize, Serialize)]
+#[derive(Debug, Clone, Deserialize, Serialize)]
 #[serde(rename_all = "snake_case")]
 pub enum Editor {
     CssRemove(css_remove::CssRemover),

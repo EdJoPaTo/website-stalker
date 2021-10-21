@@ -5,9 +5,14 @@ use crate::editor::Editor;
 
 mod filename;
 
-#[derive(Debug, Deserialize, Serialize)]
+#[derive(Debug)]
 pub struct Site {
     pub url: Url,
+    pub options: Options,
+}
+
+#[derive(Debug, Clone, Deserialize, Serialize)]
+pub struct Options {
     pub extension: String,
 
     #[serde(default, skip_serializing_if = "std::ops::Not::not")]
@@ -19,20 +24,11 @@ pub struct Site {
 
 impl Site {
     pub fn get_filename(&self) -> String {
-        filename::format(&self.url, &self.extension)
+        filename::format(&self.url, &self.options.extension)
     }
 
     pub fn is_valid(&self) -> anyhow::Result<()> {
-        if self.extension.is_empty() || self.extension.len() > 12 || !self.extension.is_ascii() {
-            return Err(anyhow::anyhow!(
-                "extension has to be a short ascii filename extension"
-            ));
-        }
-
-        for e in &self.editors {
-            e.is_valid()?;
-        }
-        Ok(())
+        self.options.is_valid()
     }
 
     pub fn get_all_filenames(sites: &[Site]) -> Vec<String> {
@@ -53,27 +49,48 @@ impl Site {
     }
 }
 
+impl Options {
+    pub fn is_valid(&self) -> anyhow::Result<()> {
+        if self.extension.is_empty() || self.extension.len() > 12 || !self.extension.is_ascii() {
+            return Err(anyhow::anyhow!(
+                "extension has to be a short ascii filename extension"
+            ));
+        }
+
+        for e in &self.editors {
+            e.is_valid()?;
+        }
+        Ok(())
+    }
+}
+
 #[test]
 #[should_panic = "duplicates"]
 fn validate_finds_duplicates() {
     let sites = vec![
         Site {
             url: Url::parse("https://edjopato.de/post/").unwrap(),
-            extension: "html".to_string(),
-            accept_invalid_certs: false,
-            editors: vec![],
+            options: Options {
+                extension: "html".to_string(),
+                accept_invalid_certs: false,
+                editors: vec![],
+            },
         },
         Site {
             url: Url::parse("https://edjopato.de/robots.txt").unwrap(),
-            extension: "txt".to_string(),
-            accept_invalid_certs: false,
-            editors: vec![],
+            options: Options {
+                extension: "txt".to_string(),
+                accept_invalid_certs: false,
+                editors: vec![],
+            },
         },
         Site {
             url: Url::parse("https://edjopato.de/post").unwrap(),
-            extension: "html".to_string(),
-            accept_invalid_certs: false,
-            editors: vec![],
+            options: Options {
+                extension: "html".to_string(),
+                accept_invalid_certs: false,
+                editors: vec![],
+            },
         },
     ];
     Site::validate_no_duplicate(&sites).unwrap();

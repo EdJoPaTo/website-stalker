@@ -7,13 +7,41 @@ use url::Url;
 use crate::editor::regex_replacer::RegexReplacer;
 use crate::editor::Editor;
 use crate::http::validate_from;
-use crate::site::Site;
+use crate::site::{Options, Site};
 
 #[derive(Debug, Deserialize, Serialize)]
 pub struct Config {
     pub from: String,
+    sites: Vec<SiteEntry>,
+}
 
-    pub sites: Vec<Site>,
+#[derive(Debug, Deserialize, Serialize)]
+#[serde(untagged)]
+enum UrlVariants {
+    Single(Url),
+    Many(Vec<Url>),
+}
+
+impl From<Url> for UrlVariants {
+    fn from(url: Url) -> Self {
+        UrlVariants::Single(url)
+    }
+}
+
+impl UrlVariants {
+    pub fn is_empty(&self) -> bool {
+        match self {
+            UrlVariants::Single(_) => false,
+            UrlVariants::Many(many) => many.is_empty(),
+        }
+    }
+}
+
+#[derive(Debug, Deserialize, Serialize)]
+struct SiteEntry {
+    url: UrlVariants,
+    #[serde(flatten)]
+    options: Options,
 }
 
 impl Config {
@@ -21,25 +49,29 @@ impl Config {
         Self {
             from: "my-email-address".to_string(),
             sites: vec![
-                Site {
-                    url: Url::parse("https://edjopato.de/post/").unwrap(),
-                    extension: "html".to_string(),
-                    accept_invalid_certs: false,
-                    editors: vec![
-                        Editor::CssSelect("article".parse().unwrap()),
-                        Editor::CssRemove("a".parse().unwrap()),
-                        Editor::HtmlPrettify,
-                        Editor::RegexReplace(RegexReplacer {
-                            pattern: "(Lesezeit): \\d+ \\w+".to_string(),
-                            replace: "$1".to_string(),
-                        }),
-                    ],
+                SiteEntry {
+                    url: Url::parse("https://edjopato.de/post/").unwrap().into(),
+                    options: Options {
+                        extension: "html".to_string(),
+                        accept_invalid_certs: false,
+                        editors: vec![
+                            Editor::CssSelect("article".parse().unwrap()),
+                            Editor::CssRemove("a".parse().unwrap()),
+                            Editor::HtmlPrettify,
+                            Editor::RegexReplace(RegexReplacer {
+                                pattern: "(Lesezeit): \\d+ \\w+".to_string(),
+                                replace: "$1".to_string(),
+                            }),
+                        ],
+                    },
                 },
-                Site {
-                    url: Url::parse("https://edjopato.de/robots.txt").unwrap(),
-                    extension: "txt".to_string(),
-                    accept_invalid_certs: false,
-                    editors: vec![],
+                SiteEntry {
+                    url: Url::parse("https://edjopato.de/robots.txt").unwrap().into(),
+                    options: Options {
+                        extension: "txt".to_string(),
+                        accept_invalid_certs: false,
+                        editors: vec![],
+                    },
                 },
             ],
         }
@@ -55,11 +87,32 @@ impl Config {
         Ok(config)
     }
 
+    pub fn get_sites(&self) -> Vec<Site> {
+        let mut result = Vec::new();
+        for entry in &self.sites {
+            match &entry.url {
+                UrlVariants::Single(url) => result.push(Site {
+                    url: url.clone(),
+                    options: entry.options.clone(),
+                }),
+                UrlVariants::Many(many) => {
+                    for url in many {
+                        result.push(Site {
+                            url: url.clone(),
+                            options: entry.options.clone(),
+                        });
+                    }
+                }
+            }
+        }
+        result
+    }
+
     fn validate(&self) -> anyhow::Result<()> {
         validate_from(&self.from)
             .map_err(|err| anyhow!("from ({}) is invalid: {}", self.from, err))?;
         self.validate_min_one_site()?;
-        Site::validate_no_duplicate(&self.sites).map_err(|err| anyhow!("{}", err))?;
+        Site::validate_no_duplicate(&self.get_sites()).map_err(|err| anyhow!("{}", err))?;
         self.validate_each_site()?;
         Ok(())
     }
@@ -68,11 +121,16 @@ impl Config {
         if self.sites.is_empty() {
             return Err(anyhow!("site list is empty"));
         }
+        for entry in &self.sites {
+            if entry.url.is_empty() {
+                return Err(anyhow!("site entry has no urls"));
+            }
+        }
         Ok(())
     }
 
     fn validate_each_site(&self) -> anyhow::Result<()> {
-        for site in &self.sites {
+        for site in self.get_sites() {
             if let Err(err) = site.is_valid() {
                 return Err(anyhow!("site entry is invalid: {}\n{:?}", err, site));
             }
@@ -98,6 +156,23 @@ fn validate_fails_on_empty_sites_list() {
     let config = Config {
         from: "dummy".to_string(),
         sites: vec![],
+    };
+    config.validate_min_one_site().unwrap();
+}
+
+#[test]
+#[should_panic = "site entry has no urls"]
+fn validate_fails_on_sites_list_with_empty_many() {
+    let config = Config {
+        from: "dummy".to_string(),
+        sites: vec![SiteEntry {
+            url: UrlVariants::Many(vec![]),
+            options: Options {
+                extension: "txt".to_string(),
+                accept_invalid_certs: false,
+                editors: vec![],
+            },
+        }],
     };
     config.validate_min_one_site().unwrap();
 }

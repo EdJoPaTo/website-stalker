@@ -108,9 +108,9 @@ async fn main() {
 async fn run(do_commit: bool, site_filter: Option<&Regex>) -> anyhow::Result<()> {
     let config = Config::load_yaml_file().expect("failed to load config");
 
-    let sites_total = config.sites.len();
-    let sites = config
-        .sites
+    let sites = config.get_sites();
+    let sites_total = sites.len();
+    let sites = sites
         .into_iter()
         .filter(|site| site_filter.map_or(true, |filter| filter.is_match(site.url.as_str())))
         .collect::<Vec<_>>();
@@ -246,7 +246,7 @@ async fn stalk_and_save_site(
     site: &Site,
 ) -> anyhow::Result<(ChangeKind, http::IpVersion, Duration)> {
     let filename = site.get_filename();
-    let response = http::get(site.url.as_str(), from, site.accept_invalid_certs).await?;
+    let response = http::get(site.url.as_str(), from, site.options.accept_invalid_certs).await?;
     let took = response.took();
     let ip_version = response.ip_version();
 
@@ -259,7 +259,7 @@ async fn stalk_and_save_site(
     } else {
         let url = response.url().clone();
         let content = response.text().await?;
-        let content = editor::apply_many(&site.editors, &url, content)?;
+        let content = editor::apply_many(&site.options.editors, &url, content)?;
         site_store.write_only_changed(&filename, &content)?
     };
     Ok((changed, ip_version, took))
@@ -337,9 +337,11 @@ fn commit_message_for_one_site() {
         ChangeKind::Changed,
         Site {
             url: url::Url::parse("https://edjopato.de/post/").unwrap(),
-            extension: "html".to_string(),
-            accept_invalid_certs: false,
-            editors: vec![],
+            options: site::Options {
+                extension: "html".to_string(),
+                accept_invalid_certs: false,
+                editors: vec![],
+            },
         },
     )];
     let result = create_commit_message(&handled);
@@ -358,18 +360,22 @@ fn commit_message_for_two_same_domain_sites() {
             ChangeKind::Changed,
             Site {
                 url: url::Url::parse("https://edjopato.de/").unwrap(),
-                extension: "html".to_string(),
-                accept_invalid_certs: false,
-                editors: vec![],
+                options: site::Options {
+                    extension: "html".to_string(),
+                    accept_invalid_certs: false,
+                    editors: vec![],
+                },
             },
         ),
         (
             ChangeKind::Changed,
             Site {
                 url: url::Url::parse("https://edjopato.de/post/").unwrap(),
-                extension: "html".to_string(),
-                accept_invalid_certs: false,
-                editors: vec![],
+                options: site::Options {
+                    extension: "html".to_string(),
+                    accept_invalid_certs: false,
+                    editors: vec![],
+                },
             },
         ),
     ];
@@ -390,18 +396,22 @@ fn commit_message_for_two_different_domain_sites() {
             ChangeKind::Changed,
             Site {
                 url: url::Url::parse("https://edjopato.de/post/").unwrap(),
-                extension: "html".to_string(),
-                accept_invalid_certs: false,
-                editors: vec![],
+                options: site::Options {
+                    extension: "html".to_string(),
+                    accept_invalid_certs: false,
+                    editors: vec![],
+                },
             },
         ),
         (
             ChangeKind::Changed,
             Site {
                 url: url::Url::parse("https://foo.bar/").unwrap(),
-                extension: "html".to_string(),
-                accept_invalid_certs: false,
-                editors: vec![],
+                options: site::Options {
+                    extension: "html".to_string(),
+                    accept_invalid_certs: false,
+                    editors: vec![],
+                },
             },
         ),
     ];
