@@ -39,7 +39,7 @@ jobs:
             toolchain: 1.48.0 # Debian 11 Bullseye
             clippyargs: -A unknown-lints -A clippy::unknown-clippy-lints
           - os: ubuntu-latest
-            toolchain: 1.52.0 # Alpine 3.14
+            toolchain: 1.52.1 # Alpine 3.14
             clippyargs: -A unknown-lints
     steps:
       - name: Setup Rust
