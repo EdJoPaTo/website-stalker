@@ -19,7 +19,6 @@ mod http;
 mod logger;
 mod site;
 mod site_store;
-mod url_filename;
 
 const SITE_FOLDER: &str = "sites";
 

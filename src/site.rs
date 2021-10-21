@@ -4,6 +4,8 @@ use url::Url;
 use crate::editor::regex_replacer::RegexReplacer;
 use crate::editor::Editor;
 
+mod filename;
+
 #[derive(Debug, Deserialize, Serialize)]
 pub struct Site {
     pub url: Url,
@@ -18,7 +20,7 @@ pub struct Site {
 
 impl Site {
     pub fn get_filename(&self) -> String {
-        crate::url_filename::format(&self.url, &self.extension)
+        filename::format(&self.url, &self.extension)
     }
 
     pub fn is_valid(&self) -> anyhow::Result<()> {
