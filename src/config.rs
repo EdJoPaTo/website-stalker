@@ -24,7 +24,7 @@ enum UrlVariants {
 
 impl From<Url> for UrlVariants {
     fn from(url: Url) -> Self {
-        UrlVariants::Single(url)
+        Self::Single(url)
     }
 }
 

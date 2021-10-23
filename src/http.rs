@@ -51,7 +51,7 @@ pub async fn get(url: &str, from: &str, accept_invalid_certs: bool) -> anyhow::R
 }
 
 impl Response {
-    pub fn took(&self) -> Duration {
+    pub const fn took(&self) -> Duration {
         self.took
     }
 

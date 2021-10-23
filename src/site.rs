@@ -31,11 +31,11 @@ impl Site {
         self.options.is_valid()
     }
 
-    pub fn get_all_filenames(sites: &[Site]) -> Vec<String> {
-        sites.iter().map(Site::get_filename).collect::<Vec<_>>()
+    pub fn get_all_filenames(sites: &[Self]) -> Vec<String> {
+        sites.iter().map(Self::get_filename).collect::<Vec<_>>()
     }
 
-    pub fn validate_no_duplicate(sites: &[Site]) -> Result<(), String> {
+    pub fn validate_no_duplicate(sites: &[Self]) -> Result<(), String> {
         // TODO: return url or something of specific duplicates
         let mut filenames = Self::get_all_filenames(sites);
         filenames.sort_unstable();

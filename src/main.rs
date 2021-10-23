@@ -197,7 +197,7 @@ async fn run(do_commit: bool, site_filter: Option<&Regex>) -> anyhow::Result<()>
                             sites_amount,
                             change_kind.to_string(),
                             took.as_millis(),
-                            ip_version.to_string(),
+                            ip_version,
                             url
                         );
                         Ok((site, change_kind))
