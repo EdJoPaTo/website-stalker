@@ -110,7 +110,7 @@ impl Rss {
             }
             builder.content(content);
 
-            items.push(builder.build().unwrap()); // panics on missing required
+            items.push(builder.build());
         }
         if items.is_empty() {
             return Err(anyhow::anyhow!(
@@ -120,7 +120,7 @@ impl Rss {
         }
         channel.items(items);
 
-        let channel = channel.build().unwrap(); // panics on missing required
+        let channel = channel.build();
         channel.validate()?;
 
         let mut buffer = Vec::new();

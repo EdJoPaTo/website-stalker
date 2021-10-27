@@ -48,7 +48,7 @@ features = [
 ]
 
 [dependencies.rss]
-version = "1"
+version = "2"
 features = ["validation"]
 
 [dependencies.serde]
