@@ -17,73 +17,52 @@ pub fn basename(url: &Url) -> String {
     only_ascii.trim_matches('-').to_string()
 }
 
-pub fn format(url: &Url, extension: &str) -> String {
-    format!("{}.{}", basename(url), extension)
-}
-
 #[cfg(test)]
-/// test format
-fn tf(url: &str, extension: &str) -> String {
+/// test basename
+fn tb(url: &str) -> String {
     let url = Url::parse(url).unwrap();
     println!("{}", url);
-    format(&url, extension)
+    basename(&url)
 }
 
 #[test]
 fn examples() {
-    assert_eq!(tf("https://edjopato.de/", "html"), "de-edjopato.html");
-
-    assert_eq!(
-        tf("https://edjopato.de/post/", "html"),
-        "de-edjopato-post.html"
-    );
+    assert_eq!(tb("https://edjopato.de/"), "de-edjopato");
+    assert_eq!(tb("https://edjopato.de/post/"), "de-edjopato-post");
 }
 
 #[test]
 fn scheme_doesnt_matter() {
-    assert_eq!(
-        tf("http://edjopato.de/", "html"),
-        tf("https://edjopato.de/", "html"),
-    );
+    assert_eq!(tb("http://edjopato.de/"), tb("https://edjopato.de/"));
 }
 
 #[test]
 fn fragment_doesnt_matter() {
-    let expect = tf("http://edjopato.de/", "html");
-    let actual = tf("https://edjopato.de/#whatever", "html");
-    assert_eq!(expect, actual);
+    assert_eq!(
+        tb("http://edjopato.de/"),
+        tb("https://edjopato.de/#whatever"),
+    );
 }
 
 #[test]
 fn ending_slash_doesnt_matter() {
+    assert_eq!(tb("https://edjopato.de/"), tb("https://edjopato.de"));
     assert_eq!(
-        tf("https://edjopato.de/", "html"),
-        tf("https://edjopato.de", "html"),
-    );
-
-    assert_eq!(
-        tf("https://edjopato.de/post/", "html"),
-        tf("https://edjopato.de/post", "html"),
+        tb("https://edjopato.de/post/"),
+        tb("https://edjopato.de/post"),
     );
 }
 
 #[test]
 fn extension_is_still_in_basename() {
+    assert_eq!(tb("http://edjopato.de/robot.txt"), "de-edjopato-robot-txt");
     assert_eq!(
-        tf("http://edjopato.de/robot.txt", "txt"),
-        "de-edjopato-robot-txt.txt",
-    );
-
-    assert_eq!(
-        tf("http://edjopato.de/robot.html", "txt"),
-        "de-edjopato-robot-html.txt",
+        tb("http://edjopato.de/robot.html"),
+        "de-edjopato-robot-html",
     );
 }
 
 #[test]
 fn domain_prefix_www_doesnt_matter() {
-    assert_eq!(
-        tf("https://edjopato.de/", "html"),
-        tf("https://www.edjopato.de/", "html"),
-    );
+    assert_eq!(tb("https://edjopato.de/"), tb("https://www.edjopato.de/"));
 }
