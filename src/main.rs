@@ -3,11 +3,11 @@ use std::sync::Arc;
 use std::time::Duration;
 use std::{fs, process};
 
-use config::Config;
+use crate::config::Config;
+use crate::site::Site;
+use crate::site_store::SiteStore;
 use itertools::Itertools;
 use regex::Regex;
-use site::Site;
-use site_store::SiteStore;
 use tokio::sync::RwLock;
 use tokio::time::sleep;
 
