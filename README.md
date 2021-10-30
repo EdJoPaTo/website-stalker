@@ -60,7 +60,7 @@ Check out [website-stalker-example](https://github.com/EdJoPaTo/website-stalker-
 ### Config Example
 
 The config describes a list of sites.
-Each site has a URL and a file extension which is used to save the file.
+Each site has a URL.
 Additionally, each site can have editors which are used before saving the file.
 Each [editor](#editors) manipulates the content of the URL.
 
@@ -78,7 +78,6 @@ Each [editor](#editors) manipulates the content of the URL.
 from: my-email-address
 sites:
   - url: "https://edjopato.de/post/"
-    extension: html
     editors:
       - css_select: article
       - css_remove: a
@@ -87,7 +86,6 @@ sites:
           pattern: "(Lesezeit): \\d+ \\w+"
           replace: $1
   - url: "https://edjopato.de/robots.txt"
-    extension: txt
 ```
 
 There is a bigger [config](https://github.com/EdJoPaTo/website-stalker-example/blob/main/website-stalker.yaml) in my [example repo](https://github.com/EdJoPaTo/website-stalker-example).
@@ -125,9 +123,7 @@ The simple form is a single URL:
 ```yaml
 sites:
   - url: "https://edjopato.de/"
-    extension: html
   - url: "https://edjopato.de/post/"
-    extension: html
 ```
 
 It's also possible to specify multiple URL at the same time.
@@ -138,7 +134,6 @@ sites:
   - url:
       - "https://edjopato.de/"
       - "https://edjopato.de/post/"
-    extension: html
 ```
 
 #### accept_invalid_certs
@@ -159,7 +154,6 @@ Please share about it in [Issue #39](https://github.com/EdJoPaTo/website-stalker
 ```yaml
 sites:
   - url: "https://edjopato.de/post/"
-    extension: html
     accept_invalid_certs: true
 ```
 
@@ -312,7 +306,6 @@ Examples:
 ```yaml
   # Fully specified example
   - url: "https://edjopato.de/post/"
-    extension: xml
     editors:
       - rss:
           title: EdJoPaTos Blog
@@ -327,7 +320,6 @@ Examples:
 
   # Minimal working example
   - url: "https://edjopato.de/post/"
-    extension: xml
     editors:
       - rss: {}
 ```

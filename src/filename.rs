@@ -1,10 +1,10 @@
 use regex::Regex;
 use url::Url;
 
-pub fn format(url: &Url, extension: &str) -> String {
+pub fn basename(url: &Url) -> String {
     let re = Regex::new("[^a-zA-Z\\d]+").unwrap();
     let domain = url.domain().expect("domain needed");
-    let path = url.path().trim_end_matches(extension);
+    let path = url.path();
 
     let domain_part = domain
         .trim_start_matches("www.")
@@ -14,8 +14,11 @@ pub fn format(url: &Url, extension: &str) -> String {
         .join("-");
     let raw = format!("{}-{}", domain_part, path);
     let only_ascii = re.replace_all(&raw, "-");
-    let trimmed = only_ascii.trim_matches('-');
-    format!("{}.{}", trimmed, extension)
+    only_ascii.trim_matches('-').to_string()
+}
+
+pub fn format(url: &Url, extension: &str) -> String {
+    format!("{}.{}", basename(url), extension)
 }
 
 #[cfg(test)]
@@ -65,10 +68,10 @@ fn ending_slash_doesnt_matter() {
 }
 
 #[test]
-fn extension_does_not_duplicate() {
+fn extension_is_still_in_basename() {
     assert_eq!(
         tf("http://edjopato.de/robot.txt", "txt"),
-        "de-edjopato-robot.txt",
+        "de-edjopato-robot-txt.txt",
     );
 
     assert_eq!(

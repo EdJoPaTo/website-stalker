@@ -11,6 +11,11 @@ pub mod json_prettify;
 pub mod regex_replacer;
 pub mod rss;
 
+pub struct Content {
+    pub extension: Option<&'static str>,
+    pub text: String,
+}
+
 #[derive(Debug, Clone, Deserialize, Serialize)]
 #[serde(rename_all = "snake_case")]
 pub enum Editor {
@@ -41,22 +46,49 @@ impl Editor {
         Ok(())
     }
 
-    pub fn apply(&self, url: &Url, input: &str) -> anyhow::Result<String> {
+    pub fn apply(&self, url: &Url, input: &Content) -> anyhow::Result<Content> {
         match &self {
-            Editor::CssRemove(e) => e.apply(input),
-            Editor::CssSelect(e) => e.apply(input),
-            Editor::HtmlMarkdownify => html_markdown::markdownify(input),
-            Editor::HtmlPrettify => html_pretty::prettify(input),
-            Editor::HtmlTextify => html_text::textify(input),
-            Editor::HtmlUrlCanonicalize => html_url::canonicalize(url, input),
-            Editor::JsonPrettify => json_prettify::prettify(input),
-            Editor::RegexReplace(e) => Ok(e.replace_all(input)?.to_string()),
-            Editor::Rss(e) => e.generate(url, input),
+            Editor::CssRemove(e) => Ok(Content {
+                extension: Some("html"),
+                text: e.apply(&input.text)?,
+            }),
+            Editor::CssSelect(e) => Ok(Content {
+                extension: Some("html"),
+                text: e.apply(&input.text)?,
+            }),
+            Editor::HtmlMarkdownify => Ok(Content {
+                extension: Some("md"),
+                text: html_markdown::markdownify(&input.text)?,
+            }),
+            Editor::HtmlPrettify => Ok(Content {
+                extension: Some("html"),
+                text: html_pretty::prettify(&input.text)?,
+            }),
+            Editor::HtmlTextify => Ok(Content {
+                extension: Some("txt"),
+                text: html_text::textify(&input.text)?,
+            }),
+            Editor::HtmlUrlCanonicalize => Ok(Content {
+                extension: Some("html"),
+                text: html_url::canonicalize(url, &input.text)?,
+            }),
+            Editor::JsonPrettify => Ok(Content {
+                extension: Some("json"),
+                text: json_prettify::prettify(&input.text)?,
+            }),
+            Editor::RegexReplace(e) => Ok(Content {
+                extension: input.extension,
+                text: e.replace_all(&input.text)?.to_string(),
+            }),
+            Editor::Rss(e) => Ok(Content {
+                extension: Some("xml"),
+                text: e.generate(url, &input.text)?,
+            }),
         }
     }
 }
 
-pub fn apply_many(editors: &[Editor], url: &Url, mut content: String) -> anyhow::Result<String> {
+pub fn apply_many(editors: &[Editor], url: &Url, mut content: Content) -> anyhow::Result<Content> {
     for e in editors {
         content = e.apply(url, &content)?;
     }

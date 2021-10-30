@@ -804,6 +804,12 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "2a60c7ce501c71e03a9c9c0d35b861413ae925bd979cc7a4e30d060069aaac8d"
 
 [[package]]
+name = "mime2ext"
+version = "0.1.50"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "682257f29e8b552c6273a9308e9cb1fa561a6a5fe8d9ca2727d9b80269bb8141"
+
+[[package]]
 name = "miniz_oxide"
 version = "0.4.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1900,6 +1906,7 @@ dependencies = [
  "html5ever",
  "itertools",
  "kuchiki",
+ "mime2ext",
  "regex",
  "reqwest",
  "rss",

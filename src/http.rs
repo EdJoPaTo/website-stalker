@@ -1,7 +1,7 @@
 use std::time::{Duration, Instant};
 
 use reqwest::header::HeaderValue;
-use reqwest::{header, ClientBuilder, StatusCode};
+use reqwest::{header, ClientBuilder};
 use url::Url;
 
 const USER_AGENT: &str = concat!(
@@ -55,8 +55,12 @@ impl Response {
         self.took
     }
 
-    pub fn is_not_modified(&self) -> bool {
-        self.response.status() == StatusCode::NOT_MODIFIED
+    pub fn file_extension(&self) -> Option<&'static str> {
+        self.response
+            .headers()
+            .get(header::CONTENT_TYPE)
+            .and_then(|o| o.to_str().ok())
+            .and_then(mime2ext::mime2ext)
     }
 
     pub async fn text(self) -> anyhow::Result<String> {

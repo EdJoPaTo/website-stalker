@@ -14,7 +14,7 @@ impl SiteStore {
         Ok(Self { folder })
     }
 
-    pub fn remove_gone(&self, expected_filenames: &[String]) -> anyhow::Result<Vec<OsString>> {
+    pub fn remove_gone(&self, expected_basenames: &[String]) -> anyhow::Result<Vec<OsString>> {
         let mut superfluous = Vec::new();
 
         for file in read_dir(&self.folder)? {
@@ -22,7 +22,7 @@ impl SiteStore {
             let is_wanted = file
                 .file_name()
                 .into_string()
-                .map_or(false, |name| expected_filenames.contains(&name));
+                .map_or(false, |name| basename_is_wanted(expected_basenames, &name));
             if !is_wanted {
                 remove_file(file.path())?;
                 superfluous.push(file.file_name());
@@ -51,4 +51,13 @@ impl SiteStore {
             Ok(ChangeKind::ContentSame)
         }
     }
+}
+
+fn basename_is_wanted(basenames: &[String], searched: &str) -> bool {
+    for basename in basenames {
+        if searched.starts_with(&format!("{}.", basename)) {
+            return true;
+        }
+    }
+    false
 }

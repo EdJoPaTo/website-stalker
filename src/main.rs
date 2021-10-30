@@ -14,6 +14,7 @@ use tokio::time::sleep;
 mod cli;
 mod config;
 mod editor;
+mod filename;
 mod git;
 mod http;
 mod logger;
@@ -27,7 +28,6 @@ pub enum ChangeKind {
     Init,
     Changed,
     ContentSame,
-    NotModified,
 }
 
 impl Display for ChangeKind {
@@ -150,8 +150,8 @@ async fn run(do_commit: bool, site_filter: Option<&Regex>) -> anyhow::Result<()>
         .expect("failed to create sites directory");
 
     if sites_amount == sites_total {
-        let filenames = Site::get_all_filenames(&sites);
-        let removed = site_store.remove_gone(&filenames)?;
+        let basenames = Site::get_all_file_basenames(&sites);
+        let removed = site_store.remove_gone(&basenames)?;
         for filename in removed {
             logger::warn(&format!("Remove superfluous {:?}", filename));
         }
@@ -221,7 +221,7 @@ async fn run(do_commit: bool, site_filter: Option<&Regex>) -> anyhow::Result<()>
                 ChangeKind::Init | ChangeKind::Changed => {
                     sites_of_interest.push((change_kind, site));
                 }
-                ChangeKind::ContentSame | ChangeKind::NotModified => {}
+                ChangeKind::ContentSame => {}
             },
             Err(_) => {
                 error_occured = true;
@@ -245,7 +245,6 @@ async fn stalk_and_save_site(
     from: &str,
     site: &Site,
 ) -> anyhow::Result<(ChangeKind, http::IpVersion, Duration)> {
-    let filename = site.get_filename();
     let response = http::get(site.url.as_str(), from, site.options.accept_invalid_certs).await?;
     let took = response.took();
     let ip_version = response.ip_version();
@@ -254,14 +253,19 @@ async fn stalk_and_save_site(
         logger::warn(&format!("The URL {} was redirected to {}. This caused additional traffic which can be reduced by changing the URL to the target one.", site.url, response.url()));
     }
 
-    let changed = if response.is_not_modified() {
-        ChangeKind::NotModified
-    } else {
-        let url = response.url().clone();
-        let content = response.text().await?;
-        let content = editor::apply_many(&site.options.editors, &url, content)?;
-        site_store.write_only_changed(&filename, &content)?
+    let url = response.url().clone();
+    let content = editor::Content {
+        extension: response.file_extension(),
+        text: response.text().await?,
     };
+
+    // Use response.url as canonical urls for example are relative to the actual url
+    let content = editor::apply_many(&site.options.editors, &url, content)?;
+    let extension = content.extension.unwrap_or("txt");
+
+    // Use site.url as the file basename should only change when the config changes (manually)
+    let filename = filename::format(&site.url, extension);
+    let changed = site_store.write_only_changed(&filename, &content.text)?;
     Ok((changed, ip_version, took))
 }
 
@@ -316,7 +320,7 @@ fn handled_site_line(handled_site: &(ChangeKind, Site)) -> String {
     let letter = match change_kind {
         ChangeKind::Init => 'A',
         ChangeKind::Changed => 'M',
-        ChangeKind::ContentSame | ChangeKind::NotModified => unreachable!(),
+        ChangeKind::ContentSame => unreachable!(),
     };
     format!("{} {}", letter, site.url.as_str())
 }
@@ -338,7 +342,6 @@ fn commit_message_for_one_site() {
         Site {
             url: url::Url::parse("https://edjopato.de/post/").unwrap(),
             options: site::Options {
-                extension: "html".to_string(),
                 accept_invalid_certs: false,
                 editors: vec![],
             },
@@ -361,7 +364,6 @@ fn commit_message_for_two_same_domain_sites() {
             Site {
                 url: url::Url::parse("https://edjopato.de/").unwrap(),
                 options: site::Options {
-                    extension: "html".to_string(),
                     accept_invalid_certs: false,
                     editors: vec![],
                 },
@@ -372,7 +374,6 @@ fn commit_message_for_two_same_domain_sites() {
             Site {
                 url: url::Url::parse("https://edjopato.de/post/").unwrap(),
                 options: site::Options {
-                    extension: "html".to_string(),
                     accept_invalid_certs: false,
                     editors: vec![],
                 },
@@ -397,7 +398,6 @@ fn commit_message_for_two_different_domain_sites() {
             Site {
                 url: url::Url::parse("https://edjopato.de/post/").unwrap(),
                 options: site::Options {
-                    extension: "html".to_string(),
                     accept_invalid_certs: false,
                     editors: vec![],
                 },
@@ -408,7 +408,6 @@ fn commit_message_for_two_different_domain_sites() {
             Site {
                 url: url::Url::parse("https://foo.bar/").unwrap(),
                 options: site::Options {
-                    extension: "html".to_string(),
                     accept_invalid_certs: false,
                     editors: vec![],
                 },

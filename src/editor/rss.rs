@@ -104,11 +104,14 @@ impl Rss {
                 builder.link(url.join(link)?.to_string());
             }
 
-            let mut content = item.html();
+            let mut content = super::Content {
+                extension: Some("html"),
+                text: item.html(),
+            };
             for editor in &self.content_editors {
                 content = editor.apply(url, &content)?;
             }
-            builder.content(content);
+            builder.content(content.text);
 
             items.push(builder.build());
         }

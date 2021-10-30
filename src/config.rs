@@ -52,7 +52,6 @@ impl Config {
                 SiteEntry {
                     url: Url::parse("https://edjopato.de/post/").unwrap().into(),
                     options: Options {
-                        extension: "html".to_string(),
                         accept_invalid_certs: false,
                         editors: vec![
                             Editor::CssSelect("article".parse().unwrap()),
@@ -68,7 +67,6 @@ impl Config {
                 SiteEntry {
                     url: Url::parse("https://edjopato.de/robots.txt").unwrap().into(),
                     options: Options {
-                        extension: "txt".to_string(),
                         accept_invalid_certs: false,
                         editors: vec![],
                     },
@@ -165,7 +163,6 @@ fn validate_fails_on_sites_list_with_empty_many() {
         sites: vec![SiteEntry {
             url: UrlVariants::Many(vec![]),
             options: Options {
-                extension: "txt".to_string(),
                 accept_invalid_certs: false,
                 editors: vec![],
             },
