@@ -7,7 +7,7 @@ StartLimitIntervalSec=0
 [Service]
 Type=simple
 ExecStart=%h/.local/bin/website-stalker run --all --commit
-WorkingDirectory=%h/.local/share/website-stalker
+WorkingDirectory=%h/.local/share/website-stalker/
 
 [Install]
 WantedBy=default.target
