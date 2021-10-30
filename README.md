@@ -111,6 +111,12 @@ This way both the creator and the user of this tool can be reached in case of pr
 from: my-email-address
 ```
 
+Alternatively you can specify FROM via environment variable
+
+```bash
+export WEBSITE_STALKER_FROM=my-email-address
+```
+
 ### Per Site Config Options
 
 Options available per site besides the [editors](#editors) which are explained below.

@@ -61,7 +61,7 @@ async fn main() {
                     .expect("failed to init repo");
                 println!("Git repo initialized.");
             }
-            if Config::load_yaml_file().is_err() {
+            if Config::load().is_err() {
                 let contents = format!(
                     "# This is an example config
 # Adapt it to your needs and check if its valid via `website-stalker check`.
@@ -75,7 +75,7 @@ async fn main() {
             }
             println!("Init complete.\nNext step: adapt the config file to your needs.");
         }
-        ("check", Some(_)) => match Config::load_yaml_file() {
+        ("check", Some(_)) => match Config::load() {
             Ok(_) => println!("config ok"),
             Err(err) => {
                 eprintln!("{}\n\nconfig not ok", err);
@@ -106,7 +106,7 @@ async fn main() {
 
 #[allow(clippy::too_many_lines)]
 async fn run(do_commit: bool, site_filter: Option<&Regex>) -> anyhow::Result<()> {
-    let config = Config::load_yaml_file().expect("failed to load config");
+    let config = Config::load().expect("failed to load config");
 
     let sites = config.get_sites();
     let sites_total = sites.len();

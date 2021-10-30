@@ -1,5 +1,3 @@
-use std::fs;
-
 use anyhow::anyhow;
 use serde::{Deserialize, Serialize};
 use url::Url;
@@ -79,8 +77,16 @@ impl Config {
         serde_yaml::to_string(&Self::example()).unwrap()
     }
 
-    pub fn load_yaml_file() -> anyhow::Result<Self> {
-        let config: Self = serde_yaml::from_str(&fs::read_to_string("website-stalker.yaml")?)?;
+    pub fn load() -> anyhow::Result<Self> {
+        let mut config = config::Config::default();
+        config
+            // Add in `./website-stalker.toml`, `./website-stalker.yaml`, ...
+            .merge(config::File::with_name("website-stalker").required(true))?
+            // Add in settings from the environment (with a prefix of WEBSITE_STALKER)
+            // Eg.. `WEBSITE_STALKER_DEBUG=1 network-stalker` would set the `debug` key
+            .merge(config::Environment::with_prefix("WEBSITE_STALKER"))?;
+
+        let config: Self = config.try_into()?;
         config.validate()?;
         Ok(config)
     }
