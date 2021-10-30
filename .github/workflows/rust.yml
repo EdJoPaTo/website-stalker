@@ -115,15 +115,15 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Set Artifact Name
+      - name: Set artifact name
         shell: bash
         run: |
-          version=$(git describe --tags --match "v*.*.*" --always)
-          echo "version is: $version"
+          version="$(git describe --tags --match "v*.*.*" --always)"
+          echo "version: $version"
           echo "GIT_TAG_VERSION=$version" >> $GITHUB_ENV
 
           name="website-stalker-$version-${{ matrix.triple }}"
-          echo "artifact name is: $name"
+          echo "artifact: $name"
           echo "ARTIFACT_NAME=$name" >> $GITHUB_ENV
 
       - name: Build
@@ -136,29 +136,32 @@ jobs:
           args: --release --verbose --locked --all-features --target ${{ matrix.triple }}
           use-cross: ${{ runner.os == 'Linux' && matrix.triple != 'x86_64-unknown-linux-gnu' }}
 
-      - name: Package (-nix)
+      - name: Package (*nix)
         if: runner.os != 'Windows'
         run: >
-          tar --gzip -cvf ${{ env.ARTIFACT_NAME }}.tar.gz
-          completions LICENSE README.md
+          tar -cv
+          LICENSE README.md
+          completions/
           systemd/**/*.service systemd/**/*.timer systemd/**/*.conf
           -C target/${{ matrix.triple }}/release website-stalker
-      - name: Package (windows)
+          | gzip --best > ${{ env.ARTIFACT_NAME }}.tar.gz
+      - name: Package (Windows)
         if: runner.os == 'Windows'
-        run: |
-          7z a ${{ env.ARTIFACT_NAME }}.zip completions LICENSE README.md
-          cd target/${{ matrix.triple }}/release
-          7z a ../../../${{ env.ARTIFACT_NAME }}.zip website-stalker.exe
-          cd -
+        run: >
+          7z a ${{ env.ARTIFACT_NAME }}.zip
+          LICENSE README.md
+          ./completions/
+          ./target/${{ matrix.triple }}/release/website-stalker.exe
 
-      - uses: actions/upload-artifact@v2
+      - name: Upload artifact
+        uses: actions/upload-artifact@v2
         with:
           name: ${{ matrix.triple }}
           path: |
             *.zip
             *.tar.gz
 
-      - name: GitHub Release
+      - name: Create GitHub release
         if: startsWith(github.ref, 'refs/tags/v')
         uses: softprops/action-gh-release@v1
         with:
