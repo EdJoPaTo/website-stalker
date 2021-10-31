@@ -39,6 +39,11 @@ features = ["wrap_help"]
 version = "0.13"
 default-features = false
 
+[dependencies.pling]
+version = "0.1"
+default-features = false
+features = ["async"]
+
 [dependencies.reqwest]
 version = "0.11"
 default-features = false

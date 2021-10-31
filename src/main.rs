@@ -244,7 +244,7 @@ async fn run(do_commit: bool, site_filter: Option<&Regex>) -> anyhow::Result<()>
         }
     }
 
-    run_finishup(repo.ok().as_ref(), do_commit, &sites_of_interest)?;
+    run_finishup(repo.ok().as_ref(), do_commit, &sites_of_interest).await?;
 
     if error_occured {
         Err(anyhow::anyhow!("All done but some site failed."))
@@ -282,18 +282,32 @@ async fn stalk_and_save_site(
     Ok((changed, ip_version, took))
 }
 
-fn run_finishup(
+async fn run_finishup(
     repo: Option<&git::Repo>,
     do_commit: bool,
     handled_sites: &[(ChangeKind, Site)],
 ) -> anyhow::Result<()> {
+    let message = create_commit_message(handled_sites);
     if let Some(repo) = repo {
         if repo.is_something_modified()? {
             if do_commit {
                 repo.add_all()?;
-                repo.commit(&create_commit_message(handled_sites))?;
+                repo.commit(&message)?;
             } else {
                 logger::warn("No commit is created without the --commit flag.");
+            }
+        }
+    }
+
+    let notifiers = pling::Notifier::from_env();
+    logger::info(&format!("There are {} notifiers configured via environment variables. Check https://github.com/EdJoPaTo/pling/ for configuration details.", notifiers.len()));
+    if !handled_sites.is_empty() {
+        for notifier in notifiers {
+            if let Err(err) = notifier.send_async(&message).await {
+                logger::error(&format!(
+                    "notifier failed to send with Err: {}\n{:?}",
+                    err, notifier,
+                ));
             }
         }
     }

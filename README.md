@@ -330,6 +330,22 @@ Examples:
       - rss: {}
 ```
 
+### Notifications
+
+When changes on websites are detected they get saved to filesystem.
+When `--commit` is given a git commit is created.
+
+Additionally you can get notified via Telegram, Slack, E-Mail, ...
+[pling](https://github.com/EdJoPaTo/pling) is used to send these notifications.
+Check its documentation about which environment variables to specify in order to get notifications.
+
+Example with Telegram:
+```bash
+export TELEGRAM_BOT_TOKEN='123:ABC'
+export TELEGRAM_TARGET_CHAT='1234'
+website-stalker run --all
+```
+
 ### Command Line Arguments
 
 ```plaintext
