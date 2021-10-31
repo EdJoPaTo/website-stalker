@@ -17,7 +17,18 @@ pub fn build() -> App<'static, 'static> {
             "Initialize the current directory with a git repo and a config (website-stalker.yaml)",
         ))
         .subcommand(
-            SubCommand::with_name("check").about("check if the config is fine but do not run"),
+            SubCommand::with_name("check")
+                .about("check if the config is fine but do not run")
+                .arg(
+                    Arg::with_name("print-yaml")
+                        .long("print-yaml")
+                        .help("Print out valid config as yaml"),
+                )
+                .arg(
+                    Arg::with_name("rewrite-yaml")
+                        .long("rewrite-yaml")
+                        .help("Write valid config as website-stalker.yaml"),
+                ),
         )
         .subcommand(
             SubCommand::with_name("run")

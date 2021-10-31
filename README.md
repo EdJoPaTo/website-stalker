@@ -333,7 +333,7 @@ Examples:
 ### Command Line Arguments
 
 ```plaintext
-Website Stalker 0.11.0
+Website Stalker 0.16.0
 EdJoPaTo <website-stalker-rust@edjopato.de>
 Track changes on websites via git
 
@@ -357,7 +357,13 @@ website-stalker-check
 check if the config is fine but do not run
 
 USAGE:
-    website-stalker check
+    website-stalker check [FLAGS]
+
+FLAGS:
+    -h, --help            Prints help information
+        --print-yaml      Print out valid config as yaml
+        --rewrite-yaml    Write valid config as website-stalker.yaml
+    -V, --version         Prints version information
 ```
 
 ```plaintext
