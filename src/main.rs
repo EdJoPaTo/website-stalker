@@ -229,9 +229,7 @@ async fn run(do_commit: bool, site_filter: Option<&Regex>) -> anyhow::Result<()>
         }
     }
 
-    if let Ok(repo) = &repo {
-        git_finishup(repo, do_commit, &sites_of_interest)?;
-    }
+    run_finishup(repo.ok().as_ref(), do_commit, &sites_of_interest)?;
 
     if error_occured {
         Err(anyhow::anyhow!("All done but some site failed."))
@@ -269,17 +267,19 @@ async fn stalk_and_save_site(
     Ok((changed, ip_version, took))
 }
 
-fn git_finishup(
-    repo: &git::Repo,
+fn run_finishup(
+    repo: Option<&git::Repo>,
     do_commit: bool,
     handled_sites: &[(ChangeKind, Site)],
 ) -> anyhow::Result<()> {
-    if repo.is_something_modified()? {
-        if do_commit {
-            repo.add_all()?;
-            repo.commit(&create_commit_message(handled_sites))?;
-        } else {
-            logger::warn("No commit is created without the --commit flag.");
+    if let Some(repo) = repo {
+        if repo.is_something_modified()? {
+            if do_commit {
+                repo.add_all()?;
+                repo.commit(&create_commit_message(handled_sites))?;
+            } else {
+                logger::warn("No commit is created without the --commit flag.");
+            }
         }
     }
     Ok(())
