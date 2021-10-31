@@ -39,8 +39,8 @@ impl Display for ChangeKind {
 #[tokio::main]
 async fn main() {
     let matches = cli::build().get_matches();
-    match matches.subcommand() {
-        ("example-config", Some(_)) => {
+    match matches.subcommand().expect("expected a subcommand") {
+        ("example-config", _) => {
             println!(
                 "# This is an example config
 # The filename should be `website-stalker.yaml`
@@ -55,7 +55,7 @@ async fn main() {
                 Config::example_yaml_string()
             );
         }
-        ("init", Some(_)) => {
+        ("init", _) => {
             if git::Repo::new().is_err() {
                 git::Repo::init(std::env::current_dir().expect("failed to get working dir path"))
                     .expect("failed to init repo");
@@ -75,7 +75,7 @@ async fn main() {
             }
             println!("Init complete.\nNext step: adapt the config file to your needs.");
         }
-        ("check", Some(matches)) => match Config::load() {
+        ("check", matches) => match Config::load() {
             Ok(config) => {
                 let print_yaml = matches.is_present("print-yaml");
                 let rewrite_yaml = matches.is_present("rewrite-yaml");
@@ -97,7 +97,7 @@ async fn main() {
                 process::exit(1);
             }
         },
-        ("run", Some(matches)) => {
+        ("run", matches) => {
             let do_commit = matches.is_present("commit");
             let site_filter = matches
                 .value_of("site filter")

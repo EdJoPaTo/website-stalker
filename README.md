@@ -334,41 +334,44 @@ Examples:
 
 ```plaintext
 Website Stalker 0.16.0
+
 EdJoPaTo <website-stalker-rust@edjopato.de>
+
 Track changes on websites via git
 
 USAGE:
     website-stalker <SUBCOMMAND>
 
-FLAGS:
-    -h, --help       Prints help information
-    -V, --version    Prints version information
+OPTIONS:
+    -h, --help       Print help information
+    -V, --version    Print version information
 
 SUBCOMMANDS:
-    check             check if the config is fine but do not run
-    example-config    Prints an example config which can be piped into website-stalker.yaml
-    help              Prints this message or the help of the given subcommand(s)
+    check             Check if the config is fine but do not run
+    example-config    Print an example config which can be piped into website-stalker.yaml
+    help              Print this message or the help of the given subcommand(s)
     init              Initialize the current directory with a git repo and a config (website-stalker.yaml)
-    run               stalk all the websites you specified
+    run               Stalk all the websites you specified
 ```
 
 ```plaintext
 website-stalker-check
-check if the config is fine but do not run
+
+Check if the config is fine but do not run
 
 USAGE:
-    website-stalker check [FLAGS]
+    website-stalker check [OPTIONS]
 
-FLAGS:
-    -h, --help            Prints help information
+OPTIONS:
+    -h, --help            Print help information
         --print-yaml      Print out valid config as yaml
         --rewrite-yaml    Write valid config as website-stalker.yaml
-    -V, --version         Prints version information
 ```
 
 ```plaintext
 website-stalker-example-config
-Prints an example config which can be piped into website-stalker.yaml
+
+Print an example config which can be piped into website-stalker.yaml
 
 USAGE:
     website-stalker example-config
@@ -376,6 +379,7 @@ USAGE:
 
 ```plaintext
 website-stalker-init
+
 Initialize the current directory with a git repo and a config (website-stalker.yaml)
 
 USAGE:
@@ -384,19 +388,19 @@ USAGE:
 
 ```plaintext
 website-stalker-run
-stalk all the websites you specified
+
+Stalk all the websites you specified
 
 USAGE:
-    website-stalker run [FLAGS] <site filter>
-
-FLAGS:
-        --all        run for all sites
-        --commit     git commit changed files
-    -h, --help       Prints help information
-    -V, --version    Prints version information
+    website-stalker run [OPTIONS] [site filter]
 
 ARGS:
-    <site filter>    filter the rules to be run (case insensitive regular expression)
+    <site filter>    Filter the sites to be run (case insensitive regular expression)
+
+OPTIONS:
+        --all       run for all sites
+        --commit    git commit changed files
+    -h, --help      Print help information
 ```
 
 # Alternatives
