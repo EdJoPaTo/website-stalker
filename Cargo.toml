@@ -5,7 +5,7 @@ version = "0.16.0"
 license = "LGPL-2.1-or-later"
 repository = "https://github.com/EdJoPaTo/website-stalker"
 authors = ["EdJoPaTo <website-stalker-rust@edjopato.de>"]
-edition = "2018"
+edition = "2021"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
