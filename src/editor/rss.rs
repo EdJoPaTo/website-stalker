@@ -18,9 +18,14 @@ const GENERATOR: &str = concat!(
 
 #[derive(Debug, Clone, Deserialize, Serialize)]
 pub struct Rss {
+    #[serde(default, skip_serializing_if = "Option::is_none")]
     pub title: Option<String>,
+
+    #[serde(default, skip_serializing_if = "Option::is_none")]
     pub item_selector: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
     pub title_selector: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
     pub link_selector: Option<String>,
 
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
