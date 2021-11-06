@@ -2,14 +2,14 @@ use crate::site::Site;
 
 pub const DEFAULT_NOTIFICATION_TEMPLATE: &str = "
 {{#singledomain}}
-{{singledomain}} changed
+{{.}} changed
 {{/singledomain}}
 {{^singledomain}}
 {{siteamount}} websites changed
 {{/singledomain}}
 
 {{#sites}}
-{{.}}
+- {{.}}
 {{/sites}}
 
 {{#commit}}
@@ -63,7 +63,12 @@ impl FinalMessage {
                 self.sites.len()
             ),
         };
-        let body = self.sites.join("\n");
+        let body = self
+            .sites
+            .iter()
+            .map(|s| format!("- {}", s))
+            .collect::<Vec<_>>()
+            .join("\n");
 
         let text = format!("{}\n\n{}", head, body);
         text.trim().to_string()
@@ -180,7 +185,7 @@ fn commit_message_for_one_site() {
         text,
         "\u{1f310}\u{1f440} edjopato.de
 
-https://edjopato.de/post/"
+- https://edjopato.de/post/"
     );
 }
 
@@ -191,8 +196,8 @@ fn commit_message_for_two_same_domain_sites() {
         text,
         "\u{1f310}\u{1f440} edjopato.de
 
-https://edjopato.de/
-https://edjopato.de/post/"
+- https://edjopato.de/
+- https://edjopato.de/post/"
     );
 }
 
@@ -203,8 +208,8 @@ fn commit_message_for_two_different_domain_sites() {
         text,
         "\u{1f310}\u{1f440} stalked 2 website changes
 
-https://edjopato.de/post/
-https://foo.bar/"
+- https://edjopato.de/post/
+- https://foo.bar/"
     );
 }
 
@@ -222,8 +227,8 @@ fn notification_message_for_two_same_domain_sites() {
         text,
         "edjopato.de changed
 
-https://edjopato.de/
-https://edjopato.de/post/
+- https://edjopato.de/
+- https://edjopato.de/post/
 
 See 1234abc"
     );
@@ -238,8 +243,8 @@ fn notification_message_for_two_different_domain_sites() {
         text,
         "2 websites changed
 
-https://edjopato.de/post/
-https://foo.bar/
+- https://edjopato.de/post/
+- https://foo.bar/
 
 See 1234abc"
     );
@@ -254,6 +259,6 @@ fn notification_message_for_single_site_without_commit() {
         text,
         "edjopato.de changed
 
-https://edjopato.de/post/"
+- https://edjopato.de/post/"
     );
 }
