@@ -241,7 +241,7 @@ async fn run(do_commit: bool, site_filter: Option<&Regex>) -> anyhow::Result<()>
         match handle.await.expect("failed to spawn task") {
             Ok((site, change_kind)) => match change_kind {
                 ChangeKind::Init | ChangeKind::Changed => {
-                    sites_of_interest.push((change_kind, site));
+                    sites_of_interest.push(site);
                 }
                 ChangeKind::ContentSame => {}
             },

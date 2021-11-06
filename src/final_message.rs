@@ -1,5 +1,4 @@
 use crate::site::Site;
-use crate::ChangeKind;
 
 pub const DEFAULT_NOTIFICATION_TEMPLATE: &str = "
 {{#singledomain}}
@@ -38,7 +37,7 @@ impl FinalMessage {
     pub fn new(changed_sites: &[Site]) -> Self {
         let mut domains = changed_sites
             .iter()
-            .filter_map(|(_, site)| site.url.domain())
+            .filter_map(|site| site.url.domain())
             .map(std::string::ToString::to_string)
             .collect::<Vec<_>>();
         domains.sort_unstable();
@@ -46,7 +45,7 @@ impl FinalMessage {
 
         let mut sites = changed_sites
             .iter()
-            .map(handled_site_line)
+            .map(|site| site.url.to_string())
             .collect::<Vec<_>>();
         sites.sort();
         sites.dedup();
@@ -97,8 +96,17 @@ impl FinalMessage {
     }
 
     fn example_single() -> Self {
-        Self::new(&[(
-            ChangeKind::Changed,
+        Self::new(&[Site {
+            url: url::Url::parse("https://edjopato.de/post/").unwrap(),
+            options: crate::site::Options {
+                accept_invalid_certs: false,
+                editors: vec![],
+            },
+        }])
+    }
+
+    fn example_different() -> Self {
+        Self::new(&[
             Site {
                 url: url::Url::parse("https://edjopato.de/post/").unwrap(),
                 options: crate::site::Options {
@@ -106,56 +114,32 @@ impl FinalMessage {
                     editors: vec![],
                 },
             },
-        )])
-    }
-
-    fn example_different() -> Self {
-        Self::new(&[
-            (
-                ChangeKind::Changed,
-                Site {
-                    url: url::Url::parse("https://edjopato.de/post/").unwrap(),
-                    options: crate::site::Options {
-                        accept_invalid_certs: false,
-                        editors: vec![],
-                    },
+            Site {
+                url: url::Url::parse("https://foo.bar/").unwrap(),
+                options: crate::site::Options {
+                    accept_invalid_certs: false,
+                    editors: vec![],
                 },
-            ),
-            (
-                ChangeKind::Changed,
-                Site {
-                    url: url::Url::parse("https://foo.bar/").unwrap(),
-                    options: crate::site::Options {
-                        accept_invalid_certs: false,
-                        editors: vec![],
-                    },
-                },
-            ),
+            },
         ])
     }
 
     fn example_same() -> Self {
         Self::new(&[
-            (
-                ChangeKind::Changed,
-                Site {
-                    url: url::Url::parse("https://edjopato.de/").unwrap(),
-                    options: crate::site::Options {
-                        accept_invalid_certs: false,
-                        editors: vec![],
-                    },
+            Site {
+                url: url::Url::parse("https://edjopato.de/").unwrap(),
+                options: crate::site::Options {
+                    accept_invalid_certs: false,
+                    editors: vec![],
                 },
-            ),
-            (
-                ChangeKind::Changed,
-                Site {
-                    url: url::Url::parse("https://edjopato.de/post/").unwrap(),
-                    options: crate::site::Options {
-                        accept_invalid_certs: false,
-                        editors: vec![],
-                    },
+            },
+            Site {
+                url: url::Url::parse("https://edjopato.de/post/").unwrap(),
+                options: crate::site::Options {
+                    accept_invalid_certs: false,
+                    editors: vec![],
                 },
-            ),
+            },
         ])
     }
 
@@ -180,16 +164,6 @@ impl FinalMessage {
     }
 }
 
-fn handled_site_line(handled_site: &(ChangeKind, Site)) -> String {
-    let (change_kind, site) = handled_site;
-    let letter = match change_kind {
-        ChangeKind::Init => 'A',
-        ChangeKind::Changed => 'M',
-        ChangeKind::ContentSame => unreachable!(),
-    };
-    format!("{} {}", letter, site.url.as_str())
-}
-
 #[test]
 fn commit_message_for_no_site() {
     let text = FinalMessage::new(&[]).to_commit();
@@ -206,7 +180,7 @@ fn commit_message_for_one_site() {
         text,
         "\u{1f310}\u{1f440} edjopato.de
 
-M https://edjopato.de/post/"
+https://edjopato.de/post/"
     );
 }
 
@@ -217,8 +191,8 @@ fn commit_message_for_two_same_domain_sites() {
         text,
         "\u{1f310}\u{1f440} edjopato.de
 
-M https://edjopato.de/
-M https://edjopato.de/post/"
+https://edjopato.de/
+https://edjopato.de/post/"
     );
 }
 
@@ -229,8 +203,8 @@ fn commit_message_for_two_different_domain_sites() {
         text,
         "\u{1f310}\u{1f440} stalked 2 website changes
 
-M https://edjopato.de/post/
-M https://foo.bar/"
+https://edjopato.de/post/
+https://foo.bar/"
     );
 }
 
@@ -248,8 +222,8 @@ fn notification_message_for_two_same_domain_sites() {
         text,
         "edjopato.de changed
 
-M https://edjopato.de/
-M https://edjopato.de/post/
+https://edjopato.de/
+https://edjopato.de/post/
 
 See 1234abc"
     );
@@ -264,8 +238,8 @@ fn notification_message_for_two_different_domain_sites() {
         text,
         "2 websites changed
 
-M https://edjopato.de/post/
-M https://foo.bar/
+https://edjopato.de/post/
+https://foo.bar/
 
 See 1234abc"
     );
@@ -280,6 +254,6 @@ fn notification_message_for_single_site_without_commit() {
         text,
         "edjopato.de changed
 
-M https://edjopato.de/post/"
+https://edjopato.de/post/"
     );
 }
