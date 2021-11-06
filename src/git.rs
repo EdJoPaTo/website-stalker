@@ -23,14 +23,13 @@ impl Repo {
         Ok(Self { repo })
     }
 
-    pub fn add_all(&self) -> anyhow::Result<()> {
+    pub fn add_all(&self) -> Result<(), git2::Error> {
         let mut index = self.repo.index()?;
         index.add_all(&["."], IndexAddOption::DEFAULT, None)?;
-        index.write()?;
-        Ok(())
+        index.write()
     }
 
-    pub fn commit(&self, message: &str) -> Result<(), git2::Error> {
+    pub fn commit(&self, message: &str) -> Result<git2::Oid, git2::Error> {
         let signature = Signature::now(GIT_COMMIT_AUTHOR_NAME, GIT_COMMIT_AUTHOR_EMAIL)?;
         let tree = self.repo.find_tree(self.repo.index()?.write_tree()?)?;
 
@@ -48,8 +47,7 @@ impl Repo {
             message,
             &tree,
             &parents,
-        )?;
-        Ok(())
+        )
     }
 
     fn diff(&self) -> Result<Diff, git2::Error> {
