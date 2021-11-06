@@ -75,28 +75,34 @@ async fn main() {
             }
             println!("Init complete.\nNext step: adapt the config file to your needs.");
         }
-        ("check", matches) => match Config::load() {
-            Ok(config) => {
-                let print_yaml = matches.is_present("print-yaml");
-                let rewrite_yaml = matches.is_present("rewrite-yaml");
-                if print_yaml || rewrite_yaml {
-                    let yaml = serde_yaml::to_string(&config).expect("failed to parse to yaml");
-                    if rewrite_yaml {
-                        fs::write("website-stalker.yaml", &yaml)
-                            .expect("failed to write website-stalker.yaml");
-                    }
-                    if print_yaml {
-                        println!("{}", yaml);
-                    }
-                }
+        ("check", matches) => {
+            let notifiers = pling::Notifier::from_env().len();
+            eprintln!("Notifiers: {}. Check https://github.com/EdJoPaTo/pling/ for configuration details.", notifiers);
 
-                eprintln!("config ok");
+            eprintln!("\nConfig...");
+            match Config::load() {
+                Ok(config) => {
+                    let print_yaml = matches.is_present("print-yaml");
+                    let rewrite_yaml = matches.is_present("rewrite-yaml");
+                    if print_yaml || rewrite_yaml {
+                        let yaml = serde_yaml::to_string(&config).expect("failed to parse to yaml");
+                        if rewrite_yaml {
+                            fs::write("website-stalker.yaml", &yaml)
+                                .expect("failed to write website-stalker.yaml");
+                        }
+                        if print_yaml {
+                            println!("{}", yaml);
+                        }
+                    }
+
+                    eprintln!("ok");
+                }
+                Err(err) => {
+                    eprintln!("not ok.\n\n{}\n\nCheck https://github.com/EdJoPaTo/website-stalker for configuration details.", err);
+                    process::exit(1);
+                }
             }
-            Err(err) => {
-                eprintln!("{}\n\nconfig not ok", err);
-                process::exit(1);
-            }
-        },
+        }
         ("run", matches) => {
             let do_commit = matches.is_present("commit");
             let site_filter = matches
