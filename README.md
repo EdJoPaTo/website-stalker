@@ -117,6 +117,36 @@ Alternatively you can specify FROM via environment variable
 export WEBSITE_STALKER_FROM=my-email-address
 ```
 
+#### notification_template
+
+When using the [notifications](#notifications) you might want to use your own style of notification instead of the default one.
+You can specify your own template which is handled via the [Mustache Syntax](https://mustache.github.io/mustache.5.html).
+The following example contains all currently available data points.
+
+When writing your own template use `website-stalker check` to ensure the template will work.
+
+```yaml
+notification_template: |
+  These {{siteamount}} sites changed:
+  {{#sites}}
+  - {{.}}
+  {{/sites}}
+
+  The following domains are involved:
+  {{#domains}}
+  - {{.}}
+  {{/domains}}
+
+  {{#singledomain}}
+  All changes happened on only one domain: {{singledomain}}
+  {{/singledomain}}
+  {{^singledomain}}
+  The changes happened on various domains.
+  {{/singledomain}}
+
+  The {{commit}} contains all these changes.
+```
+
 ### Per Site Config Options
 
 Options available per site besides the [editors](#editors) which are explained below.
