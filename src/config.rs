@@ -4,12 +4,17 @@ use url::Url;
 
 use crate::editor::regex_replacer::RegexReplacer;
 use crate::editor::Editor;
+use crate::final_message::FinalMessage;
 use crate::http::validate_from;
 use crate::site::{Options, Site};
 
 #[derive(Debug, Deserialize, Serialize)]
 pub struct Config {
     pub from: String,
+
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub notification_template: Option<String>,
+
     sites: Vec<SiteEntry>,
 }
 
@@ -46,6 +51,7 @@ impl Config {
     pub fn example() -> Self {
         Self {
             from: "my-email-address".to_string(),
+            notification_template: None,
             sites: vec![
                 SiteEntry {
                     url: Url::parse("https://edjopato.de/post/").unwrap().into(),
@@ -115,7 +121,16 @@ impl Config {
     fn validate(&self) -> anyhow::Result<()> {
         validate_from(&self.from)
             .map_err(|err| anyhow!("from ({}) is invalid: {}", self.from, err))?;
+        self.validate_notification_template()
+            .map_err(|err| anyhow!("notification_template is invalid: {}", err))?;
         self.validate_sites()?;
+        Ok(())
+    }
+
+    fn validate_notification_template(&self) -> anyhow::Result<()> {
+        if let Some(template) = &self.notification_template {
+            FinalMessage::validate_template(template)?;
+        }
         Ok(())
     }
 
@@ -156,6 +171,7 @@ fn example_sites_are_valid() {
 fn validate_fails_on_empty_sites_list() {
     let config = Config {
         from: "dummy".to_string(),
+        notification_template: None,
         sites: vec![],
     };
     config.validate_sites().unwrap();
@@ -166,6 +182,7 @@ fn validate_fails_on_empty_sites_list() {
 fn validate_fails_on_sites_list_with_empty_many() {
     let config = Config {
         from: "dummy".to_string(),
+        notification_template: None,
         sites: vec![SiteEntry {
             url: UrlVariants::Many(vec![]),
             options: Options {
@@ -175,4 +192,19 @@ fn validate_fails_on_sites_list_with_empty_many() {
         }],
     };
     config.validate_sites().unwrap();
+}
+
+#[test]
+fn validate_works_on_correct_mustache_template() {
+    let mut config = Config::example();
+    config.notification_template = Some("Hello {{name}}".into());
+    config.validate_notification_template().unwrap();
+}
+
+#[test]
+#[should_panic = "unclosed tag"]
+fn validate_fails_on_bad_mustache_template() {
+    let mut config = Config::example();
+    config.notification_template = Some("Hello World {{".into());
+    config.validate_notification_template().unwrap();
 }

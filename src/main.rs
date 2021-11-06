@@ -15,6 +15,7 @@ mod cli;
 mod config;
 mod editor;
 mod filename;
+mod final_message;
 mod git;
 mod http;
 mod logger;
@@ -250,7 +251,16 @@ async fn run(do_commit: bool, site_filter: Option<&Regex>) -> anyhow::Result<()>
         }
     }
 
-    run_finishup(repo.ok().as_ref(), do_commit, &sites_of_interest).await?;
+    let message = final_message::FinalMessage::new(&sites_of_interest);
+    let commit = if let Ok(repo) = repo {
+        run_commit(&repo, do_commit, &message.to_commit())?
+    } else {
+        None
+    };
+    if !sites_of_interest.is_empty() {
+        let message = message.into_notification(config.notification_template.as_deref(), commit)?;
+        run_notifications(&message);
+    }
 
     if error_occured {
         Err(anyhow::anyhow!("All done but some site failed."))
@@ -288,173 +298,28 @@ async fn stalk_and_save_site(
     Ok((changed, ip_version, took))
 }
 
-async fn run_finishup(
-    repo: Option<&git::Repo>,
-    do_commit: bool,
-    handled_sites: &[(ChangeKind, Site)],
-) -> anyhow::Result<()> {
-    let message = create_commit_message(handled_sites);
-    if let Some(repo) = repo {
-        if repo.is_something_modified()? {
-            if do_commit {
-                repo.add_all()?;
-                repo.commit(&message)?;
-            } else {
-                logger::warn("No commit is created without the --commit flag.");
-            }
+fn run_commit(repo: &git::Repo, do_commit: bool, message: &str) -> anyhow::Result<Option<String>> {
+    if repo.is_something_modified()? {
+        if do_commit {
+            repo.add_all()?;
+            let id = repo.commit(message)?;
+            Ok(Some(id.to_string()))
+        } else {
+            logger::warn("No commit is created without the --commit flag.");
+            Ok(None)
+        }
+    } else {
+        Ok(None)
+    }
+}
+
+fn run_notifications(message: &str) {
+    for notifier in pling::Notifier::from_env() {
+        if let Err(err) = notifier.send_sync(message) {
+            logger::error(&format!(
+                "notifier failed to send with Err: {}\n{:?}",
+                err, notifier,
+            ));
         }
     }
-
-    let notifiers = pling::Notifier::from_env();
-    logger::info(&format!("There are {} notifiers configured via environment variables. Check https://github.com/EdJoPaTo/pling/ for configuration details.", notifiers.len()));
-    if !handled_sites.is_empty() {
-        for notifier in notifiers {
-            if let Err(err) = notifier.send_async(&message).await {
-                logger::error(&format!(
-                    "notifier failed to send with Err: {}\n{:?}",
-                    err, notifier,
-                ));
-            }
-        }
-    }
-    Ok(())
-}
-
-fn create_commit_message(handled_sites: &[(ChangeKind, Site)]) -> String {
-    let mut domains = handled_sites
-        .iter()
-        .filter_map(|(_, site)| site.url.domain())
-        .collect::<Vec<_>>();
-    domains.sort_unstable();
-    domains.dedup();
-
-    let mut lines = handled_sites
-        .iter()
-        .map(handled_site_line)
-        .collect::<Vec<_>>();
-    lines.sort();
-    lines.dedup();
-    let body = lines.join("\n");
-
-    let head = match domains.as_slice() {
-        [] => "just background magic \u{1f9fd}\u{1f52e}\u{1f9f9}\n\ncleanup or updating meta files"
-            .to_string(), // 🧽🔮🧹
-        [single] => format!("\u{1f310}\u{1f440} {}", single), // 🌐👀
-        _ => format!(
-            "\u{1f310}\u{1f440} stalked {} website changes", // 🌐👀
-            handled_sites.len()
-        ),
-    };
-
-    let text = format!("{}\n\n{}", head, body);
-    text.trim().to_string()
-}
-
-fn handled_site_line(handled_site: &(ChangeKind, Site)) -> String {
-    let (change_kind, site) = handled_site;
-    let letter = match change_kind {
-        ChangeKind::Init => 'A',
-        ChangeKind::Changed => 'M',
-        ChangeKind::ContentSame => unreachable!(),
-    };
-    format!("{} {}", letter, site.url.as_str())
-}
-
-#[test]
-fn commit_message_for_no_site() {
-    let handled = vec![];
-    let result = create_commit_message(&handled);
-    assert_eq!(
-        result,
-        "just background magic \u{1f9fd}\u{1f52e}\u{1f9f9}\n\ncleanup or updating meta files"
-    );
-}
-
-#[test]
-fn commit_message_for_one_site() {
-    let handled = vec![(
-        ChangeKind::Changed,
-        Site {
-            url: url::Url::parse("https://edjopato.de/post/").unwrap(),
-            options: site::Options {
-                accept_invalid_certs: false,
-                editors: vec![],
-            },
-        },
-    )];
-    let result = create_commit_message(&handled);
-    assert_eq!(
-        result,
-        "\u{1f310}\u{1f440} edjopato.de
-
-M https://edjopato.de/post/"
-    );
-}
-
-#[test]
-fn commit_message_for_two_same_domain_sites() {
-    let handled = vec![
-        (
-            ChangeKind::Changed,
-            Site {
-                url: url::Url::parse("https://edjopato.de/").unwrap(),
-                options: site::Options {
-                    accept_invalid_certs: false,
-                    editors: vec![],
-                },
-            },
-        ),
-        (
-            ChangeKind::Changed,
-            Site {
-                url: url::Url::parse("https://edjopato.de/post/").unwrap(),
-                options: site::Options {
-                    accept_invalid_certs: false,
-                    editors: vec![],
-                },
-            },
-        ),
-    ];
-    let result = create_commit_message(&handled);
-    assert_eq!(
-        result,
-        "\u{1f310}\u{1f440} edjopato.de
-
-M https://edjopato.de/
-M https://edjopato.de/post/"
-    );
-}
-
-#[test]
-fn commit_message_for_two_different_domain_sites() {
-    let handled = vec![
-        (
-            ChangeKind::Changed,
-            Site {
-                url: url::Url::parse("https://edjopato.de/post/").unwrap(),
-                options: site::Options {
-                    accept_invalid_certs: false,
-                    editors: vec![],
-                },
-            },
-        ),
-        (
-            ChangeKind::Changed,
-            Site {
-                url: url::Url::parse("https://foo.bar/").unwrap(),
-                options: site::Options {
-                    accept_invalid_certs: false,
-                    editors: vec![],
-                },
-            },
-        ),
-    ];
-    let result = create_commit_message(&handled);
-    assert_eq!(
-        result,
-        "\u{1f310}\u{1f440} stalked 2 website changes
-
-M https://edjopato.de/post/
-M https://foo.bar/"
-    );
 }
