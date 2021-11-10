@@ -1465,9 +1465,9 @@ checksum = "12295df4f294471248581bc09bef3c38a5e46f1e36d6a37353621a0c6c357e1f"
 
 [[package]]
 name = "pling"
-version = "0.1.0"
+version = "0.2.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "c6263828ff47388b6964443ff627fc50bd33f1bb435b3983881a6956e81576b2"
+checksum = "fa8ba31e8458122cd19f4892f284d81926ccdc10896b874f6af236ba907c0c2a"
 dependencies = [
  "anyhow",
  "lettre",

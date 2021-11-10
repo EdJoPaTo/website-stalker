@@ -316,10 +316,7 @@ fn run_commit(repo: &git::Repo, do_commit: bool, message: &str) -> anyhow::Resul
 fn run_notifications(message: &str) {
     for notifier in pling::Notifier::from_env() {
         if let Err(err) = notifier.send_sync(message) {
-            logger::error(&format!(
-                "notifier failed to send with Err: {}\n{:?}",
-                err, notifier,
-            ));
+            logger::error(&format!("notifier failed to send with Err: {}", err));
         }
     }
 }
