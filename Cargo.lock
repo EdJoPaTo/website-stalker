@@ -2636,6 +2636,7 @@ name = "website-stalker"
 version = "0.16.0"
 dependencies = [
  "anyhow",
+ "chrono",
  "clap",
  "clap_generate",
  "config",
@@ -2643,6 +2644,7 @@ dependencies = [
  "html5ever",
  "itertools",
  "kuchiki",
+ "lazy_static",
  "mime2ext",
  "mustache",
  "pling",

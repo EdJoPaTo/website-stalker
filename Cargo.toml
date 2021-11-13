@@ -20,10 +20,12 @@ regex = "1"
 
 [dependencies]
 anyhow = "1"
+chrono = "0.4"
 config = "0.11"
 html5ever = "0.25"
 itertools = "0.10"
 kuchiki = "0.8"
+lazy_static = "1"
 mime2ext = "0.1"
 mustache = "0.9"
 pling = "0.2"

@@ -69,6 +69,12 @@ impl Rss {
     }
 
     pub fn generate(&self, url: &Url, html: &str) -> anyhow::Result<String> {
+        lazy_static::lazy_static! {
+            static ref TITLE: Selector = Selector::parse("title").unwrap();
+            static ref DESCRIPTION: Selector = Selector::parse("meta[name=description]").unwrap();
+            static ref DATETIME: Selector = Selector::parse("*[datetime]").unwrap();
+        }
+
         let (item, title, link) = self.parse_selectors()?;
         let parsed_html = scraper::Html::parse_document(html);
 
@@ -78,15 +84,12 @@ impl Rss {
 
         if let Some(title) = &self.title {
             channel.title(title.to_string());
-        } else if let Some(e) = parsed_html
-            .select(&Selector::parse("title").unwrap())
-            .next()
-        {
+        } else if let Some(e) = parsed_html.select(&TITLE).next() {
             channel.title(e.inner_html().trim().to_string());
         }
 
         if let Some(description) = parsed_html
-            .select(&Selector::parse("meta[name=description]").unwrap())
+            .select(&DESCRIPTION)
             .find_map(|e| e.value().attr("content"))
         {
             channel.description(description.to_string());
@@ -107,6 +110,14 @@ impl Rss {
 
             if let Some(link) = item.select(&link).find_map(|o| o.value().attr("href")) {
                 builder.link(url.join(link)?.to_string());
+            }
+
+            if let Some(bla) = item
+                .select(&DATETIME)
+                .find_map(|o| o.value().attr("datetime"))
+                .and_then(|o| chrono::DateTime::parse_from_rfc3339(o).ok())
+            {
+                builder.pub_date(bla.to_rfc2822());
             }
 
             let mut content = super::Content {
