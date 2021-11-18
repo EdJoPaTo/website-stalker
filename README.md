@@ -104,7 +104,7 @@ The idea here is to provide a way for a website host to contact whoever is doing
 As this tool is self-hosted and can be run as often as the user likes this can annoy website hosts.
 While this tool is named "stalker" and is made to track websites it is not intended to annoy people.
 
-This tool sets the [`Used-Agent` header](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/User-Agent) always to `website-stalker/<version> https://github.com/EdJoPaTo/website-stalker` and the [`From` header](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/From) to the config value.
+This tool sets the [`User-Agent` header](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/User-Agent) always to `website-stalker/<version> https://github.com/EdJoPaTo/website-stalker` and the [`From` header](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/From) to the config value.
 This way both the creator and the user of this tool can be reached in case of problems.
 
 ```yaml
