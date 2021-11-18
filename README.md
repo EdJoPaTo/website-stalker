@@ -6,7 +6,7 @@ This tool checks all the websites listed in its config.
 When a change is detected, the new site is added to a git commit.
 It can then be inspected via normal git tooling.
 
-Basically its `curl`, [`sed`++](#editors) and then `git commit` in a neat package.
+Basically it's `curl`, [`sed`++](#editors) and then `git commit` in a neat package.
 
 See it [in action](https://github.com/EdJoPaTo/website-stalker-example) (literally in GitHub **Action**s).
 
@@ -95,16 +95,16 @@ The example repo is also used by me to detect changes of interesting sites.
 
 Options which are globally configured at the root level of the configuration file `website-stalker.yaml`.
 
-#### FROM
+#### `from`
 
-FROM is used as a [FROM header](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/From) on the web requests.
+Used as the [`From` header](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/From) in the web requests.
 It is a required field.
 
-The idea here is to provide a way for a website hosts to contact whoever is doing something to their web server
+The idea here is to provide a way for a website host to contact whoever is doing something to their web server.
 As this tool is self-hosted and can be run as often as the user likes this can annoy website hosts.
 While this tool is named "stalker" and is made to track websites it is not intended to annoy people.
 
-This tool sets the [USER-AGENT header](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/User-Agent) always to `website-stalker/<version> https://github.com/EdJoPaTo/website-stalker` and the [FROM header](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/From) to the config value.
+This tool sets the [`User-Agent` header](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/User-Agent) always to `website-stalker/<version> https://github.com/EdJoPaTo/website-stalker` and the [`From` header](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/From) to the config value.
 This way both the creator and the user of this tool can be reached in case of problems.
 
 ```yaml
@@ -117,7 +117,7 @@ Alternatively you can specify FROM via environment variable
 export WEBSITE_STALKER_FROM=my-email-address
 ```
 
-#### notification_template
+#### `notification_template`
 
 When using the [notifications](#notifications) you might want to use your own style of notification instead of the default one.
 You can specify your own template which is handled via the [Mustache Syntax](https://mustache.github.io/mustache.5.html).
@@ -151,7 +151,7 @@ notification_template: |
 
 Options available per site besides the [editors](#editors) which are explained below.
 
-#### url
+#### `url`
 
 One or multiple URLs can be specified.
 The simple form is a single URL:
@@ -172,7 +172,7 @@ sites:
       - "https://edjopato.de/post/"
 ```
 
-#### accept_invalid_certs
+#### `accept_invalid_certs`
 
 Allows HTTPS connections with self-signed or invalid / expired certificates.
 
@@ -210,7 +210,7 @@ For this reason editors like `css_select` are still producing valid HTML output.
 There are probably more tasks out there that might be useful as editors.
 Feel free to provide an issue for an editor idea or create a Pull Request with a new editor.
 
-#### css_remove
+#### `css_remove`
 
 Tries to remove every instance of matching HTML elements and returns the remaining HTML.
 Opposite of [`css_select`](#css_select).
@@ -224,7 +224,7 @@ editors:
   - css_remove: h1 > a
 ```
 
-#### css_select
+#### `css_select`
 
 Tries to grab every instance of matching HTML elements and returns all of them (in a still valid HTML).
 Optionally with a `remove: true` it returns everything excluding the matching HTML elements.
@@ -240,7 +240,7 @@ editors:
   - css_select: h1 > a
 ```
 
-#### html_markdownify
+#### `html_markdownify`
 
 Formats the input HTML as Markdown.
 
@@ -254,7 +254,7 @@ editors:
   - html_markdownify
 ```
 
-#### html_prettify
+#### `html_prettify`
 
 Formats the input HTML as pretty HTML.
 
@@ -265,7 +265,7 @@ editors:
   - html_prettify
 ```
 
-#### html_textify
+#### `html_textify`
 
 Only returns text content of HTML elements within the input.
 
@@ -276,7 +276,7 @@ editors:
   - html_textify
 ```
 
-#### html_url_canonicalize
+#### `html_url_canonicalize`
 
 Parses the input HTML for URLs.
 URLs are parsed into their canonical, absolute form.
@@ -288,7 +288,7 @@ editors:
   - html_url_canonicalize
 ```
 
-#### json_prettify
+#### `json_prettify`
 
 Formats the input JSON as pretty JSON.
 
@@ -299,7 +299,7 @@ editors:
   - json_prettify
 ```
 
-#### regex_replace
+#### `regex_replace`
 
 Searches the input with a Regex pattern and replaces all occurrences with the given replace phrase.
 Grouping and replacing with `$1` also works.
@@ -322,7 +322,7 @@ editors:
     replace: $1
 ```
 
-#### rss
+#### `rss`
 
 Creates an RSS 2.0 Feed from the input.
 An RSS item is generated for every `item_selector` result.
