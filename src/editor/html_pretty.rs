@@ -47,8 +47,7 @@ impl<Wr: Write> Serializer for HtmlPrettySerializer<Wr> {
 
     fn write_text(&mut self, text: &str) -> std::io::Result<()> {
         self.indent()?;
-        self.serializer.write_text(text)?;
-        self.serializer.writer.write_all(b"\n")
+        writeln!(self.serializer.writer, "{}", text)
     }
 
     fn write_comment(&mut self, text: &str) -> std::io::Result<()> {
