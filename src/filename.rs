@@ -2,7 +2,10 @@ use regex::Regex;
 use url::Url;
 
 pub fn basename(url: &Url) -> String {
-    let re = Regex::new("[^a-zA-Z\\d]+").unwrap();
+    lazy_static::lazy_static! {
+        static ref NON_ALPHANUM: Regex = Regex::new(r"[^a-zA-Z\d]+").unwrap();
+    }
+
     let domain = url.domain().expect("domain needed");
     let path = url.path();
 
@@ -13,7 +16,7 @@ pub fn basename(url: &Url) -> String {
         .collect::<Vec<_>>()
         .join("-");
     let raw = format!("{}-{}", domain_part, path);
-    let only_ascii = re.replace_all(&raw, "-");
+    let only_ascii = NON_ALPHANUM.replace_all(&raw, "-");
     only_ascii.trim_matches('-').to_string()
 }
 

@@ -47,16 +47,19 @@ impl<Wr: Write> Serializer for HtmlTextSerializer<Wr> {
 }
 
 pub fn textify(html: &str) -> anyhow::Result<String> {
+    lazy_static::lazy_static! {
+        static ref MANY_NEWLINES: Regex = Regex::new(r"\n{3,}").unwrap();
+    }
+
     let doc = kuchiki::parse_html().one(html);
     let result = serialize(&doc)?
         .lines()
         .map(str::trim)
         .collect::<Vec<_>>()
         .join("\n");
-    let result = Regex::new("\n{3,}")
-        .unwrap()
+    let result = MANY_NEWLINES
         .replace_all(&result, "\n\n")
-        .trim_matches('\n')
+        .trim()
         .to_string();
     Ok(result)
 }
@@ -81,4 +84,10 @@ fn works() {
         r#"Just a
 test"#
     );
+}
+
+#[test]
+fn doesnt_contain_many_newlines() {
+    let html = "<html><body>bla\n\n\n\n\nblubb</body></html>";
+    assert_eq!(textify(html).unwrap(), "bla\n\nblubb");
 }
