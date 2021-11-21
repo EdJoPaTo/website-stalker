@@ -58,7 +58,7 @@ impl Editor {
             }),
             Editor::HtmlMarkdownify => Ok(Content {
                 extension: Some("md"),
-                text: html_markdown::markdownify(&input.text)?,
+                text: html_markdown::markdownify(&input.text),
             }),
             Editor::HtmlPrettify => Ok(Content {
                 extension: Some("html"),
