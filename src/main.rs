@@ -1,5 +1,4 @@
 use std::fmt::{Debug, Display};
-use std::sync::Arc;
 use std::time::Duration;
 use std::{fs, process};
 
@@ -8,7 +7,7 @@ use crate::site::Site;
 use crate::site_store::SiteStore;
 use itertools::Itertools;
 use regex::Regex;
-use tokio::sync::RwLock;
+use tokio::sync::mpsc::channel;
 use tokio::time::sleep;
 
 mod cli;
@@ -193,71 +192,68 @@ async fn run(do_commit: bool, site_filter: Option<&Regex>) -> anyhow::Result<()>
         logger::info("Some sites are on the same domain. There is a wait time of 5 seconds between each request to the same domain in order to reduce load on the server.");
     }
 
-    let mut tasks = Vec::with_capacity(sites_amount);
-    let groups = sites
-        .into_iter()
-        .group_by(|a| a.url.domain().unwrap().to_string());
-    let amount_done = Arc::new(RwLock::new(0_usize));
-    for (_, group) in &groups {
-        for (i, site) in group.enumerate() {
-            let site_store = site_store.clone();
+    let mut rx = {
+        let (tx, rx) = channel(10);
+        let groups = sites
+            .into_iter()
+            .group_by(|a| a.url.domain().unwrap().to_string());
+        for (_, group) in &groups {
             let from = config.from.clone();
-            let amount_done = amount_done.clone();
-            let handle = tokio::spawn(async move {
-                sleep(Duration::from_secs((i * 5) as u64)).await;
-                let result = stalk_and_save_site(&site_store, &from, &site).await;
-                let url = site.url.as_str();
-
-                let mut done = amount_done.write().await;
-                *done += 1;
-
-                match result {
-                    Ok((change_kind, ip_version, took)) => {
-                        println!(
-                            "{:4}/{} {:12} {:5}ms {} {}",
-                            done,
-                            sites_amount,
-                            change_kind.to_string(),
-                            took.as_millis(),
-                            ip_version,
-                            url
-                        );
-                        Ok((site, change_kind))
+            let site_store = site_store.clone();
+            let sites = group.collect::<Vec<_>>();
+            let tx = tx.clone();
+            tokio::spawn(async move {
+                for (i, site) in sites.iter().enumerate() {
+                    if i > 0 {
+                        sleep(Duration::from_secs(5)).await;
                     }
-                    Err(err) => {
-                        logger::error(&format!("{} {}", url, err));
-                        Err(err)
-                    }
+                    let result = stalk_and_save_site(&site_store, &from, site).await;
+                    tx.send((site.url.clone(), result))
+                        .await
+                        .expect("failed to send stalking result");
                 }
             });
-
-            tasks.push(handle);
         }
-    }
+        rx
+    };
 
-    let mut sites_of_interest = Vec::new();
+    let mut urls_of_interest = Vec::new();
     let mut error_occured = false;
-    for handle in tasks {
-        match handle.await.expect("failed to spawn task") {
-            Ok((site, change_kind)) => match change_kind {
-                ChangeKind::Init | ChangeKind::Changed => {
-                    sites_of_interest.push(site);
+    let mut amount_done = 0_usize;
+    while let Some((url, result)) = rx.recv().await {
+        amount_done += 1;
+        match result {
+            Ok((change_kind, ip_version, took)) => {
+                println!(
+                    "{:4}/{} {:12} {:5}ms {} {}",
+                    amount_done,
+                    sites_amount,
+                    change_kind.to_string(),
+                    took.as_millis(),
+                    ip_version,
+                    url
+                );
+                match change_kind {
+                    ChangeKind::Init | ChangeKind::Changed => {
+                        urls_of_interest.push(url);
+                    }
+                    ChangeKind::ContentSame => {}
                 }
-                ChangeKind::ContentSame => {}
-            },
-            Err(_) => {
+            }
+            Err(err) => {
+                logger::error(&format!("{} {}", url, err));
                 error_occured = true;
             }
         }
     }
 
-    let message = final_message::FinalMessage::new(&sites_of_interest);
+    let message = final_message::FinalMessage::new(&urls_of_interest);
     let commit = if let Ok(repo) = repo {
         run_commit(&repo, do_commit, &message.to_commit())?
     } else {
         None
     };
-    if !sites_of_interest.is_empty() {
+    if !urls_of_interest.is_empty() {
         let message = message.into_notification(config.notification_template.as_deref(), commit)?;
         run_notifications(&message);
     }

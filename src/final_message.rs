@@ -1,4 +1,4 @@
-use crate::site::Site;
+use url::Url;
 
 pub const DEFAULT_NOTIFICATION_TEMPLATE: &str = "
 {{#singledomain}}
@@ -34,18 +34,18 @@ struct MustacheData {
 }
 
 impl FinalMessage {
-    pub fn new(changed_sites: &[Site]) -> Self {
-        let mut domains = changed_sites
+    pub fn new(changed_urls: &[Url]) -> Self {
+        let mut domains = changed_urls
             .iter()
-            .filter_map(|site| site.url.domain())
+            .filter_map(Url::domain)
             .map(std::string::ToString::to_string)
             .collect::<Vec<_>>();
         domains.sort_unstable();
         domains.dedup();
 
-        let mut sites = changed_sites
+        let mut sites = changed_urls
             .iter()
-            .map(|site| site.url.to_string())
+            .map(std::string::ToString::to_string)
             .collect::<Vec<_>>();
         sites.sort();
         sites.dedup();
@@ -101,50 +101,20 @@ impl FinalMessage {
     }
 
     fn example_single() -> Self {
-        Self::new(&[Site {
-            url: url::Url::parse("https://edjopato.de/post/").unwrap(),
-            options: crate::site::Options {
-                accept_invalid_certs: false,
-                editors: vec![],
-            },
-        }])
+        Self::new(&[Url::parse("https://edjopato.de/post/").unwrap()])
     }
 
     fn example_different() -> Self {
         Self::new(&[
-            Site {
-                url: url::Url::parse("https://edjopato.de/post/").unwrap(),
-                options: crate::site::Options {
-                    accept_invalid_certs: false,
-                    editors: vec![],
-                },
-            },
-            Site {
-                url: url::Url::parse("https://foo.bar/").unwrap(),
-                options: crate::site::Options {
-                    accept_invalid_certs: false,
-                    editors: vec![],
-                },
-            },
+            Url::parse("https://edjopato.de/post/").unwrap(),
+            Url::parse("https://foo.bar/").unwrap(),
         ])
     }
 
     fn example_same() -> Self {
         Self::new(&[
-            Site {
-                url: url::Url::parse("https://edjopato.de/").unwrap(),
-                options: crate::site::Options {
-                    accept_invalid_certs: false,
-                    editors: vec![],
-                },
-            },
-            Site {
-                url: url::Url::parse("https://edjopato.de/post/").unwrap(),
-                options: crate::site::Options {
-                    accept_invalid_certs: false,
-                    editors: vec![],
-                },
-            },
+            Url::parse("https://edjopato.de/").unwrap(),
+            Url::parse("https://edjopato.de/post/").unwrap(),
         ])
     }
 
