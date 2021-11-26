@@ -8,6 +8,7 @@ pub fn basename(url: &Url) -> String {
 
     let domain = url.domain().expect("domain needed");
     let path = url.path();
+    let query = url.query().unwrap_or_default();
 
     let domain_part = domain
         .trim_start_matches("www.")
@@ -15,7 +16,7 @@ pub fn basename(url: &Url) -> String {
         .rev()
         .collect::<Vec<_>>()
         .join("-");
-    let raw = format!("{}-{}", domain_part, path);
+    let raw = format!("{}-{}-{}", domain_part, path, query);
     let only_ascii = NON_ALPHANUM.replace_all(&raw, "-");
     only_ascii.trim_matches('-').to_string()
 }
@@ -32,6 +33,14 @@ fn tb(url: &str) -> String {
 fn examples() {
     assert_eq!(tb("https://edjopato.de/"), "de-edjopato");
     assert_eq!(tb("https://edjopato.de/post/"), "de-edjopato-post");
+}
+
+#[test]
+fn query_does_matter() {
+    assert_eq!(
+        tb("http://edjopato.de/?something=true"),
+        "de-edjopato-something-true",
+    );
 }
 
 #[test]
