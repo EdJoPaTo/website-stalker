@@ -19,29 +19,34 @@ pub fn build() -> App<'static> {
                 .arg(
                     Arg::new("print-yaml")
                         .long("print-yaml")
-                        .about("Print out valid config as yaml"),
+                        .help("Print out valid config as yaml"),
                 )
                 .arg(
                     Arg::new("rewrite-yaml")
                         .long("rewrite-yaml")
-                        .about("Write valid config as website-stalker.yaml"),
+                        .help("Write valid config as website-stalker.yaml"),
                 ),
         )
         .subcommand(
             App::new("run")
                 .about("Stalk all the websites you specified")
-                .arg(Arg::new("all").long("all").about("run for all sites"))
+                .arg(Arg::new("all").long("all").help("run for all sites"))
                 .arg(
                     Arg::new("commit")
                         .long("commit")
-                        .about("git commit changed files"),
+                        .help("git commit changed files"),
                 )
                 .arg(
                     Arg::new("site filter")
                         .conflicts_with("all")
                         .required_unless_present("all")
                         .validator(Regex::new)
-                        .about("Filter the sites to be run (case insensitive regular expression)"),
+                        .help("Filter the sites to be run (case insensitive regular expression)"),
                 ),
         )
+}
+
+#[test]
+fn verify_app() {
+    build().debug_assert();
 }
