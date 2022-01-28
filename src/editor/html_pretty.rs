@@ -33,6 +33,22 @@ impl<Wr: Write> Serializer for HtmlPrettySerializer<Wr> {
         self.indent()?;
         self.depth += 1;
 
+        let attrs = attrs
+            .filter_map(|(name, value)| match name.local.as_ref() {
+                "class" => {
+                    let mut classes = value.split_whitespace().collect::<Vec<_>>();
+                    if classes.is_empty() {
+                        None
+                    } else {
+                        classes.sort_unstable();
+                        Some((name, classes.join(" ")))
+                    }
+                }
+                _ => Some((name, value.to_string())),
+            })
+            .collect::<Vec<_>>();
+        let attrs = attrs.iter().map(|(name, value)| (*name, value.as_str()));
+
         self.serializer.start_elem(name, attrs)?;
         self.serializer.writer.write_all(b"\n")
     }
@@ -107,6 +123,57 @@ fn works() {
 	</head>
 	<body>
 		Just a
+		<div>
+			test
+		</div>
+	</body>
+</html>"#
+    );
+}
+
+#[test]
+fn attributes_sorted() {
+    let ugly = r#"<html><body><div style="--a: 42;" class="a">test</div></body></html>"#;
+    assert_eq!(
+        prettify(ugly).unwrap(),
+        r#"<html>
+	<head>
+	</head>
+	<body>
+		<div class="a" style="--a: 42;">
+			test
+		</div>
+	</body>
+</html>"#
+    );
+}
+
+#[test]
+fn classes_sorted() {
+    let ugly = r#"<html><body><div class="b  a">test</div></body></html>"#;
+    assert_eq!(
+        prettify(ugly).unwrap(),
+        r#"<html>
+	<head>
+	</head>
+	<body>
+		<div class="a b">
+			test
+		</div>
+	</body>
+</html>"#
+    );
+}
+
+#[test]
+fn remove_empty_class_attribute() {
+    let ugly = r#"<html><body><div class=" ">test</div></body></html>"#;
+    assert_eq!(
+        prettify(ugly).unwrap(),
+        r#"<html>
+	<head>
+	</head>
+	<body>
 		<div>
 			test
 		</div>
