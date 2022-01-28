@@ -44,6 +44,20 @@ impl<Wr: Write> Serializer for HtmlPrettySerializer<Wr> {
                         Some((name, classes.join(" ")))
                     }
                 }
+                "style" => {
+                    let mut statements = value
+                        .split(';')
+                        .map(str::trim)
+                        .filter(|o| !o.is_empty())
+                        .map(format_css_statement)
+                        .collect::<Vec<_>>();
+                    if statements.is_empty() {
+                        None
+                    } else {
+                        statements.sort_unstable();
+                        Some((name, statements.join(" ")))
+                    }
+                }
                 _ => Some((name, value.to_string())),
             })
             .collect::<Vec<_>>();
@@ -113,6 +127,23 @@ fn serialize<T: Serialize>(node: &T) -> anyhow::Result<String> {
     Ok(result)
 }
 
+/// Never receives the ; splitting them
+fn format_css_statement(content: &str) -> String {
+    let splitted = content.split(':').map(str::trim).collect::<Vec<_>>();
+    if let [key, value] = splitted.as_slice() {
+        format!("{}: {};", key, value)
+    } else {
+        format!("{};", content)
+    }
+}
+
+#[test]
+fn format_css_statement_works() {
+    assert_eq!("color: white;", format_css_statement("color:  white"));
+    assert_eq!("color: white;", format_css_statement("color:white"));
+    assert_eq!("color: white;", format_css_statement("  color: white  "));
+}
+
 #[test]
 fn works() {
     let ugly = r#"<html><body>Just a <div>test</div></body></html>"#;
@@ -175,6 +206,23 @@ fn remove_empty_class_attribute() {
 	</head>
 	<body>
 		<div>
+			test
+		</div>
+	</body>
+</html>"#
+    );
+}
+
+#[test]
+fn style_formatted() {
+    let ugly = r#"<html><body><div style="display:none;color:white;--something:42;">test</div></body></html>"#;
+    assert_eq!(
+        prettify(ugly).unwrap(),
+        r#"<html>
+	<head>
+	</head>
+	<body>
+		<div style="--something: 42; color: white; display: none;">
 			test
 		</div>
 	</body>
