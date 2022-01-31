@@ -43,6 +43,12 @@ jobs:
 
       - uses: actions/checkout@v2
 
+      - name: Fetch dependencies
+        uses: actions-rs/cargo@v1
+        with:
+          command: fetch
+          args: --verbose --locked
+
       - name: Check clippy
         uses: actions-rs/cargo@v1
         with:
@@ -79,9 +85,9 @@ jobs:
             os: ubuntu-latest
 
           - triple: x86_64-apple-darwin
-            os: macos-11
+            os: macos-latest
           - triple: aarch64-apple-darwin
-            os: macos-11
+            os: macos-latest
 
           - triple: x86_64-pc-windows-msvc
             os: windows-latest
@@ -111,6 +117,12 @@ jobs:
           name="website-stalker-$version-${{ matrix.triple }}"
           echo "artifact: $name"
           echo "ARTIFACT_NAME=$name" >> $GITHUB_ENV
+
+      - name: Fetch dependencies
+        uses: actions-rs/cargo@v1
+        with:
+          command: fetch
+          args: --verbose --locked
 
       - name: Build
         uses: actions-rs/cargo@v1
