@@ -223,6 +223,7 @@ async fn run(do_commit: bool, site_filter: Option<&Regex>) -> anyhow::Result<()>
     while let Some((url, result)) = rx.recv().await {
         amount_done += 1;
         match result {
+            #[allow(clippy::to_string_in_format_args)]
             Ok((change_kind, ip_version, took)) => {
                 println!(
                     "{:4}/{} {:12} {:5}ms {} {}",
