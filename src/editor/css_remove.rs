@@ -7,7 +7,6 @@ impl CssRemover {
     fn parse(&self) -> anyhow::Result<scraper::Selector> {
         let scrape_selector = scraper::Selector::parse(&self.0)
             .map_err(|err| anyhow::anyhow!("css remover ({}) parse error: {:?}", self.0, err))?;
-
         Ok(scrape_selector)
     }
 
@@ -17,16 +16,17 @@ impl CssRemover {
     }
 
     pub fn apply(&self, html: &str) -> anyhow::Result<String> {
-        let parsed_html = scraper::Html::parse_document(html);
+        let mut parsed_html = scraper::Html::parse_document(html);
         let selected = parsed_html
             .select(&self.parse()?)
-            .map(|o| o.html())
+            .map(|o| o.id())
             .collect::<Vec<_>>();
-
-        let mut html = parsed_html.root_element().html();
-        for s in selected {
-            html = html.replace(&s, "");
+        for selected in selected {
+            if let Some(mut selected_mut) = parsed_html.tree.get_mut(selected) {
+                selected_mut.detach();
+            }
         }
+        let html = parsed_html.root_element().html();
         Ok(html)
     }
 }
@@ -94,5 +94,14 @@ fn multiple_selectors_inside_each_other_work() {
     assert_eq!(
         html,
         r#"<html><head></head><body><div class="b">B</div></body></html>"#
+    );
+}
+
+#[test]
+fn multiple_hits_only_remove_exact() {
+    let html = CssRemover(".a p".to_string()).apply(r#"<html><head></head><body><div class="a"><p>TEST</p></div><div class="b"><p>TEST</p></div></body></html>"#).unwrap();
+    assert_eq!(
+        html,
+        r#"<html><head></head><body><div class="a"></div><div class="b"><p>TEST</p></div></body></html>"#
     );
 }
