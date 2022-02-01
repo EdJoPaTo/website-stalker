@@ -60,8 +60,7 @@ const EXAMPLE_HTML: &str =
 
 #[test]
 fn removes_tag() {
-    let remover = CssRemover("p".to_string());
-    let html = remover.apply(EXAMPLE_HTML).unwrap();
+    let html = CssRemover("p".to_string()).apply(EXAMPLE_HTML).unwrap();
     assert_eq!(
         html,
         r#"<html><head></head><body><div class="a"></div><div class="b">B</div></body></html>"#
@@ -70,9 +69,30 @@ fn removes_tag() {
 
 #[test]
 fn remove_not_found() {
-    let remover = CssRemover("p".to_string());
-    let html = remover
-        .apply(r#"<html><head></head><body>test</body></html>"#)
-        .unwrap();
-    assert_eq!(html, r#"<html><head></head><body>test</body></html>"#);
+    let html = CssRemover("span".to_string()).apply(EXAMPLE_HTML).unwrap();
+    assert_eq!(html, EXAMPLE_HTML);
+}
+
+#[test]
+fn multiple_selectors_work() {
+    let html = CssRemover(".b, p".to_string()).apply(EXAMPLE_HTML).unwrap();
+    assert_eq!(
+        html,
+        r#"<html><head></head><body><div class="a"></div></body></html>"#
+    );
+}
+
+#[test]
+fn multiple_selectors_inside_each_other_work() {
+    let html = CssRemover("p, .a".to_string()).apply(EXAMPLE_HTML).unwrap();
+    assert_eq!(
+        html,
+        r#"<html><head></head><body><div class="b">B</div></body></html>"#
+    );
+
+    let html = CssRemover(".a, p".to_string()).apply(EXAMPLE_HTML).unwrap();
+    assert_eq!(
+        html,
+        r#"<html><head></head><body><div class="b">B</div></body></html>"#
+    );
 }
