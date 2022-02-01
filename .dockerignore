@@ -1,6 +1,5 @@
 .*
 *.md
-/completions
 /systemd
 /target
 Dockerfile
