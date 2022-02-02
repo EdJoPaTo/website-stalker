@@ -226,10 +226,9 @@ editors:
 
 #### `css_select`
 
-Tries to grab every instance of matching HTML elements and returns all of them (in a still valid HTML).
-Optionally with a `remove: true` it returns everything excluding the matching HTML elements.
+Use [CSS Selectors](https://developer.mozilla.org/en-US/docs/Learn/CSS/Building_blocks/Selectors) to grab every instance of matching HTML elements and returns all of them.
 
-If no matching HTML elements are found, this editor fails.
+If no matching HTML elements are found, this editor errors.
 
 Examples:
 
@@ -452,7 +451,8 @@ OPTIONS:
 # Alternatives
 
 - [Website Changed Bot](https://github.com/EdJoPaTo/website-changed-bot) is a Telegram Bot which might potentially use this tool later on
-- [ChangeDetection](https://github.com/bernaferrari/ChangeDetection) is an Android app for this
+- [bernaferrari/ChangeDetection](https://github.com/bernaferrari/ChangeDetection) is an Android app for this
+- [dgtlmoon/changedetection.io](https://github.com/dgtlmoon/changedetection.io) can be selfhosted and configured via web interface
 - [Feed me up, Scotty!](https://gitlab.com/vincenttunru/feed-me-up-scotty) creates RSS feeds from websites
-- [htmlq](https://github.com/mgdm/htmlq)
+- [htmlq](https://github.com/mgdm/htmlq) command line tool to format / select html (like jq for html)
 - [urlwatch](https://thp.io/2008/urlwatch/)
