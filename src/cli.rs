@@ -41,6 +41,8 @@ pub fn build() -> App<'static> {
                         .conflicts_with("all")
                         .required_unless_present("all")
                         .validator(Regex::new)
+                        .value_name("SITE_FILTER")
+                        .value_hint(clap::ValueHint::Other)
                         .help("Filter the sites to be run (case insensitive regular expression)"),
                 ),
         )
