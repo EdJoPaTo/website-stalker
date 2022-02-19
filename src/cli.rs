@@ -1,20 +1,21 @@
-use clap::{app_from_crate, App, AppSettings, Arg};
+use clap::{command, Arg, Command, ValueHint};
 use regex::Regex;
 
+#[allow(clippy::too_many_lines)]
 #[must_use]
-pub fn build() -> App<'static> {
-    app_from_crate!()
+pub fn build() -> Command<'static> {
+    command!()
         .name("Website Stalker")
-        .setting(AppSettings::SubcommandRequiredElseHelp)
+        .subcommand_required(true)
         .subcommand(
-            App::new("example-config")
+            Command::new("example-config")
                 .about("Print an example config which can be piped into website-stalker.yaml"),
         )
-        .subcommand(App::new("init").about(
+        .subcommand(Command::new("init").about(
             "Initialize the current directory with a git repo and a config (website-stalker.yaml)",
         ))
         .subcommand(
-            App::new("check")
+            Command::new("check")
                 .about("Check if the config is fine but do not run")
                 .arg(
                     Arg::new("print-yaml")
@@ -28,7 +29,7 @@ pub fn build() -> App<'static> {
                 ),
         )
         .subcommand(
-            App::new("run")
+            Command::new("run")
                 .about("Stalk all the websites you specified")
                 .arg(Arg::new("all").long("all").help("run for all sites"))
                 .arg(
@@ -40,15 +41,16 @@ pub fn build() -> App<'static> {
                     Arg::new("site filter")
                         .conflicts_with("all")
                         .required_unless_present("all")
+                        .takes_value(true)
                         .validator(Regex::new)
+                        .value_hint(ValueHint::Other)
                         .value_name("SITE_FILTER")
-                        .value_hint(clap::ValueHint::Other)
                         .help("Filter the sites to be run (case insensitive regular expression)"),
                 ),
         )
 }
 
 #[test]
-fn verify_app() {
+fn verify() {
     build().debug_assert();
 }
