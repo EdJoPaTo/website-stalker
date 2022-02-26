@@ -84,15 +84,14 @@ impl Config {
     }
 
     pub fn load() -> anyhow::Result<Self> {
-        let mut config = config::Config::default();
-        config
+        let config: Self = config::Config::builder()
             // Add in `./website-stalker.toml`, `./website-stalker.yaml`, ...
-            .merge(config::File::with_name("website-stalker").required(true))?
+            .add_source(config::File::with_name("website-stalker").required(true))
             // Add in settings from the environment (with a prefix of WEBSITE_STALKER)
             // Eg.. `WEBSITE_STALKER_DEBUG=1 network-stalker` would set the `debug` key
-            .merge(config::Environment::with_prefix("WEBSITE_STALKER"))?;
-
-        let config: Self = config.try_into()?;
+            .add_source(config::Environment::with_prefix("WEBSITE_STALKER"))
+            .build()?
+            .try_deserialize()?;
         config.validate()?;
         Ok(config)
     }
