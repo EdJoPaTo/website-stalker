@@ -1,0 +1,3 @@
+# Override this file with a modified version in /etc/tmpfiles.d/
+d /var/lib/website-stalker 0755 website-stalker website-stalker
+Z /var/lib/website-stalker - website-stalker website-stalker

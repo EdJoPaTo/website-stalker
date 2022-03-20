@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- Generate deb/rpm packages
+
+### Changed
+
+- systemd files are now meant for packages (no …/local/… anymore)
+
 ### Fixed
 
 - CLI: correct autocompletion with `ValueHint`

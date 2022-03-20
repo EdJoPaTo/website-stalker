@@ -2,12 +2,11 @@
 Description=Run website-stalker
 Wants=network-online.target
 After=network-online.target
-StartLimitIntervalSec=0
 
 [Service]
 Type=simple
-ExecStart=/usr/local/bin/website-stalker run --all --commit
-WorkingDirectory=/var/local/lib/website-stalker/
+ExecStart=/usr/bin/website-stalker run --all --commit
+WorkingDirectory=/var/lib/website-stalker/
 User=website-stalker
 Group=website-stalker
 
