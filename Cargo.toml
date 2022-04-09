@@ -22,7 +22,7 @@ regex = "1"
 clap = { version = "3", features = ["cargo", "wrap_help"] }
 anyhow = "1"
 chrono = "0.4"
-config = "0.12"
+config = "0.13"
 html2md = "0.2"
 html5ever = "0.25"
 itertools = "0.10"
