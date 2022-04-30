@@ -2871,7 +2871,7 @@ dependencies = [
  "config",
  "git2",
  "html2md",
- "html5ever 0.25.2",
+ "html5ever 0.26.0",
  "itertools",
  "kuchiki",
  "lazy_static",
