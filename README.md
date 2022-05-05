@@ -193,6 +193,21 @@ sites:
     accept_invalid_certs: true
 ```
 
+#### `ignore_error`
+
+Only show warning when the site errors.
+
+This is useful for buggy services which are sometimes just gone or for pages which will exist in the future but are not there yet.
+Personal example: A bad DNS configuration which lets the website appear non existent for some time.
+
+This setting also skips errors from editors.
+
+```yaml
+sites:
+  - url: "https://edjopato.de/might-appear-in-the-future"
+    ignore_error: true
+```
+
 ### Editors
 
 Editors are manipulating the content of a webpage to simplify comparing them later on.

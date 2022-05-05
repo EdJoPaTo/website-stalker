@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- `ignore_error` site option to only warn on pages that fail regularly
 - Generate deb/rpm packages
 
 ### Changed

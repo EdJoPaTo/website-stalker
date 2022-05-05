@@ -208,7 +208,7 @@ async fn run(do_commit: bool, site_filter: Option<&Regex>) -> anyhow::Result<()>
                         sleep(Duration::from_secs(5)).await;
                     }
                     let result = stalk_and_save_site(&site_store, &from, site).await;
-                    tx.send((site.url.clone(), result))
+                    tx.send((site.url.clone(), result, site.options.ignore_error))
                         .await
                         .expect("failed to send stalking result");
                 }
@@ -220,7 +220,7 @@ async fn run(do_commit: bool, site_filter: Option<&Regex>) -> anyhow::Result<()>
     let mut urls_of_interest = Vec::new();
     let mut error_occured = false;
     let mut amount_done = 0_usize;
-    while let Some((url, result)) = rx.recv().await {
+    while let Some((url, result, ignore_error)) = rx.recv().await {
         amount_done += 1;
         match result {
             #[allow(clippy::to_string_in_format_args)]
@@ -242,8 +242,13 @@ async fn run(do_commit: bool, site_filter: Option<&Regex>) -> anyhow::Result<()>
                 }
             }
             Err(err) => {
-                logger::error(&format!("{} {}", url, err));
-                error_occured = true;
+                let message = format!("{} {}", url, err);
+                if ignore_error {
+                    logger::warn(&message);
+                } else {
+                    logger::error(&message);
+                    error_occured = true;
+                }
             }
         }
     }

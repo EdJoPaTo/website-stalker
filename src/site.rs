@@ -15,6 +15,9 @@ pub struct Options {
     #[serde(default, skip_serializing_if = "std::ops::Not::not")]
     pub accept_invalid_certs: bool,
 
+    #[serde(default, skip_serializing_if = "std::ops::Not::not")]
+    pub ignore_error: bool,
+
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub editors: Vec<Editor>,
 }
@@ -59,6 +62,7 @@ fn validate_finds_duplicates() {
             url: Url::parse("https://edjopato.de/post/").unwrap(),
             options: Options {
                 accept_invalid_certs: false,
+                ignore_error: false,
                 editors: vec![],
             },
         },
@@ -66,6 +70,7 @@ fn validate_finds_duplicates() {
             url: Url::parse("https://edjopato.de/robots.txt").unwrap(),
             options: Options {
                 accept_invalid_certs: false,
+                ignore_error: false,
                 editors: vec![],
             },
         },
@@ -73,6 +78,7 @@ fn validate_finds_duplicates() {
             url: Url::parse("https://edjopato.de/post").unwrap(),
             options: Options {
                 accept_invalid_certs: false,
+                ignore_error: false,
                 editors: vec![],
             },
         },

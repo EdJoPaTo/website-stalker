@@ -57,6 +57,7 @@ impl Config {
                     url: Url::parse("https://edjopato.de/post/").unwrap().into(),
                     options: Options {
                         accept_invalid_certs: false,
+                        ignore_error: false,
                         editors: vec![
                             Editor::CssSelect("article".parse().unwrap()),
                             Editor::CssRemove("a".parse().unwrap()),
@@ -72,6 +73,7 @@ impl Config {
                     url: Url::parse("https://edjopato.de/robots.txt").unwrap().into(),
                     options: Options {
                         accept_invalid_certs: false,
+                        ignore_error: false,
                         editors: vec![],
                     },
                 },
@@ -186,6 +188,7 @@ fn validate_fails_on_sites_list_with_empty_many() {
             url: UrlVariants::Many(vec![]),
             options: Options {
                 accept_invalid_certs: false,
+                ignore_error: false,
                 editors: vec![],
             },
         }],
