@@ -34,8 +34,8 @@ impl From<Url> for UrlVariants {
 impl UrlVariants {
     pub fn is_empty(&self) -> bool {
         match self {
-            UrlVariants::Single(_) => false,
-            UrlVariants::Many(many) => many.is_empty(),
+            Self::Single(_) => false,
+            Self::Many(many) => many.is_empty(),
         }
     }
 }
