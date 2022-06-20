@@ -1,4 +1,4 @@
-use clap::{command, Arg, Command, ValueHint};
+use clap::{command, value_parser, Arg, Command, ValueHint};
 use regex::Regex;
 
 #[allow(clippy::too_many_lines)]
@@ -42,7 +42,7 @@ pub fn build() -> Command<'static> {
                         .conflicts_with("all")
                         .required_unless_present("all")
                         .takes_value(true)
-                        .validator(Regex::new)
+                        .value_parser(value_parser!(Regex))
                         .value_hint(ValueHint::Other)
                         .value_name("SITE_FILTER")
                         .help("Filter the sites to be run (case insensitive regular expression)"),

@@ -19,7 +19,7 @@ clap_complete = "3"
 regex = "1"
 
 [dependencies]
-clap = { version = "3", features = ["cargo", "wrap_help"] }
+clap = { version = "3", features = ["cargo", "wrap_help", "deprecated"] }
 anyhow = "1"
 chrono = "0.4"
 config = "0.13"

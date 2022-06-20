@@ -82,8 +82,8 @@ async fn main() {
             eprintln!("\nConfig...");
             match Config::load() {
                 Ok(config) => {
-                    let print_yaml = matches.is_present("print-yaml");
-                    let rewrite_yaml = matches.is_present("rewrite-yaml");
+                    let print_yaml = matches.contains_id("print-yaml");
+                    let rewrite_yaml = matches.contains_id("rewrite-yaml");
                     if print_yaml || rewrite_yaml {
                         let yaml = serde_yaml::to_string(&config).expect("failed to parse to yaml");
                         if rewrite_yaml {
@@ -104,10 +104,10 @@ async fn main() {
             }
         }
         ("run", matches) => {
-            let do_commit = matches.is_present("commit");
+            let do_commit = matches.contains_id("commit");
             let site_filter = matches
-                .value_of("site filter")
-                .map(|v| Regex::new(&format!("(?i){}", v)).unwrap());
+                .get_one::<Regex>("site filter")
+                .map(|v| Regex::new(&format!("(?i){}", v.as_str())).unwrap());
             let result = run(do_commit, site_filter.as_ref()).await;
             if let Err(err) = &result {
                 logger::error(&err.to_string());
