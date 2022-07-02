@@ -1,10 +1,9 @@
+use once_cell::sync::Lazy;
 use regex::{Captures, Regex};
 
 pub fn markdownify(html: &str) -> String {
-    lazy_static::lazy_static! {
-        static ref LINK: Regex = Regex::new(r"\[([^\]]+)\]\(([^)]+)\)").unwrap();
-        static ref MANY_SPACES: Regex = Regex::new(r"\s+").unwrap();
-    }
+    static LINK: Lazy<Regex> = Lazy::new(|| Regex::new(r"\[([^\]]+)\]\(([^)]+)\)").unwrap());
+    static MANY_SPACES: Lazy<Regex> = Lazy::new(|| Regex::new(r"\s+").unwrap());
 
     let result = html2md::parse_html(html)
         .lines()

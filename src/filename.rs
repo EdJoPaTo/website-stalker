@@ -1,10 +1,9 @@
+use once_cell::sync::Lazy;
 use regex::Regex;
 use url::Url;
 
 pub fn basename(url: &Url) -> String {
-    lazy_static::lazy_static! {
-        static ref NON_ALPHANUM: Regex = Regex::new(r"[^a-zA-Z\d]+").unwrap();
-    }
+    static NON_ALPHANUM: Lazy<Regex> = Lazy::new(|| Regex::new(r"[^a-zA-Z\d]+").unwrap());
 
     let domain = url.domain().expect("domain needed");
     let path = url.path();

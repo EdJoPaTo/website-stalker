@@ -1,5 +1,6 @@
 use anyhow::anyhow;
 use itertools::Itertools;
+use once_cell::sync::Lazy;
 use rss::validation::Validate;
 use rss::{ChannelBuilder, ItemBuilder};
 use scraper::Selector;
@@ -69,11 +70,10 @@ impl Rss {
     }
 
     pub fn generate(&self, url: &Url, html: &str) -> anyhow::Result<String> {
-        lazy_static::lazy_static! {
-            static ref TITLE: Selector = Selector::parse("title").unwrap();
-            static ref DESCRIPTION: Selector = Selector::parse("meta[name=description]").unwrap();
-            static ref DATETIME: Selector = Selector::parse("*[datetime]").unwrap();
-        }
+        static TITLE: Lazy<Selector> = Lazy::new(|| Selector::parse("title").unwrap());
+        static DESCRIPTION: Lazy<Selector> =
+            Lazy::new(|| Selector::parse("meta[name=description]").unwrap());
+        static DATETIME: Lazy<Selector> = Lazy::new(|| Selector::parse("*[datetime]").unwrap());
 
         let (item, title, link) = self.parse_selectors()?;
         let parsed_html = scraper::Html::parse_document(html);

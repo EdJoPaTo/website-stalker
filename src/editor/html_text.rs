@@ -3,6 +3,7 @@ use std::io::Write;
 use html5ever::serialize::{AttrRef, HtmlSerializer, Serialize, SerializeOpts, Serializer};
 use html5ever::tendril::TendrilSink;
 use html5ever::QualName;
+use once_cell::sync::Lazy;
 use regex::Regex;
 
 struct HtmlTextSerializer<Wr: Write> {
@@ -47,9 +48,7 @@ impl<Wr: Write> Serializer for HtmlTextSerializer<Wr> {
 }
 
 pub fn textify(html: &str) -> anyhow::Result<String> {
-    lazy_static::lazy_static! {
-        static ref MANY_NEWLINES: Regex = Regex::new(r"\n{3,}").unwrap();
-    }
+    static MANY_NEWLINES: Lazy<Regex> = Lazy::new(|| Regex::new(r"\n{3,}").unwrap());
 
     let doc = kuchiki::parse_html().one(html);
     let result = serialize(&doc)?
