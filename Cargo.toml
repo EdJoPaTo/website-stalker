@@ -19,9 +19,9 @@ clap_complete = "3"
 regex = "1"
 
 [dependencies]
-clap = { version = "3", features = ["cargo", "wrap_help", "deprecated"] }
 anyhow = "1"
 chrono = "0.4"
+clap = { version = "3", features = ["cargo", "wrap_help"] }
 config = "0.13"
 html2md = "0.2"
 html5ever = "0.25"
