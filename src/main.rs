@@ -149,22 +149,23 @@ async fn run(do_commit: bool, site_filter: Option<&Regex>) -> anyhow::Result<()>
     };
 
     let repo = git::Repo::new();
-    if let Ok(repo) = &repo {
-        if repo.is_something_modified()? {
-            if do_commit {
-                return Err(anyhow::anyhow!(
-                    "The repo is unclean. --commit can only be used in a clean repo."
-                ));
+    match &repo {
+        Ok(repo) => {
+            if repo.is_something_modified()? {
+                if do_commit {
+                    anyhow::bail!(
+                        "The repo is unclean. --commit can only be used in a clean repo."
+                    );
+                }
+                logger::warn("The repo is unclean.");
             }
-            logger::warn("The repo is unclean.");
         }
-    } else {
-        if do_commit {
-            return Err(anyhow::anyhow!(
-                "Not a git repo. --commit only works in git repos."
-            ));
+        Err(err) => {
+            if do_commit {
+                anyhow::bail!("Not a git repo. --commit only works in git repos: {}", err);
+            }
+            logger::warn("Not a git repo. Will run but won't do git actions.");
         }
-        logger::warn("Not a git repo. Will run but won't do git actions.");
     }
 
     let site_store = site_store::SiteStore::new(SITE_FOLDER.to_string())
