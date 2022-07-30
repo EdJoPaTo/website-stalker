@@ -24,10 +24,7 @@ impl CssSelector {
             .collect::<Vec<_>>();
 
         if selected.is_empty() {
-            return Err(anyhow::anyhow!(
-                "css_selector ({}) selected nothing",
-                self.0
-            ));
+            anyhow::bail!("css_selector ({}) selected nothing", self.0);
         }
         Ok(selected.join("\n"))
     }

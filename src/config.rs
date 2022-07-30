@@ -136,20 +136,16 @@ impl Config {
     }
 
     fn validate_sites(&self) -> anyhow::Result<()> {
-        if self.sites.is_empty() {
-            return Err(anyhow!("site list is empty"));
-        }
+        anyhow::ensure!(!self.sites.is_empty(), "site list is empty");
         for entry in &self.sites {
-            if entry.url.is_empty() {
-                return Err(anyhow!("site entry has no urls"));
-            }
+            anyhow::ensure!(!entry.url.is_empty(), "site entry has no urls");
         }
 
         let sites = self.get_sites();
         Site::validate_no_duplicate(&sites).map_err(|err| anyhow!("{}", err))?;
         for site in sites {
             if let Err(err) = site.is_valid() {
-                return Err(anyhow!("site entry is invalid: {}\n{:?}", err, site));
+                anyhow::bail!("site entry is invalid: {}\n{:?}", err, site);
             }
         }
         Ok(())

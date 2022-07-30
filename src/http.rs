@@ -93,10 +93,7 @@ pub fn validate_from(from: &str) -> anyhow::Result<()> {
     let value = HeaderValue::from_str(from)?;
     let value = value.to_str()?;
     if !value.contains('@') || !value.contains('.') {
-        return Err(anyhow::anyhow!(
-            "doesnt look like an email address: {}",
-            from
-        ));
+        anyhow::bail!("doesnt look like an email address: {}", from);
     }
 
     Ok(())

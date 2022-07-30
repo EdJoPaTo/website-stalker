@@ -132,10 +132,10 @@ impl Rss {
             items.push(builder.build());
         }
         if items.is_empty() {
-            return Err(anyhow::anyhow!(
+            anyhow::bail!(
                 "rss item_selector ({}) selected nothing",
                 self.item_selector()
-            ));
+            );
         }
         channel.items(items);
 
