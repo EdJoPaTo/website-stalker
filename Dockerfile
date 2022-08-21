@@ -20,7 +20,7 @@ RUN strip target/release/website-stalker
 
 
 # Start building the final image
-# Use one of the cached base images https://github.com/actions/virtual-environments/blob/main/images/linux/Ubuntu2004-Readme.md#cached-docker-images
+# Use one of the cached base images https://github.com/actions/runner-images/blob/main/images/linux/Ubuntu2004-Readme.md#cached-docker-images
 FROM docker.io/library/alpine:3.14
 RUN apk upgrade --no-cache \
     && apk add --no-cache git
