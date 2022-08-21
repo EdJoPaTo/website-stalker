@@ -279,6 +279,17 @@ editors:
   - html_prettify
 ```
 
+#### `html_sanitize`
+
+Strip down HTML to its minimal form.
+
+Example:
+
+```yaml
+editors:
+  - html_sanitize
+```
+
 #### `html_textify`
 
 Only returns text content of HTML elements within the input.

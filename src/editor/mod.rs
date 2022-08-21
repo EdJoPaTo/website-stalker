@@ -5,6 +5,7 @@ pub mod css_remove;
 pub mod css_selector;
 pub mod html_markdown;
 pub mod html_pretty;
+pub mod html_sanitize;
 pub mod html_text;
 pub mod html_url;
 pub mod json_prettify;
@@ -23,6 +24,7 @@ pub enum Editor {
     CssSelect(css_selector::CssSelector),
     HtmlMarkdownify,
     HtmlPrettify,
+    HtmlSanitize,
     HtmlTextify,
     HtmlUrlCanonicalize,
     JsonPrettify,
@@ -39,6 +41,7 @@ impl Editor {
             Self::Rss(e) => e.is_valid()?,
             Self::HtmlMarkdownify
             | Self::HtmlPrettify
+            | Self::HtmlSanitize
             | Self::HtmlTextify
             | Self::HtmlUrlCanonicalize
             | Self::JsonPrettify => {}
@@ -63,6 +66,10 @@ impl Editor {
             Self::HtmlPrettify => Ok(Content {
                 extension: Some("html"),
                 text: html_pretty::prettify(&input.text)?,
+            }),
+            Self::HtmlSanitize => Ok(Content {
+                extension: Some("html"),
+                text: html_sanitize::sanitize(&input.text),
             }),
             Self::HtmlTextify => Ok(Content {
                 extension: Some("txt"),
