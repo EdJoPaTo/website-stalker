@@ -1,56 +1,54 @@
-use clap::{command, value_parser, Arg, Command, ValueHint};
+use clap::{Parser, ValueHint};
 use regex::Regex;
 
-#[allow(clippy::too_many_lines)]
-#[must_use]
-pub fn build() -> Command<'static> {
-    command!()
-        .name("Website Stalker")
-        .subcommand_required(true)
-        .subcommand(
-            Command::new("example-config")
-                .about("Print an example config which can be piped into website-stalker.yaml"),
-        )
-        .subcommand(Command::new("init").about(
-            "Initialize the current directory with a git repo and a config (website-stalker.yaml)",
-        ))
-        .subcommand(
-            Command::new("check")
-                .about("Check if the config is fine but do not run")
-                .arg(
-                    Arg::new("print-yaml")
-                        .long("print-yaml")
-                        .help("Print out valid config as yaml"),
-                )
-                .arg(
-                    Arg::new("rewrite-yaml")
-                        .long("rewrite-yaml")
-                        .help("Write valid config as website-stalker.yaml"),
-                ),
-        )
-        .subcommand(
-            Command::new("run")
-                .about("Stalk all the websites you specified")
-                .arg(Arg::new("all").long("all").help("run for all sites"))
-                .arg(
-                    Arg::new("commit")
-                        .long("commit")
-                        .help("git commit changed files"),
-                )
-                .arg(
-                    Arg::new("site filter")
-                        .conflicts_with("all")
-                        .required_unless_present("all")
-                        .takes_value(true)
-                        .value_parser(value_parser!(Regex))
-                        .value_hint(ValueHint::Other)
-                        .value_name("SITE_FILTER")
-                        .help("Filter the sites to be run (case insensitive regular expression)"),
-                ),
-        )
+#[derive(Debug, Parser)]
+#[clap(about, author, version)]
+pub struct Cli {
+    #[clap(subcommand)]
+    pub subcommand: SubCommand,
+}
+
+#[derive(Debug, Parser)]
+pub enum SubCommand {
+    /// Print an example config which can be piped into website-stalker.yaml
+    ExampleConfig,
+
+    /// Initialize the current directory with a git repo and a config (website-stalker.yaml)
+    Init,
+
+    /// Check if the config is fine but do not run
+    Check {
+        /// Print out valid config as yaml
+        #[clap(long)]
+        print_yaml: bool,
+
+        /// Write valid config as website-stalker.yaml
+        #[clap(long)]
+        rewrite_yaml: bool,
+    },
+
+    /// Stalk all the websites you specified
+    Run {
+        /// Run for all sites
+        #[clap(long)]
+        all: bool,
+
+        /// git commit changed files
+        #[clap(long)]
+        commit: bool,
+
+        /// Filter the sites to be run (case insensitive regular expression)
+        #[clap(
+            value_hint = ValueHint::Other,
+            conflicts_with = "all",
+            required_unless_present = "all",
+        )]
+        site_filter: Option<Regex>,
+    },
 }
 
 #[test]
 fn verify() {
-    build().debug_assert();
+    use clap::CommandFactory;
+    Cli::command().debug_assert();
 }

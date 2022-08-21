@@ -2,9 +2,11 @@ use std::fmt::{Debug, Display};
 use std::time::Duration;
 use std::{fs, process};
 
+use crate::cli::SubCommand;
 use crate::config::Config;
 use crate::site::Site;
 use crate::site_store::SiteStore;
+use clap::Parser;
 use itertools::Itertools;
 use regex::Regex;
 use tokio::sync::mpsc::channel;
@@ -38,9 +40,8 @@ impl Display for ChangeKind {
 
 #[tokio::main]
 async fn main() {
-    let matches = cli::build().get_matches();
-    match matches.subcommand().expect("expected a subcommand") {
-        ("example-config", _) => {
+    match cli::Cli::parse().subcommand {
+        SubCommand::ExampleConfig => {
             println!(
                 "# This is an example config
 # The filename should be `website-stalker.yaml`
@@ -55,7 +56,7 @@ async fn main() {
                 Config::example_yaml_string()
             );
         }
-        ("init", _) => {
+        SubCommand::Init => {
             if git::Repo::new().is_err() {
                 git::Repo::init(std::env::current_dir().expect("failed to get working dir path"))
                     .expect("failed to init repo");
@@ -75,15 +76,16 @@ async fn main() {
             }
             println!("Init complete.\nNext step: adapt the config file to your needs.");
         }
-        ("check", matches) => {
+        SubCommand::Check {
+            print_yaml,
+            rewrite_yaml,
+        } => {
             let notifiers = pling::Notifier::from_env().len();
             eprintln!("Notifiers: {}. Check https://github.com/EdJoPaTo/pling/ for configuration details.", notifiers);
 
             eprintln!("\nConfig...");
             match Config::load() {
                 Ok(config) => {
-                    let print_yaml = matches.contains_id("print-yaml");
-                    let rewrite_yaml = matches.contains_id("rewrite-yaml");
                     if print_yaml || rewrite_yaml {
                         let yaml = serde_yaml::to_string(&config).expect("failed to parse to yaml");
                         if rewrite_yaml {
@@ -103,11 +105,13 @@ async fn main() {
                 }
             }
         }
-        ("run", matches) => {
-            let do_commit = matches.contains_id("commit");
-            let site_filter = matches
-                .get_one::<Regex>("site filter")
-                .map(|v| Regex::new(&format!("(?i){}", v.as_str())).unwrap());
+        SubCommand::Run {
+            commit: do_commit,
+            site_filter,
+            ..
+        } => {
+            let site_filter =
+                site_filter.map(|v| Regex::new(&format!("(?i){}", v.as_str())).unwrap());
             let result = run(do_commit, site_filter.as_ref()).await;
             if let Err(err) = &result {
                 logger::error(&err.to_string());
@@ -118,9 +122,6 @@ async fn main() {
             if result.is_err() {
                 process::exit(1);
             }
-        }
-        (subcommand, matches) => {
-            todo!("subcommand {} {:?}", subcommand, matches);
         }
     }
 }
