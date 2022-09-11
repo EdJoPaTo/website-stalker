@@ -11,6 +11,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - new editor: `html_sanitize`
 
+### Changed
+
+- update to git2 0.15 which uses gits safe.directory logic.
+
 ## [0.19.0] - 2022-05-11
 
 ### Added
