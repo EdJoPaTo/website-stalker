@@ -15,7 +15,7 @@ lto = true
 
 [build-dependencies]
 clap = { version = "3", features = ["deprecated", "derive"] }
-clap_complete = "3"
+clap_complete = "4"
 regex = "1"
 
 [dependencies]
