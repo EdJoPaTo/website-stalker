@@ -26,6 +26,7 @@ Check out [website-stalker-example](https://github.com/EdJoPaTo/website-stalker-
 ### Locally
 
 - First create a new folder / repo for tracking website changes
+
     ```bash
     mkdir personal-stalker
     cd personal-stalker
@@ -43,16 +44,19 @@ Check out [website-stalker-example](https://github.com/EdJoPaTo/website-stalker-
     ```
 
 - Check if your config is valid
+
     ```bash
     website-stalker check
     ```
 
 - Run your newly added website. If you added `https://apple.com/newsroom` use something like this to test if everything works like you want:
+
     ```bash
     website-stalker run apple
     ```
 
 - Set up a cronjob / [systemd.timer](systemd) executing the following command every now and then
+
     ```bash
     website-stalker run --all --commit
     ```
@@ -198,7 +202,7 @@ sites:
 Only show warning when the site errors.
 
 This is useful for buggy services which are sometimes just gone or for pages which will exist in the future but are not there yet.
-Personal example: A bad DNS configuration which lets the website appear non existent for some time.
+Personal example: A bad DNS configuration which lets the website appear nonexistent for some time.
 
 This setting also skips errors from editors.
 
@@ -376,6 +380,7 @@ The content is the full result of the `item_selector`.
 It can be further edited with every available [editor](#editors).
 
 Defaults:
+
 - `title`: When a `<title>` exists, it will be used. Otherwise, it's empty.
 - `item_selector`: `article`
 - `title_selector`: `h2`
@@ -410,11 +415,12 @@ Examples:
 When changes on websites are detected they get saved to filesystem.
 When `--commit` is given a git commit is created.
 
-Additionally you can get notified via Telegram, Slack, E-Mail, ...
+Additionally, you can get notified via Telegram, Slack, E-Mail, ...
 [pling](https://github.com/EdJoPaTo/pling) is used to send these notifications.
 Check its documentation about which environment variables to specify in order to get notifications.
 
 Example with Telegram:
+
 ```bash
 export TELEGRAM_BOT_TOKEN='123:ABC'
 export TELEGRAM_TARGET_CHAT='1234'
