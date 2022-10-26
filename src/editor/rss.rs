@@ -159,7 +159,7 @@ fn minimal_options_are_valid() {
         content_editors: vec![],
     };
     let result = rss.is_valid();
-    println!("{:?}", result);
+    println!("{result:?}");
     assert!(result.is_ok());
 }
 
@@ -191,7 +191,7 @@ fn example_with_defaults_works() -> anyhow::Result<()> {
         content_editors: vec![],
     };
     let result = rss.generate(&Url::parse("https://edjopato.de/posts/")?, html)?;
-    println!("{}", result);
+    println!("{result}");
     assert!(result.contains(r#"website-stalker"#));
     assert!(result.contains(r#"<rss version="2.0" "#));
     assert!(result.contains(r#"<link>https://edjopato.de/posts/a/</link>"#));
@@ -253,7 +253,7 @@ fn example_with_item_equals_link() {
     };
     let url = &Url::parse("https://edjopato.de/posts/").unwrap();
     let result = rss.generate(url, html).unwrap();
-    println!("{}", result);
+    println!("{result}");
     assert!(result.contains(r#"website-stalker"#));
     assert!(result.contains(r#"<rss version="2.0" "#));
     assert!(result.contains(r#"<link>https://edjopato.de/posts/a/</link>"#));
@@ -293,12 +293,12 @@ fn ugly_example_works() {
         content_editors: vec![Editor::HtmlTextify],
     };
     let valid = rss.is_valid();
-    println!("is_valid {:?}", valid);
+    println!("is_valid {valid:?}");
     assert!(valid.is_ok(), "is_valid");
 
     let url = &Url::parse("https://edjopato.de/posts/").unwrap();
     let result = rss.generate(url, html).unwrap();
-    println!("{}", result);
+    println!("{result}");
     assert!(result.contains(r#"website-stalker"#));
     assert!(result.contains(r#"<rss version="2.0" "#));
     assert!(result.contains(r#"<link>https://edjopato.de/posts/a/</link>"#));

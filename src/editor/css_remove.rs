@@ -44,7 +44,7 @@ impl std::str::FromStr for CssRemover {
 fn valid() {
     let s = CssRemover("body".to_string());
     let result = s.is_valid();
-    println!("{:?}", result);
+    println!("{result:?}");
     assert!(result.is_ok());
 }
 

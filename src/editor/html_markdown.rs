@@ -15,9 +15,9 @@ pub fn markdownify(html: &str) -> String {
         let label = MANY_SPACES.replace_all(cap[1].trim(), " ");
         let url = cap[2].trim();
         if label == url {
-            format!("<{}>", url)
+            format!("<{url}>")
         } else {
-            format!("[{}]({})", label, url)
+            format!("[{label}]({url})")
         }
     });
 

@@ -89,6 +89,7 @@ impl Response {
     }
 
     pub fn ip_version(&self) -> IpVersion {
+        #[allow(clippy::option_if_let_else)]
         match self.response.remote_addr() {
             Some(a) => {
                 if a.is_ipv6() {

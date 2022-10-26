@@ -57,7 +57,7 @@ impl FinalMessage {
         let head = match self.domains.as_slice() {
             [] => "just background magic \u{1f9fd}\u{1f52e}\u{1f9f9}\n\ncleanup or updating meta files"
                 .to_string(), // 🧽🔮🧹
-            [single] => format!("\u{1f310}\u{1f440} {}", single), // 🌐👀
+            [single] => format!("\u{1f310}\u{1f440} {single}"), // 🌐👀
             _ => format!(
                 "\u{1f310}\u{1f440} stalked {} website changes", // 🌐👀
                 self.sites.len()
@@ -66,11 +66,11 @@ impl FinalMessage {
         let body = self
             .sites
             .iter()
-            .map(|s| format!("- {}", s))
+            .map(|s| format!("- {s}"))
             .collect::<Vec<_>>()
             .join("\n");
 
-        let text = format!("{}\n\n{}", head, body);
+        let text = format!("{head}\n\n{body}");
         text.trim().to_string()
     }
 

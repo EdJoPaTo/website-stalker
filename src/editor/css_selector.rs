@@ -43,7 +43,7 @@ impl std::str::FromStr for CssSelector {
 fn valid() {
     let s = CssSelector("body".to_string());
     let result = s.is_valid();
-    println!("{:?}", result);
+    println!("{result:?}");
     assert!(result.is_ok());
 }
 

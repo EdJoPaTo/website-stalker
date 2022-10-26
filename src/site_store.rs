@@ -40,7 +40,7 @@ impl SiteStore {
         for file in read_dir(&self.folder)? {
             let file = file?;
             let remove = file.file_name().into_string().map_or(false, |name| {
-                !name.ends_with(extension) && name.starts_with(&format!("{}.", basename))
+                !name.ends_with(extension) && name.starts_with(&format!("{basename}."))
             });
             if remove {
                 remove_file(file.path())?;
@@ -56,7 +56,7 @@ impl SiteStore {
         extension: &str,
         content: &str,
     ) -> anyhow::Result<ChangeKind> {
-        let path = format!("{}/{}.{}", self.folder, basename, extension);
+        let path = format!("{}/{basename}.{extension}", self.folder);
         let content = content.trim().to_string() + "\n";
 
         let current = read_to_string(&path).unwrap_or_default();
@@ -81,7 +81,7 @@ impl SiteStore {
 
 fn basename_is_wanted(basenames: &[String], searched: &str) -> bool {
     for basename in basenames {
-        if searched.starts_with(&format!("{}.", basename)) {
+        if searched.starts_with(&format!("{basename}.")) {
             return true;
         }
     }

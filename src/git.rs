@@ -25,7 +25,7 @@ impl Repo {
 
     pub fn add_all(&self) -> Result<(), git2::Error> {
         let mut index = self.repo.index()?;
-        index.add_all(&["."], IndexAddOption::DEFAULT, None)?;
+        index.add_all(["."], IndexAddOption::DEFAULT, None)?;
         index.write()
     }
 
@@ -34,11 +34,10 @@ impl Repo {
         let tree = self.repo.find_tree(self.repo.index()?.write_tree()?)?;
 
         let parent_commit = self.repo.head().and_then(|o| o.peel_to_commit());
-        let parents = if let Ok(parent) = parent_commit.as_ref() {
-            vec![parent]
-        } else {
-            vec![]
-        };
+        let parents = parent_commit
+            .as_ref()
+            .map(|parent| vec![parent])
+            .unwrap_or_default();
 
         self.repo.commit(
             Some("HEAD"),
@@ -94,7 +93,7 @@ mod tests {
             .tempdir()?;
         let dir = tempdir.path();
 
-        let repo = Repository::init(&dir)?;
+        let repo = Repository::init(dir)?;
         let repo = Repo { repo };
         simple_command(dir, "git config user.email bla@blubb.de")?;
         simple_command(dir, "git config user.name Bla")?;
@@ -102,10 +101,10 @@ mod tests {
     }
 
     fn println_command<P: AsRef<Path>>(dir: P, command: &str) {
-        println!("# {}", command);
+        println!("# {command}");
         match simple_command(dir, command) {
-            Ok(output) => println!("{}", output),
-            Err(err) => println!("{}", err),
+            Ok(output) => println!("{output}"),
+            Err(err) => println!("{err}"),
         };
     }
 

@@ -15,7 +15,7 @@ pub fn basename(url: &Url) -> String {
         .rev()
         .collect::<Vec<_>>()
         .join("-");
-    let raw = format!("{}-{}-{}", domain_part, path, query);
+    let raw = format!("{domain_part}-{path}-{query}");
     let only_ascii = NON_ALPHANUM.replace_all(&raw, "-");
     only_ascii.trim_matches('-').to_string()
 }
@@ -24,7 +24,7 @@ pub fn basename(url: &Url) -> String {
 /// test basename
 fn tb(url: &str) -> String {
     let url = Url::parse(url).unwrap();
-    println!("{}", url);
+    println!("{url}");
     basename(&url)
 }
 

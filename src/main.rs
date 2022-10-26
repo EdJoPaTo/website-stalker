@@ -81,7 +81,7 @@ async fn main() {
             rewrite_yaml,
         } => {
             let notifiers = pling::Notifier::from_env().len();
-            eprintln!("Notifiers: {}. Check https://github.com/EdJoPaTo/pling/ for configuration details.", notifiers);
+            eprintln!("Notifiers: {notifiers}. Check https://github.com/EdJoPaTo/pling/ for configuration details.");
 
             eprintln!("\nConfig...");
             match Config::load() {
@@ -93,14 +93,14 @@ async fn main() {
                                 .expect("failed to write website-stalker.yaml");
                         }
                         if print_yaml {
-                            println!("{}", yaml);
+                            println!("{yaml}");
                         }
                     }
 
                     eprintln!("ok");
                 }
                 Err(err) => {
-                    eprintln!("not ok.\n\n{}\n\nCheck https://github.com/EdJoPaTo/website-stalker for configuration details.", err);
+                    eprintln!("not ok.\n\n{err}\n\nCheck https://github.com/EdJoPaTo/website-stalker for configuration details.");
                     process::exit(1);
                 }
             }
@@ -176,20 +176,14 @@ async fn run(do_commit: bool, site_filter: Option<&Regex>) -> anyhow::Result<()>
         let basenames = Site::get_all_file_basenames(&sites);
         let removed = site_store.remove_gone(&basenames)?;
         for filename in removed {
-            logger::warn(&format!("Remove superfluous {:?}", filename));
+            logger::warn(&format!("Remove superfluous {filename:?}"));
         }
     }
 
     if sites_amount < sites_total {
-        logger::info(&format!(
-            "Your config contains {} sites of which {} are selected by your filter.",
-            sites_total, sites_amount
-        ));
+        logger::info(&format!("Your config contains {sites_total} sites of which {sites_amount} are selected by your filter."));
     }
-    println!(
-        "Begin stalking of {} sites on {} domains...",
-        sites_amount, distinct_domains
-    );
+    println!("Begin stalking of {sites_amount} sites on {distinct_domains} domains...");
     if distinct_domains < sites_amount {
         logger::info("Some sites are on the same domain. There is a wait time of 5 seconds between each request to the same domain in order to reduce load on the server.");
     }
@@ -228,13 +222,9 @@ async fn run(do_commit: bool, site_filter: Option<&Regex>) -> anyhow::Result<()>
             #[allow(clippy::to_string_in_format_args)]
             Ok((change_kind, ip_version, took)) => {
                 println!(
-                    "{:4}/{} {:12} {:5}ms {} {}",
-                    amount_done,
-                    sites_amount,
+                    "{amount_done:4}/{sites_amount} {:12} {:5}ms {ip_version} {url}",
                     change_kind.to_string(),
                     took.as_millis(),
-                    ip_version,
-                    url
                 );
                 match change_kind {
                     ChangeKind::Init | ChangeKind::Changed => {
@@ -244,7 +234,7 @@ async fn run(do_commit: bool, site_filter: Option<&Regex>) -> anyhow::Result<()>
                 }
             }
             Err(err) => {
-                let message = format!("{} {}", url, err);
+                let message = format!("{url} {err}");
                 if ignore_error {
                     logger::warn(&message);
                 } else {
@@ -326,7 +316,7 @@ fn run_commit(repo: &git::Repo, do_commit: bool, message: &str) -> anyhow::Resul
 fn run_notifications(message: &str) {
     for notifier in pling::Notifier::from_env() {
         if let Err(err) = notifier.send_sync(message) {
-            logger::error(&format!("notifier failed to send with Err: {}", err));
+            logger::error(&format!("notifier failed to send with Err: {err}"));
         }
     }
 }

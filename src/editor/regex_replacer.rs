@@ -29,7 +29,7 @@ fn is_valid_true_example() {
         replace: "$1".to_string(),
     };
     let result = example.is_valid();
-    println!("{:?}", result);
+    println!("{result:?}");
     assert!(result.is_ok());
 }
 
@@ -38,7 +38,7 @@ fn is_valid_true_example() {
 fn is_valid_false_example() {
     let example = RegexReplacer {
         pattern: "(class".to_string(),
-        replace: "".to_string(),
+        replace: String::new(),
     };
     example.is_valid().unwrap();
 }
