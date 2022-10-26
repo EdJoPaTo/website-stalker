@@ -278,7 +278,13 @@ async fn stalk_and_save_site(
     from: &str,
     site: &Site,
 ) -> anyhow::Result<(ChangeKind, http::IpVersion, Duration)> {
-    let response = http::get(site.url.as_str(), from, site.options.accept_invalid_certs).await?;
+    let response = http::get(
+        site.url.as_str(),
+        &site.options.headers,
+        from,
+        site.options.accept_invalid_certs,
+    )
+    .await?;
     let took = response.took();
     let ip_version = response.ip_version();
 

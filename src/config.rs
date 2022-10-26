@@ -58,6 +58,7 @@ impl Config {
                     options: Options {
                         accept_invalid_certs: false,
                         ignore_error: false,
+                        headers: Vec::new(),
                         editors: vec![
                             Editor::CssSelect("article".parse().unwrap()),
                             Editor::CssRemove("a".parse().unwrap()),
@@ -74,6 +75,7 @@ impl Config {
                     options: Options {
                         accept_invalid_certs: false,
                         ignore_error: false,
+                        headers: Vec::new(),
                         editors: vec![],
                     },
                 },
@@ -185,6 +187,7 @@ fn validate_fails_on_sites_list_with_empty_many() {
             options: Options {
                 accept_invalid_certs: false,
                 ignore_error: false,
+                headers: Vec::new(),
                 editors: vec![],
             },
         }],

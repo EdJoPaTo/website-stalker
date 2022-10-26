@@ -19,6 +19,9 @@ pub struct Options {
     pub ignore_error: bool,
 
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub headers: Vec<String>,
+
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub editors: Vec<Editor>,
 }
 
@@ -47,6 +50,13 @@ impl Site {
 
 impl Options {
     pub fn is_valid(&self) -> anyhow::Result<()> {
+        for entry in &self.headers {
+            let (k, v) = entry.split_once(": ").ok_or_else(|| {
+                anyhow::anyhow!("does not contain ': ' to separate header key/value: {entry}")
+            })?;
+            k.parse::<reqwest::header::HeaderName>()?;
+            v.parse::<reqwest::header::HeaderValue>()?;
+        }
         for e in &self.editors {
             e.is_valid()?;
         }
@@ -63,6 +73,7 @@ fn validate_finds_duplicates() {
             options: Options {
                 accept_invalid_certs: false,
                 ignore_error: false,
+                headers: Vec::new(),
                 editors: vec![],
             },
         },
@@ -71,6 +82,7 @@ fn validate_finds_duplicates() {
             options: Options {
                 accept_invalid_certs: false,
                 ignore_error: false,
+                headers: Vec::new(),
                 editors: vec![],
             },
         },
@@ -79,6 +91,7 @@ fn validate_finds_duplicates() {
             options: Options {
                 accept_invalid_certs: false,
                 ignore_error: false,
+                headers: Vec::new(),
                 editors: vec![],
             },
         },

@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 - new editor: `html_sanitize`
+- `headers` site options to supply additional headers on requests
 
 ### Changed
 
