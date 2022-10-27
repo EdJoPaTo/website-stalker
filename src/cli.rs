@@ -2,7 +2,7 @@ use clap::{Parser, ValueHint};
 use regex::Regex;
 
 #[derive(Debug, Parser)]
-#[command(about, author, version)]
+#[command(about, version)]
 pub struct Cli {
     #[clap(subcommand)]
     pub subcommand: SubCommand,
