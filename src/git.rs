@@ -78,8 +78,7 @@ mod tests {
             Ok(stdout.trim().to_string())
         } else {
             Err(anyhow::anyhow!(
-                "failed command \"{}\" with status code {}\nStdout: {}\nStderr: {}",
-                command,
+                "failed command \"{command}\" with status code {}\nStdout: {}\nStderr: {}",
                 output.status,
                 String::from_utf8_lossy(&output.stdout),
                 String::from_utf8_lossy(&output.stderr),

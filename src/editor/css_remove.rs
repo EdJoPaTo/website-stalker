@@ -6,7 +6,7 @@ pub struct CssRemover(String);
 impl CssRemover {
     fn parse(&self) -> anyhow::Result<scraper::Selector> {
         let scrape_selector = scraper::Selector::parse(&self.0)
-            .map_err(|err| anyhow::anyhow!("css remover ({}) parse error: {:?}", self.0, err))?;
+            .map_err(|err| anyhow::anyhow!("css remover ({}) parse error: {err:?}", self.0))?;
         Ok(scrape_selector)
     }
 

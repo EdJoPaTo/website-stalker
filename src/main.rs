@@ -163,7 +163,7 @@ async fn run(do_commit: bool, site_filter: Option<&Regex>) -> anyhow::Result<()>
         }
         Err(err) => {
             if do_commit {
-                anyhow::bail!("Not a git repo. --commit only works in git repos: {}", err);
+                anyhow::bail!("Not a git repo. --commit only works in git repos: {err}");
             }
             logger::warn("Not a git repo. Will run but won't do git actions.");
         }

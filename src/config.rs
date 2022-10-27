@@ -123,9 +123,9 @@ impl Config {
 
     fn validate(&self) -> anyhow::Result<()> {
         validate_from(&self.from)
-            .map_err(|err| anyhow!("from ({}) is invalid: {}", self.from, err))?;
+            .map_err(|err| anyhow!("from ({}) is invalid: {err}", self.from))?;
         self.validate_notification_template()
-            .map_err(|err| anyhow!("notification_template is invalid: {}", err))?;
+            .map_err(|err| anyhow!("notification_template is invalid: {err}"))?;
         self.validate_sites()?;
         Ok(())
     }
@@ -144,10 +144,10 @@ impl Config {
         }
 
         let sites = self.get_sites();
-        Site::validate_no_duplicate(&sites).map_err(|err| anyhow!("{}", err))?;
+        Site::validate_no_duplicate(&sites).map_err(|err| anyhow!("{err}"))?;
         for site in sites {
             if let Err(err) = site.is_valid() {
-                anyhow::bail!("site entry is invalid: {}\n{:?}", err, site);
+                anyhow::bail!("site entry is invalid: {err}\n{site:?}");
             }
         }
         Ok(())

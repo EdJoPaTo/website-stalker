@@ -32,7 +32,7 @@ impl<Wr: Write> Serializer for HtmlAbsLinkSerializer<Wr> {
                     .map_err(|err| {
                         std::io::Error::new(
                             std::io::ErrorKind::InvalidData,
-                            anyhow::anyhow!("failed to parse url {} {}", value, err),
+                            anyhow::anyhow!("failed to parse url {value} {err}"),
                         )
                     })?
                     .to_string()

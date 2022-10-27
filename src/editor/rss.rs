@@ -48,15 +48,15 @@ impl Rss {
     fn parse_selectors(&self) -> anyhow::Result<(Selector, Selector, Selector)> {
         let item = self.item_selector();
         let item = Selector::parse(item)
-            .map_err(|err| anyhow!("item_selector ({}) parse error: {:?}", item, err))?;
+            .map_err(|err| anyhow!("item_selector ({item}) parse error: {err:?}"))?;
 
         let title = self.title_selector();
         let title = Selector::parse(title)
-            .map_err(|err| anyhow!("title_selector ({}) parse error: {:?}", title, err))?;
+            .map_err(|err| anyhow!("title_selector ({title}) parse error: {err:?}"))?;
 
         let link = self.link_selector();
         let link = Selector::parse(link)
-            .map_err(|err| anyhow!("link_selector ({}) parse error: {:?}", link, err))?;
+            .map_err(|err| anyhow!("link_selector ({link}) parse error: {err:?}"))?;
 
         Ok((item, title, link))
     }
