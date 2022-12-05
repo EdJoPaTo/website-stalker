@@ -359,16 +359,16 @@ Examples:
 editors:
   # Remove all occurences of that word
   - regex_replace:
-    pattern: "tree"
-    replace: ""
+      pattern: "tree"
+      replace: ""
   # Remove all numbers
   - regex_replace:
-    pattern: "\\d+"
-    replace: ""
+      pattern: "\\d+"
+      replace: ""
   # Find all css files and remove the extension
   - regex_replace:
-    pattern: "(\\w+)\\.css"
-    replace: $1
+      pattern: "(\\w+)\\.css"
+      replace: $1
 ```
 
 #### `rss`
@@ -399,9 +399,7 @@ Examples:
           title_selector: h2
           link_selector: a
           content_editors:
-            - css_select:
-                selector: "h2, article > a, div"
-                remove: true
+            - css_remove: "h2, article > a, div"
             - html_textify
 
   # Minimal working example
