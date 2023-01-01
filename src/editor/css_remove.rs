@@ -16,18 +16,15 @@ impl CssRemover {
     }
 
     pub fn apply(&self, html: &str) -> anyhow::Result<String> {
-        let mut parsed_html = scraper::Html::parse_document(html);
-        let selected = parsed_html
-            .select(&self.parse()?)
-            .map(|o| o.id())
-            .collect::<Vec<_>>();
+        let selector = self.parse()?;
+        let mut html = scraper::Html::parse_document(html);
+        let selected = html.select(&selector).map(|o| o.id()).collect::<Vec<_>>();
         for selected in selected {
-            if let Some(mut selected_mut) = parsed_html.tree.get_mut(selected) {
+            if let Some(mut selected_mut) = html.tree.get_mut(selected) {
                 selected_mut.detach();
             }
         }
-        let html = parsed_html.root_element().html();
-        Ok(html)
+        Ok(html.html())
     }
 }
 
