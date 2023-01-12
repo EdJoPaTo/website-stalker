@@ -88,14 +88,13 @@ impl Config {
     }
 
     pub fn load() -> anyhow::Result<Self> {
-        let config: Self = config::Config::builder()
-            // Add in `./website-stalker.toml`, `./website-stalker.yaml`, ...
-            .add_source(config::File::with_name("website-stalker").required(true))
-            // Add in settings from the environment (with a prefix of WEBSITE_STALKER)
-            // Eg.. `WEBSITE_STALKER_DEBUG=1 network-stalker` would set the `debug` key
-            .add_source(config::Environment::with_prefix("WEBSITE_STALKER"))
-            .build()?
-            .try_deserialize()?;
+        let filecontent = std::fs::read_to_string("website-stalker.yaml")?;
+        let mut config = serde_yaml::from_str::<Self>(&filecontent)?;
+
+        if let Ok(from) = std::env::var("WEBSITE_STALKER_FROM") {
+            config.from = from;
+        }
+
         config.validate()?;
         Ok(config)
     }
