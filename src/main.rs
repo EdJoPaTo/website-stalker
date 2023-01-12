@@ -1,6 +1,7 @@
 use std::fmt::{Debug, Display};
 use std::time::Duration;
 use std::{fs, process};
+use std::path::PathBuf;
 
 use crate::cli::SubCommand;
 use crate::config::Config;
@@ -40,7 +41,8 @@ impl Display for ChangeKind {
 
 #[tokio::main]
 async fn main() {
-    match cli::Cli::parse().subcommand {
+    let cliargs = cli::Cli::parse();
+    match cliargs.subcommand {
         SubCommand::ExampleConfig => {
             println!(
                 "# This is an example config
@@ -62,7 +64,7 @@ async fn main() {
                     .expect("failed to init repo");
                 println!("Git repo initialized.");
             }
-            if Config::load().is_err() {
+            if Config::load(PathBuf::from(r"website-stalker.yaml")).is_err() {
                 let contents = format!(
                     "# This is an example config
 # Adapt it to your needs and check if its valid via `website-stalker check`.
@@ -84,7 +86,7 @@ async fn main() {
             eprintln!("Notifiers: {notifiers}. Check https://github.com/EdJoPaTo/pling/ for configuration details.");
 
             eprintln!("\nConfig...");
-            match Config::load() {
+            match Config::load(cliargs.config) {
                 Ok(config) => {
                     if print_yaml || rewrite_yaml {
                         let yaml = serde_yaml::to_string(&config).expect("failed to parse to yaml");
@@ -112,7 +114,7 @@ async fn main() {
         } => {
             let site_filter =
                 site_filter.map(|v| Regex::new(&format!("(?i){}", v.as_str())).unwrap());
-            let result = run(do_commit, site_filter.as_ref()).await;
+            let result = run(do_commit, cliargs.config, site_filter.as_ref()).await;
             if let Err(err) = &result {
                 logger::error(&err.to_string());
             } else {
@@ -127,8 +129,8 @@ async fn main() {
 }
 
 #[allow(clippy::too_many_lines)]
-async fn run(do_commit: bool, site_filter: Option<&Regex>) -> anyhow::Result<()> {
-    let config = Config::load().expect("failed to load config");
+async fn run(do_commit: bool, config: PathBuf, site_filter: Option<&Regex>) -> anyhow::Result<()> {
+    let config = Config::load(config).expect("failed to load config");
 
     let sites = config.get_sites();
     let sites_total = sites.len();

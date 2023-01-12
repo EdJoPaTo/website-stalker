@@ -1,5 +1,6 @@
 use anyhow::anyhow;
 use serde::{Deserialize, Serialize};
+use std::path::PathBuf;
 use url::Url;
 
 use crate::editor::regex_replacer::RegexReplacer;
@@ -87,8 +88,8 @@ impl Config {
         serde_yaml::to_string(&Self::example()).unwrap()
     }
 
-    pub fn load() -> anyhow::Result<Self> {
-        let filecontent = std::fs::read_to_string("website-stalker.yaml")?;
+    pub fn load(config: PathBuf) -> anyhow::Result<Self> {
+        let filecontent = std::fs::read_to_string(config)?;
         let mut config = serde_yaml::from_str::<Self>(&filecontent)?;
 
         if let Ok(from) = std::env::var("WEBSITE_STALKER_FROM") {

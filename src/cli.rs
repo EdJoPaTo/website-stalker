@@ -1,11 +1,19 @@
 use clap::{Parser, ValueHint};
 use regex::Regex;
+use std::path::PathBuf;
 
 #[derive(Debug, Parser)]
 #[command(about, version)]
 pub struct Cli {
     #[clap(subcommand)]
     pub subcommand: SubCommand,
+    #[arg(
+        short,
+        long,
+        value_hint = ValueHint::FilePath,
+        default_value = "website-stalker.yaml",
+    )]
+    pub config: PathBuf,
 }
 
 #[derive(Debug, Parser)]
@@ -44,7 +52,7 @@ pub enum SubCommand {
             required_unless_present = "all",
         )]
         site_filter: Option<Regex>,
-    },
+    }
 }
 
 #[test]
