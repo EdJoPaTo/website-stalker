@@ -8,7 +8,7 @@ use crate::final_message::FinalMessage;
 use crate::http::validate_from;
 use crate::site::{Options, Site};
 
-#[derive(Debug, Deserialize, Serialize)]
+#[derive(Debug, Deserialize, Serialize, PartialEq, Eq)]
 pub struct Config {
     pub from: String,
 
@@ -18,7 +18,7 @@ pub struct Config {
     sites: Vec<SiteEntry>,
 }
 
-#[derive(Debug, Deserialize, Serialize)]
+#[derive(Debug, Deserialize, Serialize, PartialEq, Eq)]
 #[serde(untagged)]
 enum UrlVariants {
     Single(Url),
@@ -40,7 +40,7 @@ impl UrlVariants {
     }
 }
 
-#[derive(Debug, Deserialize, Serialize)]
+#[derive(Debug, Deserialize, Serialize, PartialEq, Eq)]
 struct SiteEntry {
     url: UrlVariants,
     #[serde(flatten)]
@@ -156,7 +156,9 @@ impl Config {
 
 #[test]
 fn can_parse_example() {
-    Config::example_yaml_string();
+    let string = Config::example_yaml_string();
+    let parsed = serde_yaml::from_str::<Config>(&string).unwrap();
+    assert_eq!(parsed, Config::example());
 }
 
 #[test]

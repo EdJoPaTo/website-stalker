@@ -17,7 +17,7 @@ pub struct Content {
     pub text: String,
 }
 
-#[derive(Debug, Clone, Deserialize, Serialize)]
+#[derive(Debug, Clone, Deserialize, Serialize, PartialEq, Eq)]
 #[serde(rename_all = "snake_case")]
 pub enum Editor {
     CssRemove(css_remove::CssRemover),

@@ -10,7 +10,7 @@ pub struct Site {
     pub options: Options,
 }
 
-#[derive(Debug, Clone, Deserialize, Serialize)]
+#[derive(Debug, Clone, Deserialize, Serialize, PartialEq, Eq)]
 pub struct Options {
     #[serde(default, skip_serializing_if = "std::ops::Not::not")]
     pub accept_invalid_certs: bool,
