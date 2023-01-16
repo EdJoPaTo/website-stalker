@@ -10,6 +10,8 @@ use crate::site::{Options, Site};
 
 #[derive(Debug, Deserialize, Serialize, PartialEq, Eq)]
 pub struct Config {
+    // Read as empty string when not defined as it could be overridden from the env
+    #[serde(default)]
     pub from: String,
 
     #[serde(default, skip_serializing_if = "Option::is_none")]
