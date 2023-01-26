@@ -1,7 +1,7 @@
 FROM docker.io/library/rust:1-alpine as builder
 WORKDIR /build
 RUN apk upgrade --no-cache \
-    && apk add --no-cache musl-dev
+	&& apk add --no-cache musl-dev
 
 # cargo needs a dummy src/main.rs to detect bin mode
 RUN mkdir -p src && echo "fn main() {}" > src/main.rs
@@ -23,7 +23,7 @@ RUN strip target/release/website-stalker
 # Use one of the cached base images https://github.com/actions/runner-images/blob/main/images/linux/Ubuntu2004-Readme.md#cached-docker-images
 FROM docker.io/library/alpine:3.14
 RUN apk upgrade --no-cache \
-    && apk add --no-cache git
+	&& apk add --no-cache git
 
 COPY --from=builder /build/target/release/website-stalker /usr/bin/
 
