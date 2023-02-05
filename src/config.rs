@@ -8,6 +8,26 @@ use crate::final_message::FinalMessage;
 use crate::http::validate_from;
 use crate::site::{Options, Site};
 
+pub const EXAMPLE_CONF: &str = "# This is an example config
+# The filename has to be `website-stalker.yaml`
+# and it has to be in the working directory where you run website-stalker.
+#
+# Adapt the config to your needs and set the FROM email address which is used as a request header:
+# https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/From
+#
+# Check if your config is valid via `website-stalker check`.
+# And then do a run via `website-stalker run --all`.
+#
+#
+# In this example, the website `edjopato.de` is tracked.
+# In particular, the `robots.txt`, as a minimal example of a `sites` target,
+# and the list of blogposts in `/post/`. Here, the use of `editors` is shown.
+# The `css_select` option specifies that all html tags within the `.content` class should be tracked.
+# Then all `a` tags (links) are removed.
+# Finally, `regex_replace` demonstrates how to replace the occurrence of time and date with the
+# name of their standard.
+";
+
 #[derive(Debug, Deserialize, Serialize, PartialEq, Eq)]
 pub struct Config {
     // Read as empty string when not defined as it could be overridden from the env
@@ -62,12 +82,12 @@ impl Config {
                         ignore_error: false,
                         headers: Vec::new(),
                         editors: vec![
-                            Editor::CssSelect("article".parse().unwrap()),
+                            Editor::CssSelect(".content".parse().unwrap()),
                             Editor::CssRemove("a".parse().unwrap()),
                             Editor::HtmlPrettify,
                             Editor::RegexReplace(RegexReplacer {
-                                pattern: "(Lesezeit): \\d+ \\w+".to_string(),
-                                replace: "$1".to_string(),
+                                pattern: "\\d{4}-\\d{2}-\\d{2}".to_string(),
+                                replace: "ISO8601".to_string(),
                             }),
                         ],
                     },

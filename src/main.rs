@@ -43,16 +43,8 @@ async fn main() {
     match cli::Cli::parse().subcommand {
         SubCommand::ExampleConfig => {
             println!(
-                "# This is an example config
-# The filename should be `website-stalker.yaml`
-# and it should be in the working directory where you run website-stalker.
-#
-# For example run `website-stalker example-config > website-stalker.yaml`.
-# Adapt the config to your needs and set the FROM email address which is used as a request header:
-# https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/From
-#
-# And then do a run via `website-stalker run --all`.
-{}",
+                "{}{}",
+                config::EXAMPLE_CONF,
                 Config::example_yaml_string()
             );
         }
@@ -64,10 +56,8 @@ async fn main() {
             }
             if Config::load().is_err() {
                 let contents = format!(
-                    "# This is an example config
-# Adapt it to your needs and check if its valid via `website-stalker check`.
-# In order to run use `website-stalker run --all`.
-{}",
+                    "{}{}",
+                    config::EXAMPLE_CONF,
                     Config::example_yaml_string()
                 );
                 fs::write("website-stalker.yaml", contents)
