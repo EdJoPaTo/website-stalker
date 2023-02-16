@@ -11,8 +11,7 @@ jobs:
       - name: Setup Rust
         shell: bash -eux {0}
         run: |
-          rustup --version
-          rustup show
+          rm ~/.cargo/bin/{rustfmt,cargo-fmt}
           rustup toolchain install stable --profile minimal --component rustfmt
           rustup default stable
       - uses: actions/checkout@v3
@@ -49,8 +48,6 @@ jobs:
       - name: Setup Rust
         shell: bash -eux {0}
         run: |
-          rustup --version
-          rustup show
           rustup toolchain install ${{ matrix.toolchain }} --profile minimal --component clippy
           rustup default ${{ matrix.toolchain }}
 
@@ -86,8 +83,6 @@ jobs:
       - name: Setup Rust
         shell: bash -eux {0}
         run: |
-          rustup --version
-          rustup show
           rustup toolchain install stable --profile minimal
           rustup default stable
       - name: Cache packaging tools
@@ -137,8 +132,6 @@ jobs:
       - name: Setup Rust
         shell: bash -eux {0}
         run: |
-          rustup --version
-          rustup show
           rustup toolchain install stable --profile minimal --target ${{ matrix.triple }}
           rustup default stable
 

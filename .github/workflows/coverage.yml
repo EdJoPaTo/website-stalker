@@ -11,10 +11,13 @@ jobs:
       - name: Setup Rust
         shell: bash -eux {0}
         run: |
-          rustup --version
-          rustup show
           rustup toolchain install stable --profile minimal
           rustup default stable
+
+      - name: Install cargo-tarpaulin
+        uses: taiki-e/install-action@v2
+        with:
+          tool: cargo-tarpaulin
 
       - uses: actions/checkout@v3
 
@@ -23,15 +26,10 @@ jobs:
           key: tarpaulin-${{ hashFiles('**/Cargo.lock') }}
           restore-keys: tarpaulin-
           path: |
-            ~/.cargo/.crates*
-            ~/.cargo/bin/
             ~/.cargo/registry/index/
             ~/.cargo/registry/cache/
             ~/.cargo/git/db/
             target/
-
-      - name: Install cargo-tarpaulin
-        run: cargo install cargo-tarpaulin
 
       - name: Run cargo-tarpaulin
         run: cargo tarpaulin --all-features --out Html
