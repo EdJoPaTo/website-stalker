@@ -12,10 +12,10 @@ pub struct Site {
 
 #[derive(Debug, Clone, Deserialize, Serialize, PartialEq, Eq)]
 pub struct Options {
-    #[serde(default, skip_serializing_if = "std::ops::Not::not")]
+    #[serde(default, skip_serializing_if = "core::ops::Not::not")]
     pub accept_invalid_certs: bool,
 
-    #[serde(default, skip_serializing_if = "std::ops::Not::not")]
+    #[serde(default, skip_serializing_if = "core::ops::Not::not")]
     pub ignore_error: bool,
 
     #[serde(default, skip_serializing_if = "Vec::is_empty")]

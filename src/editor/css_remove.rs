@@ -28,7 +28,7 @@ impl CssRemover {
     }
 }
 
-impl std::str::FromStr for CssRemover {
+impl core::str::FromStr for CssRemover {
     type Err = anyhow::Error;
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         let s = Self(s.to_string());
@@ -40,8 +40,7 @@ impl std::str::FromStr for CssRemover {
 #[test]
 fn valid() {
     let s = CssRemover("body".to_string());
-    let result = s.is_valid();
-    println!("{result:?}");
+    let result = dbg!(s.is_valid());
     assert!(result.is_ok());
 }
 

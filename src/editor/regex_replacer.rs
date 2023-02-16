@@ -28,8 +28,7 @@ fn is_valid_true_example() {
         pattern: r#"(class)="[^"]+"#.to_string(),
         replace: "$1".to_string(),
     };
-    let result = example.is_valid();
-    println!("{result:?}");
+    let result = dbg!(example.is_valid());
     assert!(result.is_ok());
 }
 

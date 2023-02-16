@@ -55,13 +55,9 @@ impl FinalMessage {
 
     pub fn to_commit(&self) -> String {
         let head = match self.domains.as_slice() {
-            [] => "just background magic \u{1f9fd}\u{1f52e}\u{1f9f9}\n\ncleanup or updating meta files"
-                .to_string(), // 🧽🔮🧹
-            [single] => format!("\u{1f310}\u{1f440} {single}"), // 🌐👀
-            _ => format!(
-                "\u{1f310}\u{1f440} stalked {} website changes", // 🌐👀
-                self.sites.len()
-            ),
+            [] => "just background magic 🧽🔮🧹\n\ncleanup or updating meta files".to_owned(),
+            [single] => format!("🌐👀 {single}"),
+            _ => format!("🌐👀 stalked {} website changes", self.sites.len()),
         };
         let body = self
             .sites
@@ -144,7 +140,7 @@ fn commit_message_for_no_site() {
     let text = FinalMessage::new(&[]).to_commit();
     assert_eq!(
         text,
-        "just background magic \u{1f9fd}\u{1f52e}\u{1f9f9}\n\ncleanup or updating meta files"
+        "just background magic 🧽🔮🧹\n\ncleanup or updating meta files"
     );
 }
 
@@ -153,7 +149,7 @@ fn commit_message_for_one_site() {
     let text = FinalMessage::example_single().to_commit();
     assert_eq!(
         text,
-        "\u{1f310}\u{1f440} edjopato.de
+        "🌐👀 edjopato.de
 
 - https://edjopato.de/post/"
     );
@@ -164,7 +160,7 @@ fn commit_message_for_two_same_domain_sites() {
     let text = FinalMessage::example_same().to_commit();
     assert_eq!(
         text,
-        "\u{1f310}\u{1f440} edjopato.de
+        "🌐👀 edjopato.de
 
 - https://edjopato.de/
 - https://edjopato.de/post/"
@@ -176,7 +172,7 @@ fn commit_message_for_two_different_domain_sites() {
     let text = FinalMessage::example_different().to_commit();
     assert_eq!(
         text,
-        "\u{1f310}\u{1f440} stalked 2 website changes
+        "🌐👀 stalked 2 website changes
 
 - https://edjopato.de/post/
 - https://foo.bar/"

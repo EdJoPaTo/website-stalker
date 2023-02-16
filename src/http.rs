@@ -1,4 +1,5 @@
-use std::time::{Duration, Instant};
+use core::time::Duration;
+use std::time::Instant;
 
 use reqwest::header::{HeaderMap, HeaderName, HeaderValue};
 use reqwest::{header, ClientBuilder};
@@ -24,9 +25,9 @@ pub enum IpVersion {
     None,
 }
 
-impl std::fmt::Display for IpVersion {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        std::fmt::Debug::fmt(self, f)
+impl core::fmt::Display for IpVersion {
+    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+        core::fmt::Debug::fmt(self, f)
     }
 }
 
@@ -129,5 +130,5 @@ fn from_is_no_email() {
 #[test]
 #[should_panic]
 fn from_is_no_ascii() {
-    validate_from("f\u{f6}o@b\u{e4}r.de").unwrap();
+    validate_from("föo@bär.de").unwrap();
 }

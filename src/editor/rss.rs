@@ -158,8 +158,7 @@ fn minimal_options_are_valid() {
         link_selector: None,
         content_editors: vec![],
     };
-    let result = rss.is_valid();
-    println!("{result:?}");
+    let result = dbg!(rss.is_valid());
     assert!(result.is_ok());
 }
 
@@ -292,8 +291,7 @@ fn ugly_example_works() {
         link_selector: Some("a:last-of-type".to_string()),
         content_editors: vec![Editor::HtmlTextify],
     };
-    let valid = rss.is_valid();
-    println!("is_valid {valid:?}");
+    let valid = dbg!(rss.is_valid());
     assert!(valid.is_ok(), "is_valid");
 
     let url = &Url::parse("https://edjopato.de/posts/").unwrap();

@@ -30,7 +30,7 @@ impl CssSelector {
     }
 }
 
-impl std::str::FromStr for CssSelector {
+impl core::str::FromStr for CssSelector {
     type Err = anyhow::Error;
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         let s = Self(s.to_string());
@@ -42,8 +42,7 @@ impl std::str::FromStr for CssSelector {
 #[test]
 fn valid() {
     let s = CssSelector("body".to_string());
-    let result = s.is_valid();
-    println!("{result:?}");
+    let result = dbg!(s.is_valid());
     assert!(result.is_ok());
 }
 

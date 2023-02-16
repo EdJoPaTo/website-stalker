@@ -17,12 +17,12 @@ pub struct Config {
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub notification_template: Option<String>,
 
-    sites: Vec<SiteEntry>,
+    pub sites: Vec<SiteEntry>,
 }
 
 #[derive(Debug, Deserialize, Serialize, PartialEq, Eq)]
 #[serde(untagged)]
-enum UrlVariants {
+pub enum UrlVariants {
     Single(Url),
     Many(Vec<Url>),
 }
@@ -43,10 +43,10 @@ impl UrlVariants {
 }
 
 #[derive(Debug, Deserialize, Serialize, PartialEq, Eq)]
-struct SiteEntry {
-    url: UrlVariants,
+pub struct SiteEntry {
+    pub url: UrlVariants,
     #[serde(flatten)]
-    options: Options,
+    pub options: Options,
 }
 
 impl Config {

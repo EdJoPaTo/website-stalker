@@ -1,5 +1,5 @@
-use std::fmt::{Debug, Display};
-use std::time::Duration;
+use core::fmt::Debug;
+use core::time::Duration;
 use std::{fs, process};
 
 use crate::cli::SubCommand;
@@ -32,8 +32,8 @@ pub enum ChangeKind {
     ContentSame,
 }
 
-impl Display for ChangeKind {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+impl core::fmt::Display for ChangeKind {
+    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
         Debug::fmt(self, f)
     }
 }

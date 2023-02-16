@@ -50,6 +50,7 @@ fn link_label_trim_multiline() {
 
 #[test]
 fn trim_lineendings() {
+    // \u{a0} is NO-BREAK SPACE
     let html = "<p>whatever  <br>\nis\t<br>\nthis \u{a0}<br>\nmeh</p>";
     dbg!(markdownify(html), html2md::parse_html(html));
     assert_eq!(markdownify(html), "whatever\nis\nthis\nmeh");
