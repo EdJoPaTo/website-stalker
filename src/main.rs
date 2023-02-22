@@ -42,11 +42,7 @@ impl Display for ChangeKind {
 async fn main() {
     match cli::Cli::parse().subcommand {
         SubCommand::ExampleConfig => {
-            println!(
-                "{}{}",
-                config::EXAMPLE_CONF,
-                Config::example_yaml_string()
-            );
+            println!("{}", config::EXAMPLE_CONF);
         }
         SubCommand::Init => {
             if git::Repo::new().is_err() {
@@ -55,11 +51,7 @@ async fn main() {
                 println!("Git repo initialized.");
             }
             if Config::load().is_err() {
-                let contents = format!(
-                    "{}{}",
-                    config::EXAMPLE_CONF,
-                    Config::example_yaml_string()
-                );
+                let contents = format!("{}", config::EXAMPLE_CONF);
                 fs::write("website-stalker.yaml", contents)
                     .expect("failed to write example config file");
                 println!("Example config file generated.");

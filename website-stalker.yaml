@@ -1,0 +1,30 @@
+# This is an example config
+# The filename has to be `website-stalker.yaml`
+# and it has to be in the working directory where you run website-stalker.
+#
+# Adapt the config to your needs and set the FROM email address which is used as a request header:
+# https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/From
+#
+# Check if your config is valid via `website-stalker check`.
+# And then do a run via `website-stalker run --all`.
+#
+#
+# In this example, the website `edjopato.de` is tracked.
+# In particular, the `robots.txt`, as a minimal example of a `sites` target,
+# and the list of blogposts in `/post/`. Here, the use of `editors` is shown.
+# The `css_select` option specifies that all html tags within the `.content` class should be tracked.
+# Then all `a` tags (links) are removed.
+# Finally, `regex_replace` demonstrates how to replace the occurrence of time and date with the
+# name of their standard.
+---
+from: mail@example.org
+sites:
+  - url: "https://edjopato.de/post/"
+    editors:
+      - css_select: ".content"
+      - css_remove: a
+      - html_prettify
+      - regex_replace:
+          pattern: "\\d{4}-\\d{2}-\\d{2}"
+          replace: ISO8601
+  - url: "https://edjopato.de/robots.txt"
