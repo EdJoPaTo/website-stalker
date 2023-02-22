@@ -138,8 +138,10 @@ async fn run(do_commit: bool, site_filter: Option<&Regex>) -> anyhow::Result<()>
         .collect::<Vec<_>>();
     let sites_amount = sites.len();
     if sites.is_empty() {
-        eprintln!("Error: The site-filter filtered everything out.
-Hint: Change the filter or use all sites with 'run --all'.");
+        eprintln!(
+            "Error: The site-filter filtered everything out.
+Hint: Change the filter or use all sites with 'run --all'."
+        );
         process::exit(1);
     }
 
