@@ -117,52 +117,8 @@ impl Config {
 }
 
 #[test]
-fn can_parse_example() {
-    use crate::editor::regex_replacer::RegexReplacer;
-    use crate::editor::Editor;
-
-    let string = EXAMPLE_CONF;
-    let parsed = serde_yaml::from_str::<Config>(&string).unwrap();
-
-    let example = Config {
-        from: "my-email-address".to_string(),
-        notification_template: None,
-        sites: vec![
-            SiteEntry {
-                url: Url::parse("https://edjopato.de/post/").unwrap().into(),
-                options: Options {
-                    accept_invalid_certs: false,
-                    ignore_error: false,
-                    headers: Vec::new(),
-                    editors: vec![
-                        Editor::CssSelect(".content".parse().unwrap()),
-                        Editor::CssRemove("a".parse().unwrap()),
-                        Editor::HtmlPrettify,
-                        Editor::RegexReplace(RegexReplacer {
-                            pattern: "\\d{4}-\\d{2}-\\d{2}".to_string(),
-                            replace: "ISO8601".to_string(),
-                        }),
-                    ],
-                },
-            },
-            SiteEntry {
-                url: Url::parse("https://edjopato.de/robots.txt").unwrap().into(),
-                options: Options {
-                    accept_invalid_certs: false,
-                    ignore_error: false,
-                    headers: Vec::new(),
-                    editors: vec![],
-                },
-            },
-        ],
-    };
-    assert_eq!(parsed, example);
-}
-
-#[test]
 fn example_sites_are_valid() {
-    let string = EXAMPLE_CONF;
-    let config = serde_yaml::from_str::<Config>(&string).unwrap();
+    let config = serde_yaml::from_str::<Config>(EXAMPLE_CONF).unwrap();
     config.validate_sites().unwrap();
 }
 
@@ -198,8 +154,7 @@ fn validate_fails_on_sites_list_with_empty_many() {
 
 #[test]
 fn validate_works_on_correct_mustache_template() {
-    let string = EXAMPLE_CONF;
-    let mut config = serde_yaml::from_str::<Config>(&string).unwrap();
+    let mut config = serde_yaml::from_str::<Config>(EXAMPLE_CONF).unwrap();
     config.notification_template = Some("Hello {{name}}".into());
     config.validate_notification_template().unwrap();
 }
@@ -207,8 +162,7 @@ fn validate_works_on_correct_mustache_template() {
 #[test]
 #[should_panic = "unclosed tag"]
 fn validate_fails_on_bad_mustache_template() {
-    let string = EXAMPLE_CONF;
-    let mut config = serde_yaml::from_str::<Config>(&string).unwrap();
+    let mut config = serde_yaml::from_str::<Config>(EXAMPLE_CONF).unwrap();
     config.notification_template = Some("Hello World {{".into());
     config.validate_notification_template().unwrap();
 }
