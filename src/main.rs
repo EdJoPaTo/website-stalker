@@ -128,7 +128,13 @@ async fn main() {
 
 #[allow(clippy::too_many_lines)]
 async fn run(do_commit: bool, site_filter: Option<&Regex>) -> anyhow::Result<()> {
-    let config = Config::load().expect("failed to load config");
+    let config = match Config::load() {
+        Ok(config) => config,
+        Err(err) => {
+            eprintln!("Failed to load config.\n\n{err}\n\nCheck https://github.com/EdJoPaTo/website-stalker for configuration details.");
+            process::exit(1);
+        }
+    };
 
     let sites = config.get_sites();
     let sites_total = sites.len();
