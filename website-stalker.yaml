@@ -17,7 +17,7 @@
 # Finally, `regex_replace` demonstrates how to replace the occurrence of time and date with the
 # name of their standard.
 ---
-from: mail@example.org
+from: my-email-address
 sites:
   - url: "https://edjopato.de/post/"
     editors:

@@ -125,7 +125,7 @@ fn can_parse_example() {
     let parsed = serde_yaml::from_str::<Config>(&string).unwrap();
 
     let example = Config {
-        from: "mail@example.org".to_string(),
+        from: "my-email-address".to_string(),
         notification_template: None,
         sites: vec![
             SiteEntry {
