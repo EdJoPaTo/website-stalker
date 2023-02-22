@@ -137,7 +137,13 @@ async fn run(do_commit: bool, site_filter: Option<&Regex>) -> anyhow::Result<()>
         .filter(|site| site_filter.map_or(true, |filter| filter.is_match(site.url.as_str())))
         .collect::<Vec<_>>();
     let sites_amount = sites.len();
-    assert!(!sites.is_empty(), "Site filter filtered everything out.");
+    if sites.is_empty() {
+        eprintln!(
+            "Error: The site-filter filtered everything out.
+Hint: Change the filter or use all sites with 'run --all'."
+        );
+        process::exit(1);
+    }
 
     let distinct_domains = {
         let mut domains = sites
