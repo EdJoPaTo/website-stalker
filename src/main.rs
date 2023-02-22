@@ -51,8 +51,7 @@ async fn main() {
                 println!("Git repo initialized.");
             }
             if Config::load().is_err() {
-                let contents = config::EXAMPLE_CONF.to_string();
-                fs::write("website-stalker.yaml", contents)
+                fs::write("website-stalker.yaml", config::EXAMPLE_CONF)
                     .expect("failed to write example config file");
                 println!("Example config file generated.");
             }
