@@ -55,29 +55,13 @@ async fn main() {
             }
             println!("Init complete.\nNext step: adapt the config file to your needs.");
         }
-        SubCommand::Check {
-            print_yaml,
-            rewrite_yaml,
-        } => {
+        SubCommand::Check => {
             let notifiers = pling::Notifier::from_env().len();
             eprintln!("Notifiers: {notifiers}. Check https://github.com/EdJoPaTo/pling/ for configuration details.");
 
             eprintln!("\nConfig...");
             match Config::load() {
-                Ok(config) => {
-                    if print_yaml || rewrite_yaml {
-                        let yaml = serde_yaml::to_string(&config).expect("failed to parse to yaml");
-                        if rewrite_yaml {
-                            fs::write("website-stalker.yaml", &yaml)
-                                .expect("failed to write website-stalker.yaml");
-                        }
-                        if print_yaml {
-                            println!("{yaml}");
-                        }
-                    }
-
-                    eprintln!("ok");
-                }
+                Ok(_) => eprintln!("ok"),
                 Err(err) => {
                     eprintln!("not ok.\n\n{err}\n\nCheck https://github.com/EdJoPaTo/website-stalker for configuration details.");
                     process::exit(1);

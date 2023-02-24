@@ -17,15 +17,7 @@ pub enum SubCommand {
     Init,
 
     /// Check if the config is fine but do not run
-    Check {
-        /// Print out valid config as yaml
-        #[arg(long)]
-        print_yaml: bool,
-
-        /// Write valid config as website-stalker.yaml
-        #[arg(long)]
-        rewrite_yaml: bool,
-    },
+    Check,
 
     /// Stalk all the websites you specified
     Run {
