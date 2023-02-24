@@ -19,12 +19,12 @@
 ---
 from: my-email-address
 sites:
-  - url: "https://edjopato.de/post/"
+  - url: https://edjopato.de/post/
     editors:
-      - css_select: ".content"
+      - css_select: .content
       - css_remove: a
       - html_prettify
       - regex_replace:
-          pattern: "\\d{4}-\\d{2}-\\d{2}"
+          pattern: \d{4}-\d{2}-\d{2}
           replace: ISO8601
-  - url: "https://edjopato.de/robots.txt"
+  - url: https://edjopato.de/robots.txt
