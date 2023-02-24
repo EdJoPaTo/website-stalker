@@ -52,3 +52,14 @@ fn replaces() -> anyhow::Result<()> {
     assert_eq!(result, "H w");
     Ok(())
 }
+
+#[test]
+fn replaces_iso() -> anyhow::Result<()> {
+    let example = RegexReplacer {
+        pattern: r#"\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\+\d{2}:\d{2}"#.to_string(),
+        replace: "ISO8601".to_string(),
+    };
+    let result = example.replace_all("2022-02-14T22:31:00+01:00")?;
+    assert_eq!(result, "ISO8601");
+    Ok(())
+}

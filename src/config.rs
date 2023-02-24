@@ -2,11 +2,11 @@ use anyhow::anyhow;
 use serde::{Deserialize, Serialize};
 use url::Url;
 
-use crate::editor::regex_replacer::RegexReplacer;
-use crate::editor::Editor;
 use crate::final_message::FinalMessage;
 use crate::http::validate_from;
 use crate::site::{Options, Site};
+
+pub const EXAMPLE_CONF: &str = include_str!("../website-stalker.yaml");
 
 #[derive(Debug, Deserialize, Serialize, PartialEq, Eq)]
 pub struct Config {
@@ -50,45 +50,6 @@ pub struct SiteEntry {
 }
 
 impl Config {
-    pub fn example() -> Self {
-        Self {
-            from: "my-email-address".to_string(),
-            notification_template: None,
-            sites: vec![
-                SiteEntry {
-                    url: Url::parse("https://edjopato.de/post/").unwrap().into(),
-                    options: Options {
-                        accept_invalid_certs: false,
-                        ignore_error: false,
-                        headers: Vec::new(),
-                        editors: vec![
-                            Editor::CssSelect("article".parse().unwrap()),
-                            Editor::CssRemove("a".parse().unwrap()),
-                            Editor::HtmlPrettify,
-                            Editor::RegexReplace(RegexReplacer {
-                                pattern: "(Lesezeit): \\d+ \\w+".to_string(),
-                                replace: "$1".to_string(),
-                            }),
-                        ],
-                    },
-                },
-                SiteEntry {
-                    url: Url::parse("https://edjopato.de/robots.txt").unwrap().into(),
-                    options: Options {
-                        accept_invalid_certs: false,
-                        ignore_error: false,
-                        headers: Vec::new(),
-                        editors: vec![],
-                    },
-                },
-            ],
-        }
-    }
-
-    pub fn example_yaml_string() -> String {
-        serde_yaml::to_string(&Self::example()).unwrap()
-    }
-
     pub fn load() -> anyhow::Result<Self> {
         let filecontent = std::fs::read_to_string("website-stalker.yaml")?;
         let mut config = serde_yaml::from_str::<Self>(&filecontent)?;
@@ -156,15 +117,8 @@ impl Config {
 }
 
 #[test]
-fn can_parse_example() {
-    let string = Config::example_yaml_string();
-    let parsed = serde_yaml::from_str::<Config>(&string).unwrap();
-    assert_eq!(parsed, Config::example());
-}
-
-#[test]
 fn example_sites_are_valid() {
-    let config = Config::example();
+    let config = serde_yaml::from_str::<Config>(EXAMPLE_CONF).unwrap();
     config.validate_sites().unwrap();
 }
 
@@ -200,7 +154,7 @@ fn validate_fails_on_sites_list_with_empty_many() {
 
 #[test]
 fn validate_works_on_correct_mustache_template() {
-    let mut config = Config::example();
+    let mut config = serde_yaml::from_str::<Config>(EXAMPLE_CONF).unwrap();
     config.notification_template = Some("Hello {{name}}".into());
     config.validate_notification_template().unwrap();
 }
@@ -208,7 +162,7 @@ fn validate_works_on_correct_mustache_template() {
 #[test]
 #[should_panic = "unclosed tag"]
 fn validate_fails_on_bad_mustache_template() {
-    let mut config = Config::example();
+    let mut config = serde_yaml::from_str::<Config>(EXAMPLE_CONF).unwrap();
     config.notification_template = Some("Hello World {{".into());
     config.validate_notification_template().unwrap();
 }
