@@ -41,9 +41,7 @@ impl Display for ChangeKind {
 #[tokio::main]
 async fn main() {
     match cli::Cli::parse().subcommand {
-        SubCommand::ExampleConfig => {
-            println!("{}", config::EXAMPLE_CONF);
-        }
+        SubCommand::ExampleConfig => print!("{}", config::EXAMPLE_CONF),
         SubCommand::Init => {
             if git::Repo::new().is_err() {
                 git::Repo::init(std::env::current_dir().expect("failed to get working dir path"))
