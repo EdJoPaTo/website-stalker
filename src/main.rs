@@ -2,15 +2,16 @@ use core::fmt::Debug;
 use core::time::Duration;
 use std::{fs, process};
 
-use crate::cli::SubCommand;
-use crate::config::Config;
-use crate::site::Site;
-use crate::site_store::SiteStore;
 use clap::Parser;
 use itertools::Itertools;
 use regex::Regex;
 use tokio::sync::mpsc::channel;
 use tokio::time::sleep;
+
+use crate::cli::SubCommand;
+use crate::config::{Config, EXAMPLE_CONF};
+use crate::site::Site;
+use crate::site_store::SiteStore;
 
 mod cli;
 mod config;
@@ -41,25 +42,25 @@ impl core::fmt::Display for ChangeKind {
 #[tokio::main]
 async fn main() {
     match cli::Cli::parse().subcommand {
-        SubCommand::ExampleConfig => print!("{}", config::EXAMPLE_CONF),
+        SubCommand::ExampleConfig => print!("{EXAMPLE_CONF}"),
         SubCommand::Init => {
             if git::Repo::new().is_err() {
                 git::Repo::init(std::env::current_dir().expect("failed to get working dir path"))
-                    .expect("failed to init repo");
-                println!("Git repo initialized.");
+                    .expect("failed to init git repository");
+                println!("Git repository initialized.");
             }
             if Config::load().is_err() {
-                fs::write("website-stalker.yaml", config::EXAMPLE_CONF)
-                    .expect("failed to write example config file");
-                println!("Example config file generated.");
+                fs::write("website-stalker.yaml", EXAMPLE_CONF)
+                    .expect("failed to write example configuration file");
+                println!("Example configuration file generated.");
             }
-            println!("Init complete.\nNext step: adapt the config file to your needs.");
+            println!("Init complete.\nNext step: adapt the configuration file to your needs.");
         }
         SubCommand::Check => {
             let notifiers = pling::Notifier::from_env().len();
             eprintln!("Notifiers: {notifiers}. Check https://github.com/EdJoPaTo/pling/ for configuration details.");
 
-            eprintln!("\nConfig...");
+            eprintln!("\nConfiguration...");
             match Config::load() {
                 Ok(_) => eprintln!("ok"),
                 Err(err) => {
@@ -91,7 +92,7 @@ async fn main() {
 
 #[allow(clippy::too_many_lines)]
 async fn run(do_commit: bool, site_filter: Option<&Regex>) -> anyhow::Result<()> {
-    let config = Config::load().expect("failed to load config");
+    let config = Config::load().expect("failed to load your configuration");
 
     let sites = config.get_sites();
     let sites_total = sites.len();
@@ -124,17 +125,17 @@ Hint: Change the filter or use all sites with 'run --all'."
             if repo.is_something_modified()? {
                 if do_commit {
                     anyhow::bail!(
-                        "The repo is unclean. --commit can only be used in a clean repo."
+                        "The git repository is unclean. --commit can only be used in a clean repository."
                     );
                 }
-                logger::warn("The repo is unclean.");
+                logger::warn("The git repository is unclean.");
             }
         }
         Err(err) => {
             if do_commit {
-                anyhow::bail!("Not a git repo. --commit only works in git repos: {err}");
+                anyhow::bail!("Not a git repository. --commit only works in git repos: {err}");
             }
-            logger::warn("Not a git repo. Will run but won't do git actions.");
+            logger::warn("Not a git repository. Will run but won't do git actions.");
         }
     }
 
@@ -150,7 +151,7 @@ Hint: Change the filter or use all sites with 'run --all'."
     }
 
     if sites_amount < sites_total {
-        logger::info(&format!("Your config contains {sites_total} sites of which {sites_amount} are selected by your filter."));
+        logger::info(&format!("Your configuration file contains {sites_total} sites of which {sites_amount} are selected by your filter."));
     }
     println!("Begin stalking of {sites_amount} sites on {distinct_domains} domains...");
     if distinct_domains < sites_amount {

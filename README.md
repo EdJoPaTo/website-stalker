@@ -35,7 +35,7 @@ Check out [website-stalker-example](https://github.com/EdJoPaTo/website-stalker-
 
     `website-stalker init` will create a git repo (`git init`) and the example config (`website-stalker example-config > website-stalker.yaml`) for you.
 
-- Add your favorite website to the config file `website-stalker.yaml`.
+- Add your favorite website to the configuration file `website-stalker.yaml`.
     Also make sure to set the value of [from](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/From) to an email address of yours.
 
     ```bash

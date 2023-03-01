@@ -10,13 +10,13 @@ pub struct Cli {
 
 #[derive(Debug, Parser)]
 pub enum SubCommand {
-    /// Print an example config which can be piped into website-stalker.yaml
+    /// Print an example configuration file which can be piped into website-stalker.yaml
     ExampleConfig,
 
-    /// Initialize the current directory with a git repo and a config (website-stalker.yaml)
+    /// Initialize the current directory with a git repository and a configuration file (website-stalker.yaml)
     Init,
 
-    /// Check if the config is fine but do not run
+    /// Check if the configuration is fine but do not run
     Check,
 
     /// Stalk all the websites you specified

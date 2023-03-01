@@ -23,7 +23,7 @@ When you are comfortable with it, you can run it from the main directory:
 
 You probably want to use a git repo within the working directory of the service.
 Head over to the working directory (see a list of possible locations below) and create your git repo (`git init`).
-Also, you need to create a config `website-stalker.yaml` in the folder.
+Also, you need to create the configuration file `website-stalker.yaml` in the folder.
 Check `website-stalker example-config` or the [main README.md](../README.md) for an example.
 
 Possible working directory locations depending on your installation:

@@ -14,7 +14,7 @@ pub struct Repo {
 impl Repo {
     pub fn new() -> Result<Self, git2::Error> {
         let repo = Repository::open_from_env()?;
-        assert!(!repo.is_bare(), "This does not work with bare repos.");
+        assert!(!repo.is_bare(), "This does not work with bare git repositories.");
         Ok(Self { repo })
     }
 

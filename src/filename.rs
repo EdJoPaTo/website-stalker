@@ -20,7 +20,7 @@ pub fn basename(url: &Url) -> String {
 }
 
 #[cfg(test)]
-/// test basename
+/// test base name
 fn tb(url: &str) -> String {
     let url = Url::parse(url).unwrap();
     println!("{url}");
