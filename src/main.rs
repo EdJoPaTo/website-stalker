@@ -263,7 +263,7 @@ async fn stalk_and_save_site(
     let extension = content.extension.unwrap_or("txt");
 
     // Use site.url as the file basename should only change when the config changes (manually)
-    let basename = filename::basename(&site.url);
+    let basename = site.get_site_name();
     let changed = site_store.write_only_changed(&basename, extension, &content.text)?;
     Ok((changed, ip_version, took))
 }

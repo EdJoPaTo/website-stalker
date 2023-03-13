@@ -212,6 +212,18 @@ sites:
     ignore_error: true
 ```
 
+#### `filename`
+
+Overrides the URL based default filename of the site.
+This example would be named `de-edjopato-api-token-0123456789-action-hack-20the-20planet.html` but instead is saved as `de-edjopato-api-planet-hack.html`.
+Each filename must only be used once!
+
+```yaml
+sites:
+  - url: "https://edjopato.de/api?token=0123456789&action=hack%20the%20planet"
+    filename: de-edjopato-api-planet-hack
+```
+
 #### `headers`
 
 Add additional [HTTP headers](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers) to the request to the given site.
