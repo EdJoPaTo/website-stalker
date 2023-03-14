@@ -4,17 +4,22 @@ use url::Url;
 pub fn basename(url: &Url) -> String {
     static NON_ALPHANUM: Lazy<Regex> = lazy_regex!(r"[^a-zA-Z\d]+");
 
-    let domain = url.domain().expect("domain needed");
+    let host_part = url.domain().map_or_else(
+        || url.host_str().expect("url has a host").to_string(),
+        |domain| {
+            domain
+                .trim_start_matches("www.")
+                .split('.')
+                .rev()
+                .collect::<Vec<_>>()
+                .join("-")
+        },
+    );
+
     let path = url.path();
     let query = url.query().unwrap_or_default();
 
-    let domain_part = domain
-        .trim_start_matches("www.")
-        .split('.')
-        .rev()
-        .collect::<Vec<_>>()
-        .join("-");
-    let raw = format!("{domain_part}-{path}-{query}");
+    let raw = format!("{host_part}-{path}-{query}");
     let only_ascii = NON_ALPHANUM.replace_all(&raw, "-");
     only_ascii.trim_matches('-').to_string()
 }
@@ -75,4 +80,14 @@ fn extension_is_still_in_basename() {
 #[test]
 fn domain_prefix_www_doesnt_matter() {
     assert_eq!(tb("https://edjopato.de/"), tb("https://www.edjopato.de/"));
+}
+
+#[test]
+fn works_with_ipv4() {
+    assert_eq!(tb("http://127.0.0.1/test/"), "127-0-0-1-test");
+}
+
+#[test]
+fn works_with_ipv6() {
+    assert_eq!(tb("http://[::1]/test/"), "1-test");
 }
