@@ -146,7 +146,7 @@ fn validate_fails_on_sites_list_with_empty_many() {
                 ignore_error: false,
                 headers: Vec::new(),
                 editors: vec![],
-                filename: String::new(),
+                filename: Some(String::new()),
             },
         }],
     };
