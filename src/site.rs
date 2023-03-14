@@ -54,7 +54,10 @@ impl Site {
         if file_basenames.len() == total {
             Ok(())
         } else {
-            Err("Some sites are duplicates of each other or result in the same filename.".to_string())
+            Err(
+                "Some sites are duplicates of each other or result in the same filename."
+                    .to_string(),
+            )
         }
     }
 }
