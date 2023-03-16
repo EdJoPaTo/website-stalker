@@ -34,15 +34,14 @@ impl Site {
     }
 
     pub fn get_site_name(&self) -> String {
-        if self.options.filename.is_none() {
-            filename::basename(&self.url)
-        } else {
-            self.options.filename.clone().unwrap()
-        }
+        self.options
+            .filename
+            .clone()
+            .unwrap_or_else(|| filename::basename(&self.url))
     }
 
     pub fn get_all_file_basenames(sites: &[Self]) -> Vec<String> {
-        sites.iter().map(Site::get_site_name).collect()
+        sites.iter().map(Self::get_site_name).collect()
     }
 
     pub fn validate_no_duplicate(sites: &[Self]) -> Result<(), String> {
@@ -89,7 +88,7 @@ fn validate_finds_duplicates() {
                 ignore_error: false,
                 headers: Vec::new(),
                 editors: vec![],
-                filename: Some(String::new()),
+                filename: None,
             },
         },
         Site {
@@ -99,7 +98,7 @@ fn validate_finds_duplicates() {
                 ignore_error: false,
                 headers: Vec::new(),
                 editors: vec![],
-                filename: Some(String::new()),
+                filename: None,
             },
         },
         Site {
@@ -109,7 +108,7 @@ fn validate_finds_duplicates() {
                 ignore_error: false,
                 headers: Vec::new(),
                 editors: vec![],
-                filename: Some(String::new()),
+                filename: None,
             },
         },
     ];

@@ -215,8 +215,10 @@ sites:
 #### `filename`
 
 Overrides the URL based default filename of the site.
-This example would be named `de-edjopato-api-token-0123456789-action-hack-20the-20planet.html` but instead is saved as `de-edjopato-api-planet-hack.html`.
-Each filename must only be used once!
+
+Normally the filename is automatically derived from the url.
+For the following example it would be something like `de-edjopato-api-token-0123456789-action-hack-20the-20planet.html`.
+With the `filename` options it is saved as `de-edjopato-api-planet-hack.html` instead.
 
 ```yaml
 sites:
