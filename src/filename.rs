@@ -17,9 +17,10 @@ pub fn basename(url: &Url) -> String {
     );
 
     let path = url.path();
+    let port = url.port().map(|o| o.to_string()).unwrap_or_default();
     let query = url.query().unwrap_or_default();
 
-    let raw = format!("{host_part}-{path}-{query}");
+    let raw = format!("{host_part}-{port}-{path}-{query}");
     let only_ascii = NON_ALPHANUM.replace_all(&raw, "-");
     only_ascii.trim_matches('-').to_string()
 }
@@ -89,7 +90,7 @@ fn works_with_ipv4() {
 
 #[test]
 fn works_with_ipv4_with_port() {
-    assert_eq!(tb("http://127.0.0.1:12345/test/"), "127-0-0-1-test");
+    assert_eq!(tb("http://127.0.0.1:12345/test/"), "127-0-0-1-12345-test");
 }
 
 #[test]
