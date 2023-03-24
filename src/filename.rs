@@ -27,7 +27,7 @@ pub fn basename(url: &Url) -> String {
 #[cfg(test)]
 /// test base name
 fn tb(url: &str) -> String {
-    let url = Url::parse(url).unwrap();
+    let url = Url::parse(url).expect("url is valid");
     println!("{url}");
     basename(&url)
 }
@@ -88,6 +88,17 @@ fn works_with_ipv4() {
 }
 
 #[test]
+fn works_with_ipv4_with_port() {
+    assert_eq!(tb("http://127.0.0.1:12345/test/"), "127-0-0-1-test");
+}
+
+#[test]
 fn works_with_ipv6() {
     assert_eq!(tb("http://[::1]/test/"), "1-test");
+}
+
+#[test]
+#[should_panic = "url is valid"]
+fn fails_on_ipv6_with_interface() {
+    assert_eq!(tb("http://[fe80::1234%eth0]/test/"), "fe80-1234-eth0-test");
 }
