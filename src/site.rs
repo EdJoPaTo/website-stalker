@@ -18,6 +18,9 @@ pub struct Options {
     #[serde(default, skip_serializing_if = "core::ops::Not::not")]
     pub ignore_error: bool,
 
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub filename: Option<String>,
+
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub headers: Vec<String>,
 
@@ -30,8 +33,15 @@ impl Site {
         self.options.is_valid()
     }
 
+    pub fn to_file_base_name(&self) -> String {
+        self.options
+            .filename
+            .clone()
+            .unwrap_or_else(|| filename::basename(&self.url))
+    }
+
     pub fn get_all_file_basenames(sites: &[Self]) -> Vec<String> {
-        sites.iter().map(|o| filename::basename(&o.url)).collect()
+        sites.iter().map(Self::to_file_base_name).collect()
     }
 
     pub fn validate_no_duplicate(sites: &[Self]) -> Result<(), String> {
@@ -43,7 +53,10 @@ impl Site {
         if file_basenames.len() == total {
             Ok(())
         } else {
-            Err("Some sites are duplicates of each other".to_string())
+            Err(
+                "Some sites are duplicates of each other or result in the same filename."
+                    .to_string(),
+            )
         }
     }
 }
@@ -75,6 +88,7 @@ fn validate_finds_duplicates() {
                 ignore_error: false,
                 headers: Vec::new(),
                 editors: vec![],
+                filename: None,
             },
         },
         Site {
@@ -84,6 +98,7 @@ fn validate_finds_duplicates() {
                 ignore_error: false,
                 headers: Vec::new(),
                 editors: vec![],
+                filename: None,
             },
         },
         Site {
@@ -93,6 +108,7 @@ fn validate_finds_duplicates() {
                 ignore_error: false,
                 headers: Vec::new(),
                 editors: vec![],
+                filename: None,
             },
         },
     ];
