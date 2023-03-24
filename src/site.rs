@@ -33,7 +33,7 @@ impl Site {
         self.options.is_valid()
     }
 
-    pub fn get_site_name(&self) -> String {
+    pub fn to_file_base_name(&self) -> String {
         self.options
             .filename
             .clone()
@@ -41,7 +41,7 @@ impl Site {
     }
 
     pub fn get_all_file_basenames(sites: &[Self]) -> Vec<String> {
-        sites.iter().map(Self::get_site_name).collect()
+        sites.iter().map(Self::to_file_base_name).collect()
     }
 
     pub fn validate_no_duplicate(sites: &[Self]) -> Result<(), String> {
