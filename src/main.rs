@@ -109,14 +109,14 @@ Hint: Change the filter or use all sites with 'run --all'."
         process::exit(1);
     }
 
-    let distinct_domains = {
-        let mut domains = sites
+    let distinct_hosts = {
+        let mut hosts = sites
             .iter()
-            .map(|o| o.url.domain().unwrap().to_string())
+            .map(|o| o.url.host_str().unwrap().to_string())
             .collect::<Vec<_>>();
-        domains.sort();
-        domains.dedup();
-        domains.len()
+        hosts.sort();
+        hosts.dedup();
+        hosts.len()
     };
 
     let repo = git::Repo::new();
@@ -153,16 +153,16 @@ Hint: Change the filter or use all sites with 'run --all'."
     if sites_amount < sites_total {
         logger::info(&format!("Your configuration file contains {sites_total} sites of which {sites_amount} are selected by your filter."));
     }
-    println!("Begin stalking of {sites_amount} sites on {distinct_domains} domains...");
-    if distinct_domains < sites_amount {
-        logger::info("Some sites are on the same domain. There is a wait time of 5 seconds between each request to the same domain in order to reduce load on the server.");
+    println!("Begin stalking of {sites_amount} sites on {distinct_hosts} hosts...");
+    if distinct_hosts < sites_amount {
+        logger::info("Some sites are on the same host. There is a wait time of 5 seconds between each request to the same host in order to reduce load on the server.");
     }
 
     let mut rx = {
         let (tx, rx) = channel(10);
         let groups = sites
             .into_iter()
-            .group_by(|a| a.url.domain().unwrap().to_string());
+            .group_by(|a| a.url.host_str().unwrap().to_string());
         for (_, group) in &groups {
             let from = config.from.clone();
             let site_store = site_store.clone();

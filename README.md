@@ -136,17 +136,17 @@ notification_template: |
   - {{.}}
   {{/sites}}
 
-  The following domains are involved:
-  {{#domains}}
+  The following hosts are involved:
+  {{#hosts}}
   - {{.}}
-  {{/domains}}
+  {{/hosts}}
 
-  {{#singledomain}}
-  All changes happened on only one domain: {{singledomain}}
-  {{/singledomain}}
-  {{^singledomain}}
-  The changes happened on various domains.
-  {{/singledomain}}
+  {{#singlehost}}
+  All changes happened on only one host: {{singlehost}}
+  {{/singlehost}}
+  {{^singlehost}}
+  The changes happened on various hosts.
+  {{/singlehost}}
 
   The {{commit}} contains all these changes.
 ```

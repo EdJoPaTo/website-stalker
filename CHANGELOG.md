@@ -12,12 +12,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - new editor: `html_sanitize`
 - `headers` site options to supply additional headers on requests
 - `filename` option to override the automatically derived file base name from an url
+- Support URLs with IP addresses
 
 ### Changed
 
 - Update to git2 0.15 which uses gits `safe.directory` logic.
 - Improve example-config
 - write out configuration and git repository instead of its short versions
+- Include port in filename when specified
 
 ### Removed
 

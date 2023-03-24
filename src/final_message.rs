@@ -1,12 +1,15 @@
+// wait for release to be breaking
+#![allow(deprecated)]
+
 use url::Url;
 
 pub const DEFAULT_NOTIFICATION_TEMPLATE: &str = "
-{{#singledomain}}
+{{#singlehost}}
 {{.}} changed
-{{/singledomain}}
-{{^singledomain}}
+{{/singlehost}}
+{{^singlehost}}
 {{siteamount}} websites changed
-{{/singledomain}}
+{{/singlehost}}
 
 {{#sites}}
 - {{.}}
@@ -19,14 +22,18 @@ See {{.}}
 
 #[derive(serde::Serialize)]
 pub struct FinalMessage {
+    #[deprecated = "use hosts"]
     domains: Vec<String>,
+    hosts: Vec<String>,
     sites: Vec<String>,
 }
 
 #[derive(serde::Serialize)]
 struct MustacheData {
     commit: Option<String>,
+    #[deprecated = "use singlehost"]
     singledomain: Option<String>,
+    singlehost: Option<String>,
     siteamount: usize,
 
     #[serde(flatten)]
@@ -35,13 +42,13 @@ struct MustacheData {
 
 impl FinalMessage {
     pub fn new(changed_urls: &[Url]) -> Self {
-        let mut domains = changed_urls
+        let mut hosts = changed_urls
             .iter()
-            .filter_map(Url::domain)
+            .filter_map(Url::host_str)
             .map(std::string::ToString::to_string)
             .collect::<Vec<_>>();
-        domains.sort_unstable();
-        domains.dedup();
+        hosts.sort_unstable();
+        hosts.dedup();
 
         let mut sites = changed_urls
             .iter()
@@ -50,11 +57,15 @@ impl FinalMessage {
         sites.sort();
         sites.dedup();
 
-        Self { domains, sites }
+        Self {
+            domains: hosts.clone(),
+            hosts,
+            sites,
+        }
     }
 
     pub fn to_commit(&self) -> String {
-        let head = match self.domains.as_slice() {
+        let head = match self.hosts.as_slice() {
             [] => "just background magic 🧽🔮🧹\n\ncleanup or updating meta files".to_owned(),
             [single] => format!("🌐👀 {single}"),
             _ => format!("🌐👀 stalked {} website changes", self.sites.len()),
@@ -71,7 +82,7 @@ impl FinalMessage {
     }
 
     fn into_mustache_data(self, commit: Option<String>) -> MustacheData {
-        let singledomain = if let [single] = self.domains.as_slice() {
+        let singlehost = if let [single] = self.hosts.as_slice() {
             Some(single.to_string())
         } else {
             None
@@ -79,7 +90,8 @@ impl FinalMessage {
 
         MustacheData {
             commit,
-            singledomain,
+            singledomain: singlehost.clone(),
+            singlehost,
             siteamount: self.sites.len(),
             msg: self,
         }
