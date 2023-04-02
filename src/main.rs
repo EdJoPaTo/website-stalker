@@ -273,7 +273,7 @@ fn run_commit(repo: &git::Repo, do_commit: bool, message: &str) -> anyhow::Resul
         if do_commit {
             repo.add_all()?;
             let id = repo.commit(message)?;
-            Ok(Some(id.to_string()))
+            Ok(Some(id))
         } else {
             logger::warn("No commit is created without the --commit flag.");
             Ok(None)

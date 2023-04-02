@@ -1,67 +1,78 @@
-use std::path::Path;
+use std::path::{Path, PathBuf};
+use std::process::Command;
 
-use git2::{Diff, DiffOptions, IndexAddOption, Repository, RepositoryInitOptions, Signature};
+const GIT_COMMIT_AUTHOR: &str = concat!(
+    env!("CARGO_PKG_NAME"),
+    "/",
+    env!("CARGO_PKG_VERSION"),
+    " <website-stalker-git-commit@edjopato.de>"
+);
 
-const GIT_COMMIT_AUTHOR_NAME: &str =
-    concat!(env!("CARGO_PKG_NAME"), "/", env!("CARGO_PKG_VERSION"),);
-
-const GIT_COMMIT_AUTHOR_EMAIL: &str = "website-stalker-git-commit@edjopato.de";
+fn git_command(dir: &Path, args: &[&str]) -> anyhow::Result<String> {
+    let output = Command::new("git").args(args).current_dir(dir).output()?;
+    if output.status.success() {
+        let stdout = String::from_utf8(output.stdout)?;
+        Ok(stdout.trim().to_string())
+    } else {
+        Err(anyhow::anyhow!(
+            "failed git command \"{}\" with status code {}\nStdout: {}\nStderr: {}",
+            args.join(" "),
+            output.status,
+            String::from_utf8_lossy(&output.stdout),
+            String::from_utf8_lossy(&output.stderr),
+        ))
+    }
+}
 
 pub struct Repo {
-    repo: Repository,
+    dir: PathBuf,
 }
 
 impl Repo {
-    pub fn new() -> Result<Self, git2::Error> {
-        let repo = Repository::open_from_env()?;
-        assert!(
-            !repo.is_bare(),
-            "This does not work with bare git repositories."
-        );
-        Ok(Self { repo })
+    fn git_command(&self, args: &[&str]) -> anyhow::Result<String> {
+        git_command(&self.dir, args)
     }
 
-    pub fn init<P: AsRef<Path>>(path: P) -> Result<Self, git2::Error> {
-        let repo = Repository::init_opts(path, RepositoryInitOptions::new().initial_head("main"))?;
-        Ok(Self { repo })
+    pub fn new() -> anyhow::Result<Self> {
+        let workdir = std::env::current_dir()?;
+
+        let repodir = git_command(&workdir, &["rev-parse", "--show-toplevel"])?;
+        let repodir = Path::new(&repodir).canonicalize()?;
+
+        if !repodir.exists() || repodir != workdir {
+            anyhow::bail!("not on repository toplevel: {}", repodir.display());
+        }
+
+        Ok(Self { dir: repodir })
     }
 
-    pub fn add_all(&self) -> Result<(), git2::Error> {
-        let mut index = self.repo.index()?;
-        index.add_all(["."], IndexAddOption::DEFAULT, None)?;
-        index.write()
+    pub fn init(path: PathBuf) -> anyhow::Result<Self> {
+        git_command(&path, &["init"])?;
+        Ok(Self { dir: path })
     }
 
-    pub fn commit(&self, message: &str) -> Result<git2::Oid, git2::Error> {
-        let signature = Signature::now(GIT_COMMIT_AUTHOR_NAME, GIT_COMMIT_AUTHOR_EMAIL)?;
-        let tree = self.repo.find_tree(self.repo.index()?.write_tree()?)?;
+    pub fn add_all(&self) -> anyhow::Result<()> {
+        self.git_command(&["add", "-A"])?;
+        Ok(())
+    }
 
-        let parent_commit = self.repo.head().and_then(|o| o.peel_to_commit());
-        let parents = parent_commit
-            .as_ref()
-            .map(|parent| vec![parent])
-            .unwrap_or_default();
-
-        self.repo.commit(
-            Some("HEAD"),
-            &signature,
-            &signature,
+    pub fn commit(&self, message: &str) -> anyhow::Result<String> {
+        self.git_command(&[
+            "commit",
+            "--author",
+            GIT_COMMIT_AUTHOR,
+            "--no-gpg-sign",
+            "--message",
             message,
-            &tree,
-            &parents,
-        )
+        ])?;
+
+        let id = self.git_command(&["rev-parse", "HEAD"])?;
+        Ok(id)
     }
 
-    fn diff(&self) -> Result<Diff, git2::Error> {
-        let mut opts = DiffOptions::new();
-        opts.include_untracked(true);
-        let old_tree = self.repo.head().ok().and_then(|o| o.peel_to_tree().ok());
-        self.repo
-            .diff_tree_to_workdir_with_index(old_tree.as_ref(), Some(&mut opts))
-    }
-
-    pub fn is_something_modified(&self) -> Result<bool, git2::Error> {
-        Ok(self.diff()?.stats()?.files_changed() > 0)
+    pub fn is_something_modified(&self) -> anyhow::Result<bool> {
+        let output = self.git_command(&["status", "--short"])?;
+        Ok(!output.is_empty())
     }
 }
 
@@ -95,8 +106,10 @@ mod tests {
             .tempdir()?;
         let dir = tempdir.path();
 
-        let repo = Repository::init(dir)?;
-        let repo = Repo { repo };
+        let repo = Repo {
+            dir: dir.to_path_buf(),
+        };
+        simple_command(dir, "git init")?;
         simple_command(dir, "git config user.email bla@blubb.de")?;
         simple_command(dir, "git config user.name Bla")?;
         Ok((tempdir, repo))
@@ -123,7 +136,7 @@ mod tests {
             .prefix("website-stalker-testing-")
             .tempdir()?;
         let dir = tempdir.path();
-        Repo::init(dir)?;
+        Repo::init(dir.to_path_buf())?;
         assert_eq!(simple_command(dir, "git status --short")?, "");
         fs::write(dir.join("bla.txt"), "stuff")?;
         assert_eq!(simple_command(dir, "git status --short")?, "?? bla.txt");
@@ -136,7 +149,7 @@ mod tests {
             .prefix("website-stalker-testing-")
             .tempdir()?;
         let dir = tempdir.path();
-        Repo::init(dir)?;
+        Repo::init(dir.to_path_buf())?;
         assert_eq!(simple_command(dir, "git branch --show-current")?, "main");
         Ok(())
     }

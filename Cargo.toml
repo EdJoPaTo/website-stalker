@@ -23,7 +23,6 @@ ammonia = "3"
 anyhow = "1"
 chrono = { version = "0.4", default-features = false }
 clap = { version = "4", features = ["deprecated", "derive", "wrap_help"] }
-git2 = { version = "0.16", default-features = false }
 html2md = "0.2"
 html5ever = "0.25"
 itertools = "0.10"

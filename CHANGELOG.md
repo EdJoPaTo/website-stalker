@@ -16,7 +16,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
-- Update to git2 0.15 which uses gits `safe.directory` logic.
+- Use git executable instead of libgit2
 - Improve example-config
 - write out configuration and git repository instead of its short versions
 - Include port in filename when specified
