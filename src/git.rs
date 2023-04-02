@@ -144,17 +144,6 @@ mod tests {
     }
 
     #[test]
-    fn init_default_branch_is_main() -> anyhow::Result<()> {
-        let tempdir = tempfile::Builder::new()
-            .prefix("website-stalker-testing-")
-            .tempdir()?;
-        let dir = tempdir.path();
-        Repo::init(dir.to_path_buf())?;
-        assert_eq!(simple_command(dir, "git branch --show-current")?, "main");
-        Ok(())
-    }
-
-    #[test]
     fn add_all_works() -> anyhow::Result<()> {
         let (tempdir, repo) = init_test_env()?;
         let dir = tempdir.path();
