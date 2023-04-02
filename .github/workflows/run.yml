@@ -1,0 +1,35 @@
+name: Run with example config
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  run:
+    name: Run with example config
+    runs-on: ubuntu-latest
+    steps:
+      - name: Setup Rust
+        shell: bash -eux {0}
+        run: |
+          rustup toolchain install stable --profile minimal
+          rustup default stable
+
+      - uses: actions/checkout@v3
+
+      - uses: actions/cache@v3
+        with:
+          key: run-${{ hashFiles('**/Cargo.lock') }}
+          path: |
+            ~/.cargo/registry/index/
+            ~/.cargo/registry/cache/
+            ~/.cargo/git/db/
+            target/
+
+      - run: cargo fetch
+      - run: cargo build
+
+      - name: website-stalker run --all
+        env:
+          WEBSITE_STALKER_FROM: ${{ secrets.WEBSITE_STALKER_FROM }}
+        run: cargo run -- run --all
