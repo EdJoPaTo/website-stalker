@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.20.0] - 2023-04-11
+
 ### Added
 
 - new editor: `html_sanitize`
@@ -18,7 +20,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Use git executable instead of libgit2
 - Improve example-config
-- write out configuration and git repository instead of its short versions
+- write full words configuration and git repository instead of its short versions on stdout
 - Include port in filename when specified
 
 ### Removed
