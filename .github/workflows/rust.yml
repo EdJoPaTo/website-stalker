@@ -176,7 +176,7 @@ jobs:
         if: runner.os != 'Windows'
         run: >
           tar -cv
-          LICENSE README.md
+          CHANGELOG.md LICENSE README.md
           systemd
           -C target/ completions/ -C ../
           -C target/${{ matrix.triple }}/release/ website-stalker
@@ -185,7 +185,7 @@ jobs:
         if: runner.os == 'Windows'
         run: >
           7z a ${{ env.ARTIFACT_NAME }}.zip
-          LICENSE README.md
+          CHANGELOG.md LICENSE README.md
           ./target/completions/
           ./target/${{ matrix.triple }}/release/website-stalker.exe
       - name: Package deb

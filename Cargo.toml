@@ -63,6 +63,7 @@ maintainer-scripts = "systemd/system/"
 systemd-units = { enable = false, start = false }
 assets = [
     ["target/release/website-stalker", "/usr/bin/website-stalker", "755"],
+    ["CHANGELOG.md", "/usr/share/doc/website-stalker/CHANGELOG.md", "644"],
     ["LICENSE", "/usr/share/licenses/website-stalker/LICENSE", "644"],
     ["README.md", "/usr/share/doc/website-stalker/README.md", "644"],
 
@@ -78,6 +79,7 @@ assets = [
 [package.metadata.generate-rpm]
 assets = [
     { source = "target/release/website-stalker", dest = "/usr/bin/website-stalker", mode = "755" },
+    { source = "CHANGELOG.md", dest = "/usr/share/doc/website-stalker/CHANGELOG.md", mode = "644", doc = true },
     { source = "LICENSE", dest = "/usr/share/licenses/website-stalker/LICENSE", mode = "644", doc = true },
     { source = "README.md", dest = "/usr/share/doc/website-stalker/README.md", mode = "644", doc = true },
 
