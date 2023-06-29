@@ -169,12 +169,12 @@ Hint: Change the filter or use all sites with 'run --all'."
             let sites = group.collect::<Vec<_>>();
             let tx = tx.clone();
             tokio::spawn(async move {
-                for (i, site) in sites.iter().enumerate() {
+                for (i, site) in sites.into_iter().enumerate() {
                     if i > 0 {
                         sleep(Duration::from_secs(5)).await;
                     }
-                    let result = stalk_and_save_site(&site_store, &from, site).await;
-                    tx.send((site.url.clone(), result, site.options.ignore_error))
+                    let result = stalk_and_save_site(&site_store, &from, &site).await;
+                    tx.send((site.url, result, site.options.ignore_error))
                         .await
                         .expect("failed to send stalking result");
                 }
