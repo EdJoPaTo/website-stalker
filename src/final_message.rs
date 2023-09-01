@@ -128,7 +128,7 @@ impl FinalMessage {
 
     pub fn validate_template(template: &str) -> anyhow::Result<()> {
         let template = Some(template);
-        let any_empty = vec![
+        let any_empty = [
             Self::example_single().into_notification(template, Some("666".into()))?,
             Self::example_single().into_notification(template, None)?,
             Self::example_different().into_notification(template, Some("666".into()))?,

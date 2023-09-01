@@ -45,7 +45,7 @@ fn is_valid_false_example() {
 #[test]
 fn replaces() -> anyhow::Result<()> {
     let example = RegexReplacer {
-        pattern: r#"(\w)\w*"#.to_string(),
+        pattern: r"(\w)\w*".to_string(),
         replace: "$1".to_string(),
     };
     let result = example.replace_all("Hello world")?;
@@ -56,7 +56,7 @@ fn replaces() -> anyhow::Result<()> {
 #[test]
 fn replaces_iso() -> anyhow::Result<()> {
     let example = RegexReplacer {
-        pattern: r#"\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\+\d{2}:\d{2}"#.to_string(),
+        pattern: r"\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\+\d{2}:\d{2}".to_string(),
         replace: "ISO8601".to_string(),
     };
     let result = example.replace_all("2022-02-14T22:31:00+01:00")?;
