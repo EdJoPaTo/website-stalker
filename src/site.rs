@@ -37,7 +37,18 @@ impl Site {
 
     pub fn to_file_path(&self) -> PathBuf {
         self.options.filename.clone().unwrap_or_else(|| {
-            Path::new(&filename::domainfolder(&self.url)).join(filename::filename(&self.url))
+            let folder = filename::domainfolder(&self.url);
+            let [first, rest @ ..] = &folder[..] else {
+                panic!(
+                    "domain has to have at least one segment {folder:?} {:?}",
+                    self.url
+                );
+            };
+            let mut path = Path::new(first).to_path_buf();
+            for f in rest {
+                path = path.join(f);
+            }
+            path.join(filename::filename(&self.url))
         })
     }
 
