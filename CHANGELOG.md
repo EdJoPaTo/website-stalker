@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- Files are sorted into folders of their domains
+
 ## [0.20.0] - 2023-04-11
 
 ### Added

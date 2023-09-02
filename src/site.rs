@@ -1,3 +1,5 @@
+use std::path::{Path, PathBuf};
+
 use serde::{Deserialize, Serialize};
 use url::Url;
 
@@ -19,7 +21,7 @@ pub struct Options {
     pub ignore_error: bool,
 
     #[serde(default, skip_serializing_if = "Option::is_none")]
-    pub filename: Option<String>,
+    pub filename: Option<PathBuf>,
 
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub headers: Vec<String>,
@@ -33,24 +35,30 @@ impl Site {
         self.options.is_valid()
     }
 
-    pub fn to_file_base_name(&self) -> String {
-        self.options
-            .filename
-            .clone()
-            .unwrap_or_else(|| filename::basename(&self.url))
+    pub fn to_file_path(&self) -> PathBuf {
+        self.options.filename.clone().unwrap_or_else(|| {
+            Path::new(&filename::domainfolder(&self.url)).join(filename::filename(&self.url))
+        })
     }
 
-    pub fn get_all_file_basenames(sites: &[Self]) -> Vec<String> {
-        sites.iter().map(Self::to_file_base_name).collect()
+    fn unique_idenfier(&self) -> String {
+        self.to_file_path()
+            .to_str()
+            .expect("the path is unicode already")
+            .to_string()
+    }
+
+    pub fn get_all_file_paths(sites: &[Self]) -> Vec<PathBuf> {
+        sites.iter().map(Self::to_file_path).collect()
     }
 
     pub fn validate_no_duplicate(sites: &[Self]) -> Result<(), String> {
         // TODO: return url or something of specific duplicates
-        let mut file_basenames = Self::get_all_file_basenames(sites);
-        file_basenames.sort_unstable();
-        let total = file_basenames.len();
-        file_basenames.dedup();
-        if file_basenames.len() == total {
+        let mut uniq = sites.iter().map(Self::unique_idenfier).collect::<Vec<_>>();
+        uniq.sort_unstable();
+        let total = uniq.len();
+        uniq.dedup();
+        if uniq.len() == total {
             Ok(())
         } else {
             Err(

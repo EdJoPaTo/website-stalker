@@ -137,8 +137,8 @@ Hint: Change the filter or use all sites with 'run --all'."
     }
 
     if sites_amount == sites_total {
-        let basenames = Site::get_all_file_basenames(&sites);
-        let removed = site_store::remove_gone(&basenames)?;
+        let paths = Site::get_all_file_paths(&sites);
+        let removed = site_store::remove_gone(&paths)?;
         for filename in removed {
             logger::warn(&format!("Remove superfluous {filename:?}"));
         }
@@ -255,8 +255,9 @@ async fn stalk_and_save_site(
     let extension = content.extension.unwrap_or("txt");
 
     // Use site.url as the file basename should only change when the config changes (manually)
-    let basename = site.to_file_base_name();
-    let changed = site_store::write_only_changed(&basename, extension, &content.text)?;
+    let mut path = site.to_file_path();
+    path.set_extension(extension);
+    let changed = site_store::write_only_changed(&path, &content.text)?;
     Ok((changed, ip_version, took))
 }
 
