@@ -3,6 +3,7 @@ use std::path::{Path, PathBuf};
 
 use crate::ChangeKind;
 
+// Remove site files which are no longer configured to cleanup the directory
 pub fn remove_gone(expected_paths: &[PathBuf]) -> anyhow::Result<Vec<PathBuf>> {
     fn inner(expected_paths: &[PathBuf], path: &Path) -> anyhow::Result<Vec<PathBuf>> {
         let mut superfluous = Vec::new();
