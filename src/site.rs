@@ -39,7 +39,7 @@ impl Site {
         self.options.filename.clone().unwrap_or_else(|| {
             let folder = filename::domainfolder(&self.url);
             let [first, rest @ ..] = &folder[..] else {
-                panic!(
+                unreachable!(
                     "domain has to have at least one segment {folder:?} {:?}",
                     self.url
                 );
