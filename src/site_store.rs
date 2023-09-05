@@ -3,13 +3,12 @@ use std::path::{Path, PathBuf};
 
 use crate::ChangeKind;
 
-// Remove site files which are no longer configured to cleanup the directory
+/// Remove site files which are no longer configured to cleanup the directory
 pub fn remove_gone(expected_paths: &[PathBuf]) -> anyhow::Result<Vec<PathBuf>> {
     fn inner(expected_paths: &[PathBuf], path: &Path) -> anyhow::Result<Vec<PathBuf>> {
         let mut superfluous = Vec::new();
         for entry in read_dir(path)? {
             let entry = entry?.path();
-
             if entry.is_dir() {
                 superfluous.append(&mut inner(expected_paths, &entry)?);
             } else {
@@ -30,7 +29,6 @@ pub fn remove_gone(expected_paths: &[PathBuf]) -> anyhow::Result<Vec<PathBuf>> {
         if !entry.is_dir() {
             continue;
         }
-
         if let Some(filename) = entry.file_name() {
             let is_relevant = filename.to_str().map_or(false, |o| !o.starts_with('.'));
             if is_relevant {
@@ -42,6 +40,8 @@ pub fn remove_gone(expected_paths: &[PathBuf]) -> anyhow::Result<Vec<PathBuf>> {
     Ok(superfluous)
 }
 
+/// Remove files with the same base but a different extension.
+/// This cleans up changes of the extension like `html` -> `md`.
 fn remove_same_base_different_extension(path: &Path) -> anyhow::Result<bool> {
     let parent = path.parent().unwrap_or_else(|| Path::new("."));
     let stem = path.file_stem();
