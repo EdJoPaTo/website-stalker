@@ -1,89 +1,92 @@
-use std::ffi::OsString;
 use std::fs::{create_dir_all, read_dir, read_to_string, remove_file, write};
+use std::path::{Path, PathBuf};
 
 use crate::ChangeKind;
 
-#[derive(Clone)]
-pub struct SiteStore {
-    folder: String,
-}
-
-impl SiteStore {
-    pub fn new(folder: String) -> std::io::Result<Self> {
-        create_dir_all(&folder)?;
-        Ok(Self { folder })
-    }
-
-    pub fn remove_gone(&self, expected_basenames: &[String]) -> anyhow::Result<Vec<OsString>> {
+/// Remove site files which are no longer configured to cleanup the directory
+pub fn remove_gone(expected_paths: &[PathBuf]) -> anyhow::Result<Vec<PathBuf>> {
+    fn inner(expected_paths: &[PathBuf], path: &Path) -> anyhow::Result<Vec<PathBuf>> {
         let mut superfluous = Vec::new();
-        for file in read_dir(&self.folder)? {
-            let file = file?;
-            let is_wanted = file
-                .file_name()
-                .into_string()
-                .map_or(false, |name| basename_is_wanted(expected_basenames, &name));
-            if !is_wanted {
-                remove_file(file.path())?;
-                superfluous.push(file.file_name());
+        for entry in read_dir(path)? {
+            let entry = entry?.path();
+            if entry.is_dir() {
+                superfluous.append(&mut inner(expected_paths, &entry)?);
+            } else {
+                // Expected is without extension
+                let is_wanted = expected_paths.contains(&entry.with_extension(""));
+                if !is_wanted {
+                    remove_file(&entry)?;
+                    superfluous.push(entry);
+                }
             }
         }
-        superfluous.sort();
         Ok(superfluous)
     }
 
-    pub fn remove_same_base_different_extension(
-        &self,
-        basename: &str,
-        extension: &str,
-    ) -> anyhow::Result<bool> {
-        let mut removed_something = false;
-        for file in read_dir(&self.folder)? {
-            let file = file?;
-            let remove = file.file_name().into_string().map_or(false, |name| {
-                !name.ends_with(extension) && name.starts_with(&format!("{basename}."))
-            });
-            if remove {
-                remove_file(file.path())?;
-                removed_something = true;
+    let mut superfluous = Vec::new();
+    for entry in read_dir(".")? {
+        let entry = entry?.path();
+        if !entry.is_dir() {
+            continue;
+        }
+        if let Some(filename) = entry.file_name() {
+            let is_relevant = filename.to_str().map_or(false, |o| !o.starts_with('.'));
+            if is_relevant {
+                superfluous.append(&mut inner(expected_paths, Path::new(filename))?);
             }
         }
-        Ok(removed_something)
     }
-
-    pub fn write_only_changed(
-        &self,
-        basename: &str,
-        extension: &str,
-        content: &str,
-    ) -> anyhow::Result<ChangeKind> {
-        let path = format!("{}/{basename}.{extension}", self.folder);
-        let content = content.trim().to_string() + "\n";
-
-        let current = read_to_string(&path).unwrap_or_default();
-        let changed = current != content;
-        if changed {
-            write(&path, content)?;
-        }
-
-        let removed_something = self.remove_same_base_different_extension(basename, extension)?;
-
-        if removed_something {
-            Ok(ChangeKind::Changed)
-        } else if current.is_empty() {
-            Ok(ChangeKind::Init)
-        } else if changed {
-            Ok(ChangeKind::Changed)
-        } else {
-            Ok(ChangeKind::ContentSame)
-        }
-    }
+    superfluous.sort();
+    Ok(superfluous)
 }
 
-fn basename_is_wanted(basenames: &[String], searched: &str) -> bool {
-    for basename in basenames {
-        if searched.starts_with(&format!("{basename}.")) {
-            return true;
+/// Remove files with the same base but a different extension.
+/// This cleans up changes of the extension like `html` -> `md`.
+fn remove_same_base_different_extension(path: &Path) -> anyhow::Result<bool> {
+    let parent = path.parent().unwrap_or_else(|| Path::new("."));
+    let stem = path.file_stem();
+    let extension = path.extension();
+    let mut removed_something = false;
+    for file in read_dir(parent)? {
+        let file = file?.path();
+
+        let same_stem = file.file_stem() == stem;
+        if !same_stem {
+            continue;
+        }
+
+        let same_extension = file.extension() == extension;
+        let remove = !same_extension;
+
+        if remove {
+            remove_file(file)?;
+            removed_something = true;
         }
     }
-    false
+    Ok(removed_something)
+}
+
+pub fn write_only_changed(path: &Path, content: &str) -> anyhow::Result<ChangeKind> {
+    if let Some(parent) = path.parent() {
+        create_dir_all(parent)?;
+    }
+    let content = content.trim().to_string() + "\n";
+
+    let current = read_to_string(path).unwrap_or_default();
+    let changed = current != content;
+    if changed {
+        write(path, content)?;
+    }
+
+    let removed_something = remove_same_base_different_extension(path)?;
+
+    if removed_something {
+        Ok(ChangeKind::Changed)
+    } else if current.is_empty() {
+        Ok(ChangeKind::Init)
+    } else if changed {
+        Ok(ChangeKind::Changed)
+    } else {
+        Ok(ChangeKind::ContentSame)
+    }
 }

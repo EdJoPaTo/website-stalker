@@ -11,7 +11,6 @@ use tokio::time::sleep;
 use crate::cli::SubCommand;
 use crate::config::{Config, EXAMPLE_CONF};
 use crate::site::Site;
-use crate::site_store::SiteStore;
 
 mod cli;
 mod config;
@@ -23,8 +22,6 @@ mod http;
 mod logger;
 mod site;
 mod site_store;
-
-const SITE_FOLDER: &str = "sites";
 
 #[derive(Debug)]
 pub enum ChangeKind {
@@ -139,12 +136,9 @@ Hint: Change the filter or use all sites with 'run --all'."
         }
     }
 
-    let site_store = site_store::SiteStore::new(SITE_FOLDER.to_string())
-        .expect("failed to create sites directory");
-
     if sites_amount == sites_total {
-        let basenames = Site::get_all_file_basenames(&sites);
-        let removed = site_store.remove_gone(&basenames)?;
+        let paths = Site::get_all_file_paths(&sites);
+        let removed = site_store::remove_gone(&paths)?;
         for filename in removed {
             logger::warn(&format!("Remove superfluous {filename:?}"));
         }
@@ -165,7 +159,6 @@ Hint: Change the filter or use all sites with 'run --all'."
             .group_by(|a| a.url.host_str().unwrap().to_string());
         for (_, group) in &groups {
             let from = config.from.clone();
-            let site_store = site_store.clone();
             let sites = group.collect::<Vec<_>>();
             let tx = tx.clone();
             tokio::spawn(async move {
@@ -173,7 +166,7 @@ Hint: Change the filter or use all sites with 'run --all'."
                     if i > 0 {
                         sleep(Duration::from_secs(5)).await;
                     }
-                    let result = stalk_and_save_site(&site_store, &from, &site).await;
+                    let result = stalk_and_save_site(&from, &site).await;
                     tx.send((site.url, result, site.options.ignore_error))
                         .await
                         .expect("failed to send stalking result");
@@ -234,7 +227,6 @@ Hint: Change the filter or use all sites with 'run --all'."
 }
 
 async fn stalk_and_save_site(
-    site_store: &SiteStore,
     from: &str,
     site: &Site,
 ) -> anyhow::Result<(ChangeKind, http::IpVersion, Duration)> {
@@ -263,8 +255,9 @@ async fn stalk_and_save_site(
     let extension = content.extension.unwrap_or("txt");
 
     // Use site.url as the file basename should only change when the config changes (manually)
-    let basename = site.to_file_base_name();
-    let changed = site_store.write_only_changed(&basename, extension, &content.text)?;
+    let mut path = site.to_file_path();
+    path.set_extension(extension);
+    let changed = site_store::write_only_changed(&path, &content.text)?;
     Ok((changed, ip_version, took))
 }
 

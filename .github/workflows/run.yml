@@ -30,6 +30,7 @@ jobs:
       - run: cargo build
 
       - name: website-stalker run --all
+        working-directory: sites
         env:
           WEBSITE_STALKER_FROM: ${{ secrets.WEBSITE_STALKER_FROM }}
         run: cargo run -- run --all

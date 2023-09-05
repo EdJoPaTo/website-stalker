@@ -6,7 +6,7 @@ use crate::final_message::FinalMessage;
 use crate::http::validate_from;
 use crate::site::{Options, Site};
 
-pub const EXAMPLE_CONF: &str = include_str!("../website-stalker.yaml");
+pub const EXAMPLE_CONF: &str = include_str!("../sites/website-stalker.yaml");
 
 #[derive(Debug, Deserialize, Serialize, PartialEq, Eq)]
 pub struct Config {
