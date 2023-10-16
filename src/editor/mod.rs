@@ -1,3 +1,4 @@
+use anyhow::anyhow;
 use serde::{Deserialize, Serialize};
 use url::Url;
 
@@ -33,6 +34,22 @@ pub enum Editor {
 }
 
 impl Editor {
+    pub const fn log_name(&self) -> &'static str {
+        // TODO: can serde do this?
+        match self {
+            Self::CssRemove(_) => "css_remove",
+            Self::CssSelect(_) => "css_select",
+            Self::HtmlMarkdownify => "html_markdownify",
+            Self::HtmlPrettify => "html_prettify",
+            Self::HtmlSanitize => "html_sanitize",
+            Self::HtmlTextify => "html_textify",
+            Self::HtmlUrlCanonicalize => "html_url_canonicalize",
+            Self::JsonPrettify => "json_prettify",
+            Self::RegexReplace(_) => "regex_replace",
+            Self::Rss(_) => "rss",
+        }
+    }
+
     pub fn is_valid(&self) -> anyhow::Result<()> {
         match &self {
             Self::CssRemove(e) => e.is_valid()?,
@@ -96,8 +113,10 @@ impl Editor {
 }
 
 pub fn apply_many(editors: &[Editor], url: &Url, mut content: Content) -> anyhow::Result<Content> {
-    for e in editors {
-        content = e.apply(url, &content)?;
+    for (i, e) in editors.iter().enumerate() {
+        content = e
+            .apply(url, &content)
+            .map_err(|err| anyhow!("in editor[{i}] {}: {err}", e.log_name()))?;
     }
     Ok(content)
 }
