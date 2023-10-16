@@ -76,11 +76,11 @@ fn serialize<T: Serialize>(node: &T) -> anyhow::Result<String> {
 
 #[test]
 fn works() {
-    let html = r#"<html><body>Just a <div>test</div></body></html>"#;
+    let html = r"<html><body>Just a <div>test</div></body></html>";
     assert_eq!(
         textify(html).unwrap(),
-        r#"Just a
-test"#
+        r"Just a
+test"
     );
 }
 

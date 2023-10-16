@@ -4,20 +4,20 @@ pub fn sanitize(html: &str) -> String {
 
 #[test]
 fn simple() {
-    let ugly = r#"<html><body>Just a <div>test</div></body></html>"#;
-    assert_eq!(sanitize(ugly), r#"Just a <div>test</div>"#);
+    let ugly = r"<html><body>Just a <div>test</div></body></html>";
+    assert_eq!(sanitize(ugly), r"Just a <div>test</div>");
 }
 
 #[test]
 fn style_gone() {
     let ugly = r#"<html><body><div style="--a: 42;">test</div></body></html>"#;
-    assert_eq!(sanitize(ugly), r#"<div>test</div>"#);
+    assert_eq!(sanitize(ugly), r"<div>test</div>");
 }
 
 #[test]
 fn class_gone() {
     let ugly = r#"<html><body><div class="a">test</div></body></html>"#;
-    assert_eq!(sanitize(ugly), r#"<div>test</div>"#);
+    assert_eq!(sanitize(ugly), r"<div>test</div>");
 }
 
 #[test]

@@ -146,10 +146,10 @@ fn format_css_statement_works() {
 
 #[test]
 fn works() {
-    let ugly = r#"<html><body>Just a <div>test</div></body></html>"#;
+    let ugly = r"<html><body>Just a <div>test</div></body></html>";
     assert_eq!(
         prettify(ugly).unwrap(),
-        r#"<html>
+        r"<html>
 	<head>
 	</head>
 	<body>
@@ -158,7 +158,7 @@ fn works() {
 			test
 		</div>
 	</body>
-</html>"#
+</html>"
     );
 }
 
@@ -201,7 +201,7 @@ fn remove_empty_class_attribute() {
     let ugly = r#"<html><body><div class=" ">test</div></body></html>"#;
     assert_eq!(
         prettify(ugly).unwrap(),
-        r#"<html>
+        r"<html>
 	<head>
 	</head>
 	<body>
@@ -209,7 +209,7 @@ fn remove_empty_class_attribute() {
 			test
 		</div>
 	</body>
-</html>"#
+</html>"
     );
 }
 

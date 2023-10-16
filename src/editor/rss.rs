@@ -191,28 +191,28 @@ fn example_with_defaults_works() -> anyhow::Result<()> {
     };
     let result = rss.generate(&Url::parse("https://edjopato.de/posts/")?, html)?;
     println!("{result}");
-    assert!(result.contains(r#"website-stalker"#));
+    assert!(result.contains(r"website-stalker"));
     assert!(result.contains(r#"<rss version="2.0" "#));
-    assert!(result.contains(r#"<link>https://edjopato.de/posts/a/</link>"#));
-    assert!(result.contains(r#"<link>https://edjopato.de/posts/b/</link>"#));
-    assert!(result.contains(r#"<title>Whatever</title>"#));
-    assert!(result.contains(r#"<title>First</title>"#));
-    assert!(result.contains(r#"<title>Second</title>"#));
-    assert!(!result.contains(r#"ignore"#));
+    assert!(result.contains(r"<link>https://edjopato.de/posts/a/</link>"));
+    assert!(result.contains(r"<link>https://edjopato.de/posts/b/</link>"));
+    assert!(result.contains(r"<title>Whatever</title>"));
+    assert!(result.contains(r"<title>First</title>"));
+    assert!(result.contains(r"<title>Second</title>"));
+    assert!(!result.contains(r"ignore"));
     Ok(())
 }
 
 #[test]
 #[should_panic = "item_selector (article) selected nothing"]
 fn example_with_no_items_errors() {
-    let html = r#"<html>
+    let html = r"<html>
 	<head>
         <title>Whatever</title>
 	</head>
 	<body>
 		ignore
 	</body>
-</html>"#;
+</html>";
     let rss = Rss {
         title: None,
         item_selector: None,
@@ -253,14 +253,14 @@ fn example_with_item_equals_link() {
     let url = &Url::parse("https://edjopato.de/posts/").unwrap();
     let result = rss.generate(url, html).unwrap();
     println!("{result}");
-    assert!(result.contains(r#"website-stalker"#));
+    assert!(result.contains(r"website-stalker"));
     assert!(result.contains(r#"<rss version="2.0" "#));
-    assert!(result.contains(r#"<link>https://edjopato.de/posts/a/</link>"#));
-    assert!(result.contains(r#"<link>https://edjopato.de/posts/b/</link>"#));
-    assert!(result.contains(r#"<title>Whatever</title>"#));
-    assert!(result.contains(r#"<title>First</title>"#));
-    assert!(result.contains(r#"<title>Second</title>"#));
-    assert!(!result.contains(r#"ignore"#));
+    assert!(result.contains(r"<link>https://edjopato.de/posts/a/</link>"));
+    assert!(result.contains(r"<link>https://edjopato.de/posts/b/</link>"));
+    assert!(result.contains(r"<title>Whatever</title>"));
+    assert!(result.contains(r"<title>First</title>"));
+    assert!(result.contains(r"<title>Second</title>"));
+    assert!(!result.contains(r"ignore"));
 }
 
 #[test]
@@ -297,13 +297,13 @@ fn ugly_example_works() {
     let url = &Url::parse("https://edjopato.de/posts/").unwrap();
     let result = rss.generate(url, html).unwrap();
     println!("{result}");
-    assert!(result.contains(r#"website-stalker"#));
+    assert!(result.contains(r"website-stalker"));
     assert!(result.contains(r#"<rss version="2.0" "#));
-    assert!(result.contains(r#"<link>https://edjopato.de/posts/a/</link>"#));
-    assert!(result.contains(r#"<link>https://edjopato.de/posts/b/</link>"#));
-    assert!(result.contains(r#"<title>My title</title>"#));
-    assert!(result.contains(r#"<title>First</title>"#));
-    assert!(result.contains(r#"<title>Second</title>"#));
-    assert!(!result.contains(r#"buy-now"#));
-    assert!(!result.contains(r#"Whatever"#));
+    assert!(result.contains(r"<link>https://edjopato.de/posts/a/</link>"));
+    assert!(result.contains(r"<link>https://edjopato.de/posts/b/</link>"));
+    assert!(result.contains(r"<title>My title</title>"));
+    assert!(result.contains(r"<title>First</title>"));
+    assert!(result.contains(r"<title>Second</title>"));
+    assert!(!result.contains(r"buy-now"));
+    assert!(!result.contains(r"Whatever"));
 }

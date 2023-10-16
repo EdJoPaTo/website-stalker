@@ -74,13 +74,13 @@ fn selects_classes_b() {
 fn selects_tag() {
     let selector = CssSelector("p".to_string());
     let html = selector.apply(EXAMPLE_HTML).unwrap();
-    assert_eq!(html, r#"<p>A</p>"#);
+    assert_eq!(html, r"<p>A</p>");
 }
 
 #[test]
 #[should_panic = "selected nothing"]
 fn select_not_found() {
     CssSelector("p".to_string())
-        .apply(r#"<html><head></head><body>test</body></html>"#)
+        .apply(r"<html><head></head><body>test</body></html>")
         .unwrap();
 }
