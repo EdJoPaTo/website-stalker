@@ -27,12 +27,6 @@ pub enum UrlVariants {
     Many(Vec<Url>),
 }
 
-impl From<Url> for UrlVariants {
-    fn from(url: Url) -> Self {
-        Self::Single(url)
-    }
-}
-
 impl UrlVariants {
     pub fn is_empty(&self) -> bool {
         match self {

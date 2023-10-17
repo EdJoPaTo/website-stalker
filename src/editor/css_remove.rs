@@ -28,15 +28,6 @@ impl CssRemover {
     }
 }
 
-impl core::str::FromStr for CssRemover {
-    type Err = anyhow::Error;
-    fn from_str(s: &str) -> Result<Self, Self::Err> {
-        let s = Self(s.to_string());
-        s.parse()?;
-        Ok(s)
-    }
-}
-
 #[test]
 fn valid() {
     let s = CssRemover("body".to_string());

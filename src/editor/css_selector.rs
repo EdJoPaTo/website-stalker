@@ -30,15 +30,6 @@ impl CssSelector {
     }
 }
 
-impl core::str::FromStr for CssSelector {
-    type Err = anyhow::Error;
-    fn from_str(s: &str) -> Result<Self, Self::Err> {
-        let s = Self(s.to_string());
-        s.parse()?;
-        Ok(s)
-    }
-}
-
 #[test]
 fn valid() {
     let s = CssSelector("body".to_string());
