@@ -6,7 +6,7 @@ pub struct CssSelector(String);
 impl CssSelector {
     fn parse(&self) -> anyhow::Result<scraper::Selector> {
         let scrape_selector = scraper::Selector::parse(&self.0)
-            .map_err(|err| anyhow::anyhow!("css selector ({}) parse error: {err:?}", self.0))?;
+            .map_err(|err| anyhow::anyhow!("({}) parse error: {err:?}", self.0))?;
 
         Ok(scrape_selector)
     }
@@ -24,7 +24,7 @@ impl CssSelector {
             .collect::<Vec<_>>();
 
         if selected.is_empty() {
-            anyhow::bail!("css_selector ({}) selected nothing", self.0);
+            anyhow::bail!("selected nothing ({})", self.0);
         }
         Ok(selected.join("\n"))
     }

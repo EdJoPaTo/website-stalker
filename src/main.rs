@@ -251,7 +251,7 @@ async fn stalk_and_save_site(
     };
 
     // Use response.url as canonical urls for example are relative to the actual url
-    let content = editor::apply_many(&site.options.editors, &url, content)?;
+    let content = editor::Editor::apply_many(&site.options.editors, &url, content)?;
     let extension = content.extension.unwrap_or("txt");
 
     // Use site.url as the file basename should only change when the config changes (manually)

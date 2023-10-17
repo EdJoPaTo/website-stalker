@@ -31,10 +31,6 @@ pub struct Options {
 }
 
 impl Site {
-    pub fn is_valid(&self) -> anyhow::Result<()> {
-        self.options.is_valid()
-    }
-
     pub fn to_file_path(&self) -> PathBuf {
         self.options.filename.clone().unwrap_or_else(|| {
             let folder = filename::domainfolder(&self.url);
@@ -63,20 +59,17 @@ impl Site {
         sites.iter().map(Self::to_file_path).collect()
     }
 
-    pub fn validate_no_duplicate(sites: &[Self]) -> Result<(), String> {
+    pub fn validate_no_duplicate(sites: &[Self]) -> anyhow::Result<()> {
         // TODO: return url or something of specific duplicates
         let mut uniq = sites.iter().map(Self::unique_idenfier).collect::<Vec<_>>();
         uniq.sort_unstable();
         let total = uniq.len();
         uniq.dedup();
-        if uniq.len() == total {
-            Ok(())
-        } else {
-            Err(
-                "Some sites are duplicates of each other or result in the same filename."
-                    .to_string(),
-            )
-        }
+        anyhow::ensure!(
+            uniq.len() == total,
+            "Some sites are duplicates of each other or result in the same filename."
+        );
+        Ok(())
     }
 }
 
@@ -89,9 +82,7 @@ impl Options {
             k.parse::<reqwest::header::HeaderName>()?;
             v.parse::<reqwest::header::HeaderValue>()?;
         }
-        for e in &self.editors {
-            e.is_valid()?;
-        }
+        Editor::many_valid(&self.editors)?;
         Ok(())
     }
 }

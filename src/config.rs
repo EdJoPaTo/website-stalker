@@ -103,15 +103,14 @@ impl Config {
         anyhow::ensure!(!self.sites.is_empty(), "site list is empty");
         for entry in &self.sites {
             anyhow::ensure!(!entry.url.is_empty(), "site entry has no urls");
+
+            if let Err(err) = entry.options.is_valid() {
+                anyhow::bail!("site options are invalid: {err}\n{entry:?}");
+            }
         }
 
         let sites = self.get_sites();
-        Site::validate_no_duplicate(&sites).map_err(|err| anyhow!("{err}"))?;
-        for site in sites {
-            if let Err(err) = site.is_valid() {
-                anyhow::bail!("site entry is invalid: {err}\n{site:?}");
-            }
-        }
+        Site::validate_no_duplicate(&sites)?;
         Ok(())
     }
 }

@@ -50,7 +50,7 @@ impl Editor {
         }
     }
 
-    pub fn is_valid(&self) -> anyhow::Result<()> {
+    fn is_valid(&self) -> anyhow::Result<()> {
         match &self {
             Self::CssRemove(e) => e.is_valid()?,
             Self::CssSelect(e) => e.is_valid()?,
@@ -66,7 +66,7 @@ impl Editor {
         Ok(())
     }
 
-    pub fn apply(&self, url: &Url, input: &Content) -> anyhow::Result<Content> {
+    fn apply(&self, url: &Url, input: &Content) -> anyhow::Result<Content> {
         match &self {
             Self::CssRemove(e) => Ok(Content {
                 extension: Some("html"),
@@ -110,13 +110,25 @@ impl Editor {
             }),
         }
     }
-}
 
-pub fn apply_many(editors: &[Editor], url: &Url, mut content: Content) -> anyhow::Result<Content> {
-    for (i, e) in editors.iter().enumerate() {
-        content = e
-            .apply(url, &content)
-            .map_err(|err| anyhow!("in editor[{i}] {}: {err}", e.log_name()))?;
+    pub fn many_valid(editors: &[Self]) -> anyhow::Result<()> {
+        for (i, e) in editors.iter().enumerate() {
+            e.is_valid()
+                .map_err(|err| anyhow!("in editor[{i}] {}: {err}", e.log_name()))?;
+        }
+        Ok(())
     }
-    Ok(content)
+
+    pub fn apply_many(
+        editors: &[Self],
+        url: &Url,
+        mut content: Content,
+    ) -> anyhow::Result<Content> {
+        for (i, e) in editors.iter().enumerate() {
+            content = e
+                .apply(url, &content)
+                .map_err(|err| anyhow!("in editor[{i}] {}: {err}", e.log_name()))?;
+        }
+        Ok(content)
+    }
 }
