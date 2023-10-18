@@ -4,6 +4,7 @@ use url::Url;
 
 pub mod css_remove;
 pub mod css_selector;
+pub mod css_sort;
 pub mod html_markdown;
 pub mod html_pretty;
 pub mod html_sanitize;
@@ -23,6 +24,7 @@ pub struct Content {
 pub enum Editor {
     CssRemove(css_remove::CssRemover),
     CssSelect(css_selector::CssSelector),
+    CssSort(css_sort::CssSort),
     HtmlMarkdownify,
     HtmlPrettify,
     HtmlSanitize,
@@ -39,6 +41,7 @@ impl Editor {
         match self {
             Self::CssRemove(_) => "css_remove",
             Self::CssSelect(_) => "css_select",
+            Self::CssSort(_) => "css_sort",
             Self::HtmlMarkdownify => "html_markdownify",
             Self::HtmlPrettify => "html_prettify",
             Self::HtmlSanitize => "html_sanitize",
@@ -54,6 +57,7 @@ impl Editor {
         match &self {
             Self::CssRemove(e) => e.is_valid()?,
             Self::CssSelect(e) => e.is_valid()?,
+            Self::CssSort(e) => e.is_valid()?,
             Self::RegexReplace(e) => e.is_valid()?,
             Self::Rss(e) => e.is_valid()?,
             Self::HtmlMarkdownify
@@ -73,6 +77,10 @@ impl Editor {
                 text: e.apply(&input.text)?,
             }),
             Self::CssSelect(e) => Ok(Content {
+                extension: Some("html"),
+                text: e.apply(&input.text)?,
+            }),
+            Self::CssSort(e) => Ok(Content {
                 extension: Some("html"),
                 text: e.apply(&input.text)?,
             }),
