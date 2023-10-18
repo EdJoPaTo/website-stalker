@@ -108,7 +108,9 @@ impl Response {
 
 pub fn validate_from(from: &str) -> anyhow::Result<()> {
     let value = HeaderValue::from_str(from)?;
-    let value = value.to_str()?;
+    let value = value
+        .to_str()
+        .map_err(|err| anyhow::anyhow!("from contains non ASCII characters {err}"))?;
     if !value.contains('@') || !value.contains('.') {
         anyhow::bail!("doesnt look like an email address: {from}");
     }
@@ -128,7 +130,7 @@ fn from_is_no_email() {
 }
 
 #[test]
-#[should_panic]
+#[should_panic = "ASCII char"]
 fn from_is_no_ascii() {
     validate_from("föo@bär.de").unwrap();
 }
