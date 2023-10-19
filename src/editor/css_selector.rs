@@ -1,7 +1,7 @@
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Clone, Deserialize, Serialize, PartialEq, Eq)]
-pub struct CssSelector(String);
+pub struct CssSelector(pub String);
 
 impl CssSelector {
     fn parse(&self) -> anyhow::Result<scraper::Selector> {

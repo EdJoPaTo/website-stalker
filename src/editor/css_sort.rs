@@ -1,17 +1,21 @@
 use serde::{Deserialize, Serialize};
+use url::Url;
+
+use super::Editor;
 
 #[derive(Debug, Clone, Deserialize, Serialize, PartialEq, Eq)]
 pub struct CssSort {
-    selector: String,
+    pub selector: String,
+
     #[serde(default)]
-    sort_by: Option<String>,
-    #[serde(default)]
-    reverse: bool,
+    pub reverse: bool,
+
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub sort_by: Vec<Editor>,
 }
 
 struct Internal {
     selector: scraper::Selector,
-    sort_by: Option<scraper::Selector>,
 }
 
 impl CssSort {
@@ -19,27 +23,18 @@ impl CssSort {
         let scrape_selector = scraper::Selector::parse(&self.selector)
             .map_err(|err| anyhow::anyhow!("selector ({}) parse error: {err:?}", self.selector))?;
 
-        let scrape_sort_by = if let Some(sort_by) = &self.sort_by {
-            Some(
-                scraper::Selector::parse(sort_by)
-                    .map_err(|err| anyhow::anyhow!("sort_by ({sort_by}) parse error: {err:?}"))?,
-            )
-        } else {
-            None
-        };
-
         Ok(Internal {
             selector: scrape_selector,
-            sort_by: scrape_sort_by,
         })
     }
 
     pub fn is_valid(&self) -> anyhow::Result<()> {
         self.parse()?;
+        Editor::many_valid(&self.sort_by)?;
         Ok(())
     }
 
-    pub fn apply(&self, html: &str) -> anyhow::Result<String> {
+    pub fn apply(&self, url: &Url, html: &str) -> anyhow::Result<String> {
         let internal = self.parse()?;
 
         let parsed_html = scraper::Html::parse_document(html);
@@ -49,11 +44,19 @@ impl CssSort {
             anyhow::bail!("selector ({}) selected nothing", self.selector);
         }
 
-        selected.sort_by_cached_key(|o| {
-            internal.sort_by.as_ref().map_or_else(
-                || o.html(),
-                |by| o.select(by).map(|i| i.html()).collect::<String>(),
-            )
+        selected.sort_by_cached_key(|item| {
+            let mut content = super::Content {
+                extension: Some("html"),
+                text: item.html(),
+            };
+            for editor in &self.sort_by {
+                if let Ok(c) = editor.apply(url, &content) {
+                    content = c;
+                } else {
+                    break;
+                }
+            }
+            content.text
         });
 
         if self.reverse {
@@ -72,7 +75,7 @@ impl CssSort {
 fn valid() {
     let s = CssSort {
         selector: "ul".to_string(),
-        sort_by: None,
+        sort_by: Vec::new(),
         reverse: false,
     };
     let result = dbg!(s.is_valid());
@@ -84,7 +87,7 @@ fn valid() {
 fn invalid() {
     CssSort {
         selector: ".".to_string(),
-        sort_by: None,
+        sort_by: Vec::new(),
         reverse: false,
     }
     .is_valid()
@@ -93,36 +96,39 @@ fn invalid() {
 
 #[test]
 fn simple_example() {
+    let url = Url::parse("https://edjopato.de/").unwrap();
     let input = r"<html><head></head><body><p>A</p><p>C</p><p>B</p></body></html>";
     let expected = r"<p>A</p>
 <p>B</p>
 <p>C</p>";
     let s = CssSort {
         selector: "p".to_string(),
-        sort_by: None,
+        sort_by: Vec::new(),
         reverse: false,
     };
-    let html = s.apply(input).unwrap();
+    let html = s.apply(&url, input).unwrap();
     assert_eq!(html, expected);
 }
 
 #[test]
 fn simple_example_reverse() {
+    let url = Url::parse("https://edjopato.de/").unwrap();
     let input = r"<html><head></head><body><p>A</p><p>C</p><p>B</p></body></html>";
     let expected = r"<p>C</p>
 <p>B</p>
 <p>A</p>";
     let s = CssSort {
         selector: "p".to_string(),
-        sort_by: None,
+        sort_by: Vec::new(),
         reverse: true,
     };
-    let html = s.apply(input).unwrap();
+    let html = s.apply(&url, input).unwrap();
     assert_eq!(html, expected);
 }
 
 #[test]
 fn sort_by_example() {
+    let url = Url::parse("https://edjopato.de/").unwrap();
     let input = r#"<html><head></head><body>
 <article><h3>A</h3><a id="B">Bla</a></article>
 <article><h3>B</h3><a id="A">Bla</a></article>
@@ -131,9 +137,11 @@ fn sort_by_example() {
 <article><h3>A</h3><a id="B">Bla</a></article>"#;
     let s = CssSort {
         selector: "article".to_string(),
-        sort_by: Some("a".to_string()),
+        sort_by: vec![Editor::CssSelect(super::css_selector::CssSelector(
+            "a".to_string(),
+        ))],
         reverse: false,
     };
-    let html = s.apply(input).unwrap();
+    let html = s.apply(&url, input).unwrap();
     assert_eq!(html, expected);
 }

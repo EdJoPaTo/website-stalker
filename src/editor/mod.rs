@@ -82,7 +82,7 @@ impl Editor {
             }),
             Self::CssSort(e) => Ok(Content {
                 extension: Some("html"),
-                text: e.apply(&input.text)?,
+                text: e.apply(url, &input.text)?,
             }),
             Self::HtmlMarkdownify => Ok(Content {
                 extension: Some("md"),

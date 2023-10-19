@@ -63,9 +63,7 @@ impl Rss {
 
     pub fn is_valid(&self) -> anyhow::Result<()> {
         self.parse_selectors()?;
-        for editor in &self.content_editors {
-            editor.is_valid()?;
-        }
+        Editor::many_valid(&self.content_editors)?;
         Ok(())
     }
 
