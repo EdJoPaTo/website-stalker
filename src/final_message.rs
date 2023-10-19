@@ -192,8 +192,19 @@ fn commit_message_for_two_different_domain_sites() {
 }
 
 #[test]
+fn simple_template_is_valid() {
+    FinalMessage::validate_template("Hello {{name}}").unwrap();
+}
+
+#[test]
 fn default_template_is_valid() {
     FinalMessage::validate_template(DEFAULT_NOTIFICATION_TEMPLATE).unwrap();
+}
+
+#[test]
+#[should_panic = "unclosed tag"]
+fn invalid_template_isnt_valid() {
+    FinalMessage::validate_template("Hello World {{").unwrap();
 }
 
 #[test]

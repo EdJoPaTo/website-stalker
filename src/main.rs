@@ -5,6 +5,7 @@ use std::{fs, process};
 use clap::Parser;
 use itertools::Itertools;
 use regex::Regex;
+use reqwest::header::{HeaderValue, FROM};
 use tokio::sync::mpsc::channel;
 use tokio::time::sleep;
 
@@ -90,6 +91,10 @@ async fn main() {
 #[allow(clippy::too_many_lines)]
 async fn run(do_commit: bool, site_filter: Option<&Regex>) -> anyhow::Result<()> {
     let config = Config::load().expect("failed to load your configuration");
+    let from = config
+        .from
+        .parse::<HeaderValue>()
+        .expect("FROM has to be valid");
 
     let sites = config.get_sites();
     let sites_total = sites.len();
@@ -120,11 +125,10 @@ Hint: Change the filter or use all sites with 'run --all'."
     match &repo {
         Ok(repo) => {
             if repo.is_something_modified()? {
-                if do_commit {
-                    anyhow::bail!(
-                        "The git repository is unclean. --commit can only be used in a clean repository."
-                    );
-                }
+                anyhow::ensure!(
+                    !do_commit,
+                    "The git repository is unclean. --commit can only be used in a clean repository."
+                );
                 logger::warn("The git repository is unclean.");
             }
         }
@@ -158,7 +162,7 @@ Hint: Change the filter or use all sites with 'run --all'."
             .into_iter()
             .group_by(|a| a.url.host_str().unwrap().to_string());
         for (_, group) in &groups {
-            let from = config.from.clone();
+            let from = from.clone();
             let sites = group.collect::<Vec<_>>();
             let tx = tx.clone();
             tokio::spawn(async move {
@@ -227,13 +231,16 @@ Hint: Change the filter or use all sites with 'run --all'."
 }
 
 async fn stalk_and_save_site(
-    from: &str,
+    from: &HeaderValue,
     site: &Site,
 ) -> anyhow::Result<(ChangeKind, http::IpVersion, Duration)> {
+    let mut headers = site.options.headers.clone();
+    if !headers.contains_key(FROM) {
+        headers.insert(FROM, from.clone());
+    }
     let response = http::get(
         site.url.as_str(),
-        &site.options.headers,
-        from,
+        headers,
         site.options.accept_invalid_certs,
     )
     .await?;

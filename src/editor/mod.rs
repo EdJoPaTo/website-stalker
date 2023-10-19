@@ -1,5 +1,5 @@
 use anyhow::anyhow;
-use serde::{Deserialize, Serialize};
+use serde::Deserialize;
 use url::Url;
 
 pub mod css_remove;
@@ -18,11 +18,11 @@ pub struct Content {
     pub text: String,
 }
 
-#[derive(Debug, Clone, Deserialize, Serialize, PartialEq, Eq)]
+#[derive(Debug, Clone, Deserialize)]
 #[serde(rename_all = "snake_case")]
 pub enum Editor {
-    CssRemove(css_remove::CssRemover),
-    CssSelect(css_selector::CssSelector),
+    CssRemove(#[serde(deserialize_with = "deserialize_selector")] scraper::Selector),
+    CssSelect(#[serde(deserialize_with = "deserialize_selector")] scraper::Selector),
     HtmlMarkdownify,
     HtmlPrettify,
     HtmlSanitize,
@@ -50,31 +50,15 @@ impl Editor {
         }
     }
 
-    fn is_valid(&self) -> anyhow::Result<()> {
-        match &self {
-            Self::CssRemove(e) => e.is_valid()?,
-            Self::CssSelect(e) => e.is_valid()?,
-            Self::RegexReplace(e) => e.is_valid()?,
-            Self::Rss(e) => e.is_valid()?,
-            Self::HtmlMarkdownify
-            | Self::HtmlPrettify
-            | Self::HtmlSanitize
-            | Self::HtmlTextify
-            | Self::HtmlUrlCanonicalize
-            | Self::JsonPrettify => {}
-        }
-        Ok(())
-    }
-
     fn apply(&self, url: &Url, input: &Content) -> anyhow::Result<Content> {
         match &self {
-            Self::CssRemove(e) => Ok(Content {
+            Self::CssRemove(s) => Ok(Content {
                 extension: Some("html"),
-                text: e.apply(&input.text)?,
+                text: css_remove::apply(s, &input.text),
             }),
-            Self::CssSelect(e) => Ok(Content {
+            Self::CssSelect(s) => Ok(Content {
                 extension: Some("html"),
-                text: e.apply(&input.text)?,
+                text: css_selector::apply(s, &input.text)?,
             }),
             Self::HtmlMarkdownify => Ok(Content {
                 extension: Some("md"),
@@ -100,23 +84,15 @@ impl Editor {
                 extension: Some("json"),
                 text: json_prettify::prettify(&input.text)?,
             }),
-            Self::RegexReplace(e) => Ok(Content {
+            Self::RegexReplace(rr) => Ok(Content {
                 extension: input.extension,
-                text: e.replace_all(&input.text)?.to_string(),
+                text: rr.replace_all(&input.text).to_string(),
             }),
-            Self::Rss(e) => Ok(Content {
+            Self::Rss(rss) => Ok(Content {
                 extension: Some("xml"),
-                text: e.generate(url, &input.text)?,
+                text: rss.generate(url, &input.text)?,
             }),
         }
-    }
-
-    pub fn many_valid(editors: &[Self]) -> anyhow::Result<()> {
-        for (i, e) in editors.iter().enumerate() {
-            e.is_valid()
-                .map_err(|err| anyhow!("in editor[{i}] {}: {err}", e.log_name()))?;
-        }
-        Ok(())
     }
 
     pub fn apply_many(
@@ -131,4 +107,19 @@ impl Editor {
         }
         Ok(content)
     }
+}
+
+fn deserialize_selector<'de, D>(deserializer: D) -> Result<scraper::Selector, D::Error>
+where
+    D: serde::Deserializer<'de>,
+{
+    let s = String::deserialize(deserializer)?;
+    scraper::Selector::parse(&s).map_err(serde::de::Error::custom)
+}
+
+fn deserialize_selector_opt<'de, D>(deserializer: D) -> Result<Option<scraper::Selector>, D::Error>
+where
+    D: serde::Deserializer<'de>,
+{
+    Ok(Some(deserialize_selector(deserializer)?))
 }

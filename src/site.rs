@@ -1,6 +1,7 @@
 use std::path::{Path, PathBuf};
 
-use serde::{Deserialize, Serialize};
+use reqwest::header::{HeaderMap, HeaderName, HeaderValue};
+use serde::Deserialize;
 use url::Url;
 
 use crate::editor::Editor;
@@ -12,7 +13,7 @@ pub struct Site {
     pub options: Options,
 }
 
-#[derive(Debug, Clone, Deserialize, Serialize, PartialEq, Eq)]
+#[derive(Debug, Clone, Deserialize)]
 pub struct Options {
     #[serde(default, skip_serializing_if = "core::ops::Not::not")]
     pub accept_invalid_certs: bool,
@@ -23,8 +24,12 @@ pub struct Options {
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub filename: Option<PathBuf>,
 
-    #[serde(default, skip_serializing_if = "Vec::is_empty")]
-    pub headers: Vec<String>,
+    #[serde(
+        default,
+        skip_serializing_if = "Vec::is_empty",
+        deserialize_with = "deserialize_headermap"
+    )]
+    pub headers: HeaderMap,
 
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub editors: Vec<Editor>,
@@ -73,18 +78,21 @@ impl Site {
     }
 }
 
-impl Options {
-    pub fn is_valid(&self) -> anyhow::Result<()> {
-        for entry in &self.headers {
-            let (k, v) = entry.split_once(": ").ok_or_else(|| {
-                anyhow::anyhow!("does not contain ': ' to separate header key/value: {entry}")
-            })?;
-            k.parse::<reqwest::header::HeaderName>()?;
-            v.parse::<reqwest::header::HeaderValue>()?;
-        }
-        Editor::many_valid(&self.editors)?;
-        Ok(())
+fn deserialize_headermap<'de, D>(deserializer: D) -> Result<HeaderMap, D::Error>
+where
+    D: serde::Deserializer<'de>,
+{
+    let headers = Vec::<String>::deserialize(deserializer)?;
+    let mut result = HeaderMap::new();
+    for entry in headers {
+        let (k, v) = entry.split_once(": ").ok_or_else(|| {
+            serde::de::Error::custom("does not contain ': ' to separate header key/value")
+        })?;
+        let k = k.parse::<HeaderName>().map_err(serde::de::Error::custom)?;
+        let v = v.parse::<HeaderValue>().map_err(serde::de::Error::custom)?;
+        result.append(k, v);
     }
+    Ok(result)
 }
 
 #[test]
@@ -96,7 +104,7 @@ fn validate_finds_duplicates() {
             options: Options {
                 accept_invalid_certs: false,
                 ignore_error: false,
-                headers: Vec::new(),
+                headers: HeaderMap::new(),
                 editors: vec![],
                 filename: None,
             },
@@ -106,7 +114,7 @@ fn validate_finds_duplicates() {
             options: Options {
                 accept_invalid_certs: false,
                 ignore_error: false,
-                headers: Vec::new(),
+                headers: HeaderMap::new(),
                 editors: vec![],
                 filename: None,
             },
@@ -116,7 +124,7 @@ fn validate_finds_duplicates() {
             options: Options {
                 accept_invalid_certs: false,
                 ignore_error: false,
-                headers: Vec::new(),
+                headers: HeaderMap::new(),
                 editors: vec![],
                 filename: None,
             },
