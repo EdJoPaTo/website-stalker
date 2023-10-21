@@ -49,7 +49,7 @@ impl<Wr: Write> Serializer for HtmlTextSerializer<Wr> {
 pub fn textify(html: &str) -> anyhow::Result<String> {
     static MANY_NEWLINES: Lazy<Regex> = lazy_regex!(r"\n{3,}");
 
-    let doc = kuchiki::parse_html().one(html);
+    let doc = kuchikiki::parse_html().one(html);
     let result = serialize(&doc)?
         .lines()
         .map(str::trim)
