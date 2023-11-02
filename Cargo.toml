@@ -31,7 +31,7 @@ lazy-regex = "3"
 mime2ext = "0.1"
 mustache = "0.9"
 once_cell = "1"
-pling = "0.2"
+pling = "0.3"
 regex = "1"
 rss = { version = "2", features = ["validation"] }
 scraper = "0.17"
