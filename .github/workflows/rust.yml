@@ -4,6 +4,9 @@ on:
   push:
   pull_request:
 
+env:
+  RUSTFLAGS: --deny warnings
+
 jobs:
   rustfmt:
     runs-on: ubuntu-latest
@@ -30,7 +33,7 @@ jobs:
           - macos-latest
           - windows-latest
         clippyargs:
-          - -D warnings -D clippy::pedantic
+          - -D clippy::pedantic
         features:
           - "" # default features
         include:
@@ -38,11 +41,11 @@ jobs:
           - toolchain: beta
             os: ubuntu-latest
             features: --all-features
-            clippyargs: -D warnings -D clippy::pedantic -D clippy::nursery
+            clippyargs: -D clippy::pedantic -D clippy::nursery
           - toolchain: nightly
             os: ubuntu-latest
             features: --all-features
-            clippyargs: -D warnings -D clippy::pedantic
+            clippyargs: -D clippy::pedantic
     steps:
       - name: Setup Rust
         uses: dtolnay/rust-toolchain@master
@@ -60,6 +63,9 @@ jobs:
 
       - name: Check docs
         run: cargo doc --verbose --locked --no-deps ${{ matrix.features }}
+
+      - name: Build
+        run: cargo build --verbose --locked --all-targets ${{ matrix.features }}
 
       - name: Run tests
         run: cargo test --verbose --locked ${{ matrix.features }}
@@ -85,9 +91,8 @@ jobs:
             rpm: true
           - triple: arm-unknown-linux-gnueabihf
             os: ubuntu-latest
-          # https://github.com/briansmith/ring/issues/1419
-          # - triple: riscv64gc-unknown-linux-gnu
-          #   os: ubuntu-latest
+          - triple: riscv64gc-unknown-linux-gnu
+            os: ubuntu-latest
 
           - triple: x86_64-apple-darwin
             os: macos-latest
@@ -96,9 +101,8 @@ jobs:
 
           - triple: x86_64-pc-windows-msvc
             os: windows-latest
-          # https://github.com/briansmith/ring/issues/1167
-          # - triple: aarch64-pc-windows-msvc
-          #   os: windows-latest
+          - triple: aarch64-pc-windows-msvc
+            os: windows-latest
     steps:
       - name: Setup Rust
         uses: dtolnay/rust-toolchain@master
