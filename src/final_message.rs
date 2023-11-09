@@ -78,12 +78,12 @@ impl FinalMessage {
             .join("\n");
 
         let text = format!("{head}\n\n{body}");
-        text.trim().to_string()
+        text.trim().to_owned()
     }
 
     fn into_mustache_data(self, commit: Option<String>) -> MustacheData {
         let singlehost = if let [single] = self.hosts.as_slice() {
-            Some(single.to_string())
+            Some(single.clone())
         } else {
             None
         };
@@ -105,7 +105,7 @@ impl FinalMessage {
         let template = mustache::compile_str(template.unwrap_or(DEFAULT_NOTIFICATION_TEMPLATE))?;
         let data = self.into_mustache_data(commit);
         let message = template.render_to_string(&data)?;
-        Ok(message.trim().to_string())
+        Ok(message.trim().to_owned())
     }
 
     fn example_single() -> Self {

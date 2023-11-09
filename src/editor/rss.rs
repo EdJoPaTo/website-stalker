@@ -64,19 +64,19 @@ impl Rss {
 
         let mut channel = ChannelBuilder::default();
         channel.link(url.to_string());
-        channel.generator(GENERATOR.to_string());
+        channel.generator(GENERATOR.to_owned());
 
         if let Some(title) = &self.title {
             channel.title(title.to_string());
         } else if let Some(e) = parsed_html.select(&TITLE).next() {
-            channel.title(e.inner_html().trim().to_string());
+            channel.title(e.inner_html().trim().to_owned());
         }
 
         if let Some(description) = parsed_html
             .select(&DESCRIPTION)
             .find_map(|e| e.value().attr("content"))
         {
-            channel.description(description.to_string());
+            channel.description(description.to_owned());
         }
 
         let mut items = Vec::new();
@@ -84,7 +84,7 @@ impl Rss {
             let mut builder = ItemBuilder::default();
 
             if let Some(title) = item.select(title).next() {
-                builder.title(title.text().map(str::trim).join("\n").trim().to_string());
+                builder.title(title.text().map(str::trim).join("\n").trim().to_owned());
             }
 
             // When the item is the link itself
@@ -157,21 +157,21 @@ fn example_with_defaults_works() -> anyhow::Result<()> {
     };
     let result = rss.generate(&Url::parse("https://edjopato.de/posts/")?, html)?;
     println!("{result}");
-    assert!(result.contains(r"website-stalker"));
+    assert!(result.contains("website-stalker"));
     assert!(result.contains(r#"<rss version="2.0" "#));
-    assert!(result.contains(r"<link>https://edjopato.de/posts/a/</link>"));
-    assert!(result.contains(r"<link>https://edjopato.de/posts/b/</link>"));
-    assert!(result.contains(r"<title>Whatever</title>"));
-    assert!(result.contains(r"<title>First</title>"));
-    assert!(result.contains(r"<title>Second</title>"));
-    assert!(!result.contains(r"ignore"));
+    assert!(result.contains("<link>https://edjopato.de/posts/a/</link>"));
+    assert!(result.contains("<link>https://edjopato.de/posts/b/</link>"));
+    assert!(result.contains("<title>Whatever</title>"));
+    assert!(result.contains("<title>First</title>"));
+    assert!(result.contains("<title>Second</title>"));
+    assert!(!result.contains("ignore"));
     Ok(())
 }
 
 #[test]
 #[should_panic = "item_selector selected nothing"]
 fn example_with_no_items_errors() {
-    let html = r"<html>
+    let html = "<html>
 	<head>
         <title>Whatever</title>
 	</head>
@@ -219,14 +219,14 @@ fn example_with_item_equals_link() {
     let url = &Url::parse("https://edjopato.de/posts/").unwrap();
     let result = rss.generate(url, html).unwrap();
     println!("{result}");
-    assert!(result.contains(r"website-stalker"));
+    assert!(result.contains("website-stalker"));
     assert!(result.contains(r#"<rss version="2.0" "#));
-    assert!(result.contains(r"<link>https://edjopato.de/posts/a/</link>"));
-    assert!(result.contains(r"<link>https://edjopato.de/posts/b/</link>"));
-    assert!(result.contains(r"<title>Whatever</title>"));
-    assert!(result.contains(r"<title>First</title>"));
-    assert!(result.contains(r"<title>Second</title>"));
-    assert!(!result.contains(r"ignore"));
+    assert!(result.contains("<link>https://edjopato.de/posts/a/</link>"));
+    assert!(result.contains("<link>https://edjopato.de/posts/b/</link>"));
+    assert!(result.contains("<title>Whatever</title>"));
+    assert!(result.contains("<title>First</title>"));
+    assert!(result.contains("<title>Second</title>"));
+    assert!(!result.contains("ignore"));
 }
 
 #[test]
@@ -251,7 +251,7 @@ fn ugly_example_works() {
 	</body>
 </html>"#;
     let rss = Rss {
-        title: Some("My title".to_string()),
+        title: Some("My title".to_owned()),
         item_selector: Some(Selector::parse(".entry").unwrap()),
         title_selector: Some(Selector::parse("h6").unwrap()),
         link_selector: Some(Selector::parse("a:last-of-type").unwrap()),
@@ -261,13 +261,13 @@ fn ugly_example_works() {
     let url = &Url::parse("https://edjopato.de/posts/").unwrap();
     let result = rss.generate(url, html).unwrap();
     println!("{result}");
-    assert!(result.contains(r"website-stalker"));
+    assert!(result.contains("website-stalker"));
     assert!(result.contains(r#"<rss version="2.0" "#));
-    assert!(result.contains(r"<link>https://edjopato.de/posts/a/</link>"));
-    assert!(result.contains(r"<link>https://edjopato.de/posts/b/</link>"));
-    assert!(result.contains(r"<title>My title</title>"));
-    assert!(result.contains(r"<title>First</title>"));
-    assert!(result.contains(r"<title>Second</title>"));
-    assert!(!result.contains(r"buy-now"));
-    assert!(!result.contains(r"Whatever"));
+    assert!(result.contains("<link>https://edjopato.de/posts/a/</link>"));
+    assert!(result.contains("<link>https://edjopato.de/posts/b/</link>"));
+    assert!(result.contains("<title>My title</title>"));
+    assert!(result.contains("<title>First</title>"));
+    assert!(result.contains("<title>Second</title>"));
+    assert!(!result.contains("buy-now"));
+    assert!(!result.contains("Whatever"));
 }

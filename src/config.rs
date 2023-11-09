@@ -110,7 +110,7 @@ fn example_sites_are_valid() {
 #[should_panic = "site list is empty"]
 fn validate_fails_on_empty_sites_list() {
     let config = Config {
-        from: "dummy".to_string(),
+        from: "dummy".to_owned(),
         notification_template: None,
         sites: vec![],
     };
@@ -121,7 +121,7 @@ fn validate_fails_on_empty_sites_list() {
 #[should_panic = "site entry has no urls"]
 fn validate_fails_on_sites_list_with_empty_many() {
     let config = Config {
-        from: "dummy".to_string(),
+        from: "dummy".to_owned(),
         notification_template: None,
         sites: vec![SiteEntry {
             url: UrlVariants::Many(vec![]),

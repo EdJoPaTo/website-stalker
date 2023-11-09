@@ -58,7 +58,7 @@ impl<Wr: Write> Serializer for HtmlPrettySerializer<Wr> {
                         Some((name, statements.join(" ")))
                     }
                 }
-                _ => Some((name, value.to_string())),
+                _ => Some((name, value.to_owned())),
             })
             .collect::<Vec<_>>();
         attrs.sort();
@@ -147,10 +147,10 @@ fn format_css_statement_works() {
 
 #[test]
 fn works() {
-    let ugly = r"<html><body>Just a <div>test</div></body></html>";
+    let ugly = "<html><body>Just a <div>test</div></body></html>";
     assert_eq!(
         prettify(ugly).unwrap(),
-        r"<html>
+        "<html>
 	<head>
 	</head>
 	<body>
@@ -202,7 +202,7 @@ fn remove_empty_class_attribute() {
     let ugly = r#"<html><body><div class=" ">test</div></body></html>"#;
     assert_eq!(
         prettify(ugly).unwrap(),
-        r"<html>
+        "<html>
 	<head>
 	</head>
 	<body>

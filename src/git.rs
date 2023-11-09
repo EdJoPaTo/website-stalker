@@ -12,7 +12,7 @@ fn git_command(dir: &Path, args: &[&str]) -> anyhow::Result<String> {
     let output = Command::new("git").args(args).current_dir(dir).output()?;
     if output.status.success() {
         let stdout = String::from_utf8(output.stdout)?;
-        Ok(stdout.trim().to_string())
+        Ok(stdout.trim().to_owned())
     } else {
         Err(anyhow::anyhow!(
             "failed git command \"{}\" with status code {}\nStdout: {}\nStderr: {}",
@@ -89,7 +89,7 @@ mod tests {
         let output = Command::new(program).args(args).current_dir(dir).output()?;
         if output.status.success() {
             let stdout = String::from_utf8(output.stdout)?;
-            Ok(stdout.trim().to_string())
+            Ok(stdout.trim().to_owned())
         } else {
             Err(anyhow::anyhow!(
                 "failed command \"{command}\" with status code {}\nStdout: {}\nStderr: {}",

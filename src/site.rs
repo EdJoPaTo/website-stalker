@@ -39,7 +39,7 @@ impl Site {
     pub fn to_file_path(&self) -> PathBuf {
         self.options.filename.clone().unwrap_or_else(|| {
             let folder = filename::domainfolder(&self.url);
-            let [first, rest @ ..] = &folder[..] else {
+            let [first, rest @ ..] = folder.as_slice() else {
                 unreachable!(
                     "domain has to have at least one segment {folder:?} {:?}",
                     self.url
@@ -56,8 +56,8 @@ impl Site {
     fn unique_idenfier(&self) -> String {
         self.to_file_path()
             .to_str()
-            .expect("the path is unicode already")
-            .to_string()
+            .expect("the path should be unicode already")
+            .to_owned()
     }
 
     pub fn get_all_file_paths(sites: &[Self]) -> Vec<PathBuf> {

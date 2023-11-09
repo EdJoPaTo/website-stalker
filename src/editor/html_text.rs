@@ -55,10 +55,7 @@ pub fn textify(html: &str) -> anyhow::Result<String> {
         .map(str::trim)
         .collect::<Vec<_>>()
         .join("\n");
-    let result = MANY_NEWLINES
-        .replace_all(&result, "\n\n")
-        .trim()
-        .to_string();
+    let result = MANY_NEWLINES.replace_all(&result, "\n\n").trim().to_owned();
     Ok(result)
 }
 
@@ -76,10 +73,10 @@ fn serialize<T: Serialize>(node: &T) -> anyhow::Result<String> {
 
 #[test]
 fn works() {
-    let html = r"<html><body>Just a <div>test</div></body></html>";
+    let html = "<html><body>Just a <div>test</div></body></html>";
     assert_eq!(
         textify(html).unwrap(),
-        r"Just a
+        "Just a
 test"
     );
 }

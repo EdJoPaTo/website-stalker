@@ -32,12 +32,12 @@ fn selects_classes_b() {
 fn selects_tag() {
     let selector = Selector::parse("p").unwrap();
     let html = apply(&selector, EXAMPLE_HTML).unwrap();
-    assert_eq!(html, r"<p>A</p>");
+    assert_eq!(html, "<p>A</p>");
 }
 
 #[test]
 #[should_panic = "selected nothing"]
 fn select_not_found() {
     let selector = Selector::parse("p").unwrap();
-    apply(&selector, r"<html><head></head><body>test</body></html>").unwrap();
+    apply(&selector, "<html><head></head><body>test</body></html>").unwrap();
 }

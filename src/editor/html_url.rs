@@ -37,7 +37,7 @@ impl<Wr: Write> Serializer for HtmlAbsLinkSerializer<Wr> {
                     })?
                     .to_string()
             } else {
-                value.to_string()
+                value.to_owned()
             };
             result_attrs.push((key, value));
         }

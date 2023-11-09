@@ -70,7 +70,7 @@ pub fn write_only_changed(path: &Path, content: &str) -> anyhow::Result<ChangeKi
     if let Some(parent) = path.parent() {
         create_dir_all(parent)?;
     }
-    let content = content.trim().to_string() + "\n";
+    let content = content.trim().to_owned() + "\n";
 
     let current = read_to_string(path).unwrap_or_default();
     let changed = current != content;

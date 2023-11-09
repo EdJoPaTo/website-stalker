@@ -28,7 +28,7 @@ where
 fn replaces() {
     let example = RegexReplacer {
         pattern: Regex::new(r"(\w)\w*").unwrap(),
-        replace: "$1".to_string(),
+        replace: "$1".to_owned(),
     };
     let result = example.replace_all("Hello world");
     assert_eq!(result, "H w");
@@ -38,7 +38,7 @@ fn replaces() {
 fn replaces_iso() {
     let example = RegexReplacer {
         pattern: Regex::new(r"\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\+\d{2}:\d{2}").unwrap(),
-        replace: "ISO8601".to_string(),
+        replace: "ISO8601".to_owned(),
     };
     let result = example.replace_all("2022-02-14T22:31:00+01:00");
     assert_eq!(result, "ISO8601");
