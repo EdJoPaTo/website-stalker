@@ -7,12 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- Improve error output message on editor error
+
 ## [0.21.0] - 2023-09-05
 
 ### Changed
 
 - Files are sorted into folders of their domains
-- Improve error output message on editor error
 
 ## [0.20.0] - 2023-04-11
 
