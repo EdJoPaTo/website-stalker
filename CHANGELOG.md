@@ -11,6 +11,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Improve error output message on editor error
 
+### Fixed
+
+- Correctly detect duplicate hosts for delays between them (to reduce load on the host)
+
 ## [0.21.0] - 2023-09-05
 
 ### Changed

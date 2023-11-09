@@ -1,9 +1,9 @@
 use core::fmt::Debug;
 use core::time::Duration;
+use std::collections::HashMap;
 use std::{fs, process};
 
 use clap::Parser;
-use itertools::Itertools;
 use regex::Regex;
 use reqwest::header::{HeaderValue, FROM};
 use tokio::sync::mpsc::channel;
@@ -111,16 +111,6 @@ Hint: Change the filter or use all sites with 'run --all'."
         process::exit(1);
     }
 
-    let distinct_hosts = {
-        let mut hosts = sites
-            .iter()
-            .map(|o| o.url.host_str().unwrap().to_string())
-            .collect::<Vec<_>>();
-        hosts.sort();
-        hosts.dedup();
-        hosts.len()
-    };
-
     let repo = git::Repo::new();
     match &repo {
         Ok(repo) => {
@@ -151,6 +141,14 @@ Hint: Change the filter or use all sites with 'run --all'."
     if sites_amount < sites_total {
         logger::info(&format!("Your configuration file contains {sites_total} sites of which {sites_amount} are selected by your filter."));
     }
+
+    let mut groups: HashMap<String, Vec<Site>> = HashMap::new();
+    for site in sites {
+        let host = site.url.host_str().unwrap().to_owned();
+        groups.entry(host).or_default().push(site);
+    }
+
+    let distinct_hosts = groups.len();
     println!("Begin stalking of {sites_amount} sites on {distinct_hosts} hosts...");
     if distinct_hosts < sites_amount {
         logger::info("Some sites are on the same host. There is a wait time of 5 seconds between each request to the same host in order to reduce load on the server.");
@@ -158,12 +156,8 @@ Hint: Change the filter or use all sites with 'run --all'."
 
     let mut rx = {
         let (tx, rx) = channel(10);
-        let groups = sites
-            .into_iter()
-            .group_by(|a| a.url.host_str().unwrap().to_string());
-        for (_, group) in &groups {
+        for (_, sites) in groups {
             let from = from.clone();
-            let sites = group.collect::<Vec<_>>();
             let tx = tx.clone();
             tokio::spawn(async move {
                 for (i, site) in sites.into_iter().enumerate() {
