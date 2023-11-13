@@ -33,7 +33,7 @@ impl<Wr: Write> Serializer for HtmlPrettySerializer<Wr> {
         self.indent()?;
         self.depth += 1;
 
-        let attrs = attrs
+        let mut attrs = attrs
             .filter_map(|(name, value)| match name.local.as_ref() {
                 "class" => {
                     let mut classes = value.split_whitespace().collect::<Vec<_>>();
@@ -58,9 +58,10 @@ impl<Wr: Write> Serializer for HtmlPrettySerializer<Wr> {
                         Some((name, statements.join(" ")))
                     }
                 }
-                _ => Some((name, value.to_string())),
+                _ => Some((name, value.to_owned())),
             })
             .collect::<Vec<_>>();
+        attrs.sort();
         let attrs = attrs.iter().map(|(name, value)| (*name, value.as_str()));
 
         self.serializer.start_elem(name, attrs)?;
@@ -105,7 +106,7 @@ impl<Wr: Write> Serializer for HtmlPrettySerializer<Wr> {
 }
 
 pub fn prettify(html: &str) -> anyhow::Result<String> {
-    let doc = kuchiki::parse_html().one(html);
+    let doc = kuchikiki::parse_html().one(html);
     let result = serialize(&doc)?
         .lines()
         .map(str::trim_end)
@@ -146,10 +147,10 @@ fn format_css_statement_works() {
 
 #[test]
 fn works() {
-    let ugly = r"<html><body>Just a <div>test</div></body></html>";
+    let ugly = "<html><body>Just a <div>test</div></body></html>";
     assert_eq!(
         prettify(ugly).unwrap(),
-        r"<html>
+        "<html>
 	<head>
 	</head>
 	<body>
@@ -201,7 +202,7 @@ fn remove_empty_class_attribute() {
     let ugly = r#"<html><body><div class=" ">test</div></body></html>"#;
     assert_eq!(
         prettify(ugly).unwrap(),
-        r"<html>
+        "<html>
 	<head>
 	</head>
 	<body>

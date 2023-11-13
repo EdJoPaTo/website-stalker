@@ -1,5 +1,5 @@
 use anyhow::anyhow;
-use serde::{Deserialize, Serialize};
+use serde::Deserialize;
 use url::Url;
 
 use crate::final_message::FinalMessage;
@@ -8,7 +8,7 @@ use crate::site::{Options, Site};
 
 pub const EXAMPLE_CONF: &str = include_str!("../sites/website-stalker.yaml");
 
-#[derive(Debug, Deserialize, Serialize, PartialEq, Eq)]
+#[derive(Debug, Deserialize)]
 pub struct Config {
     // Read as empty string when not defined as it could be overridden from the env
     #[serde(default)]
@@ -20,7 +20,7 @@ pub struct Config {
     pub sites: Vec<SiteEntry>,
 }
 
-#[derive(Debug, Deserialize, Serialize, PartialEq, Eq)]
+#[derive(Debug, Deserialize)]
 #[serde(untagged)]
 pub enum UrlVariants {
     Single(Url),
@@ -36,7 +36,7 @@ impl UrlVariants {
     }
 }
 
-#[derive(Debug, Deserialize, Serialize, PartialEq, Eq)]
+#[derive(Debug, Deserialize)]
 pub struct SiteEntry {
     pub url: UrlVariants,
     #[serde(flatten)]
@@ -80,16 +80,11 @@ impl Config {
     fn validate(&self) -> anyhow::Result<()> {
         validate_from(&self.from)
             .map_err(|err| anyhow!("from ({}) is invalid: {err}", self.from))?;
-        self.validate_notification_template()
-            .map_err(|err| anyhow!("notification_template is invalid: {err}"))?;
-        self.validate_sites()?;
-        Ok(())
-    }
-
-    fn validate_notification_template(&self) -> anyhow::Result<()> {
         if let Some(template) = &self.notification_template {
-            FinalMessage::validate_template(template)?;
+            FinalMessage::validate_template(template)
+                .map_err(|err| anyhow!("notification_template is invalid: {err}"))?;
         }
+        self.validate_sites()?;
         Ok(())
     }
 
@@ -97,10 +92,6 @@ impl Config {
         anyhow::ensure!(!self.sites.is_empty(), "site list is empty");
         for entry in &self.sites {
             anyhow::ensure!(!entry.url.is_empty(), "site entry has no urls");
-
-            if let Err(err) = entry.options.is_valid() {
-                anyhow::bail!("site options are invalid: {err}\n{entry:?}");
-            }
         }
 
         let sites = self.get_sites();
@@ -119,7 +110,7 @@ fn example_sites_are_valid() {
 #[should_panic = "site list is empty"]
 fn validate_fails_on_empty_sites_list() {
     let config = Config {
-        from: "dummy".to_string(),
+        from: "dummy".to_owned(),
         notification_template: None,
         sites: vec![],
     };
@@ -130,33 +121,18 @@ fn validate_fails_on_empty_sites_list() {
 #[should_panic = "site entry has no urls"]
 fn validate_fails_on_sites_list_with_empty_many() {
     let config = Config {
-        from: "dummy".to_string(),
+        from: "dummy".to_owned(),
         notification_template: None,
         sites: vec![SiteEntry {
             url: UrlVariants::Many(vec![]),
             options: Options {
                 accept_invalid_certs: false,
                 ignore_error: false,
-                headers: Vec::new(),
+                headers: reqwest::header::HeaderMap::new(),
                 editors: vec![],
                 filename: None,
             },
         }],
     };
     config.validate_sites().unwrap();
-}
-
-#[test]
-fn validate_works_on_correct_mustache_template() {
-    let mut config = serde_yaml::from_str::<Config>(EXAMPLE_CONF).unwrap();
-    config.notification_template = Some("Hello {{name}}".into());
-    config.validate_notification_template().unwrap();
-}
-
-#[test]
-#[should_panic = "unclosed tag"]
-fn validate_fails_on_bad_mustache_template() {
-    let mut config = serde_yaml::from_str::<Config>(EXAMPLE_CONF).unwrap();
-    config.notification_template = Some("Hello World {{".into());
-    config.validate_notification_template().unwrap();
 }

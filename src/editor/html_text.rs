@@ -49,16 +49,13 @@ impl<Wr: Write> Serializer for HtmlTextSerializer<Wr> {
 pub fn textify(html: &str) -> anyhow::Result<String> {
     static MANY_NEWLINES: Lazy<Regex> = lazy_regex!(r"\n{3,}");
 
-    let doc = kuchiki::parse_html().one(html);
+    let doc = kuchikiki::parse_html().one(html);
     let result = serialize(&doc)?
         .lines()
         .map(str::trim)
         .collect::<Vec<_>>()
         .join("\n");
-    let result = MANY_NEWLINES
-        .replace_all(&result, "\n\n")
-        .trim()
-        .to_string();
+    let result = MANY_NEWLINES.replace_all(&result, "\n\n").trim().to_owned();
     Ok(result)
 }
 
@@ -76,10 +73,10 @@ fn serialize<T: Serialize>(node: &T) -> anyhow::Result<String> {
 
 #[test]
 fn works() {
-    let html = r"<html><body>Just a <div>test</div></body></html>";
+    let html = "<html><body>Just a <div>test</div></body></html>";
     assert_eq!(
         textify(html).unwrap(),
-        r"Just a
+        "Just a
 test"
     );
 }

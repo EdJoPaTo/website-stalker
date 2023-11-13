@@ -24,7 +24,7 @@ pub fn filename(url: &Url) -> String {
     let query = url.query().unwrap_or_default();
     let output = alphanum(&format!("{path}-{query}"));
     if output.is_empty() {
-        "index".to_string()
+        "index".to_owned()
     } else {
         output
     }
@@ -35,7 +35,7 @@ fn alphanum(str: &str) -> String {
     NON_ALPHANUM
         .replace_all(str, "-")
         .trim_matches('-')
-        .to_string()
+        .to_owned()
 }
 
 #[cfg(test)]

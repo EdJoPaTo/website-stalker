@@ -37,7 +37,7 @@ impl<Wr: Write> Serializer for HtmlAbsLinkSerializer<Wr> {
                     })?
                     .to_string()
             } else {
-                value.to_string()
+                value.to_owned()
             };
             result_attrs.push((key, value));
         }
@@ -67,7 +67,7 @@ impl<Wr: Write> Serializer for HtmlAbsLinkSerializer<Wr> {
 }
 
 pub fn canonicalize(url: &Url, html: &str) -> anyhow::Result<String> {
-    let doc = kuchiki::parse_html().one(html);
+    let doc = kuchikiki::parse_html().one(html);
     let result = serialize(&doc, url)?;
     Ok(result)
 }
