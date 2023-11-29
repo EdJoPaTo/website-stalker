@@ -1,6 +1,8 @@
 // wait for release to be breaking
 #![allow(deprecated)]
 
+use std::fmt::Write;
+
 use url::Url;
 
 pub const DEFAULT_NOTIFICATION_TEMPLATE: &str = "
@@ -65,20 +67,15 @@ impl FinalMessage {
     }
 
     pub fn to_commit(&self) -> String {
-        let head = match self.hosts.as_slice() {
+        let mut text = match self.hosts.as_slice() {
             [] => "just background magic 🧽🔮🧹\n\ncleanup or updating meta files".to_owned(),
-            [single] => format!("🌐👀 {single}"),
-            _ => format!("🌐👀 stalked {} website changes", self.sites.len()),
+            [single] => format!("🌐👀 {single}\n\n"),
+            _ => format!("🌐👀 stalked {} website changes\n\n", self.sites.len()),
         };
-        let body = self
-            .sites
-            .iter()
-            .map(|s| format!("- {s}"))
-            .collect::<Vec<_>>()
-            .join("\n");
-
-        let text = format!("{head}\n\n{body}");
-        text.trim().to_owned()
+        for s in &self.sites {
+            _ = writeln!(&mut text, "- {s}");
+        }
+        text
     }
 
     fn into_mustache_data(self, commit: Option<String>) -> MustacheData {
@@ -163,7 +160,8 @@ fn commit_message_for_one_site() {
         text,
         "🌐👀 edjopato.de
 
-- https://edjopato.de/post/"
+- https://edjopato.de/post/
+"
     );
 }
 
@@ -175,7 +173,8 @@ fn commit_message_for_two_same_domain_sites() {
         "🌐👀 edjopato.de
 
 - https://edjopato.de/
-- https://edjopato.de/post/"
+- https://edjopato.de/post/
+"
     );
 }
 
@@ -187,7 +186,8 @@ fn commit_message_for_two_different_domain_sites() {
         "🌐👀 stalked 2 website changes
 
 - https://edjopato.de/post/
-- https://foo.bar/"
+- https://foo.bar/
+"
     );
 }
 

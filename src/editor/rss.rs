@@ -84,7 +84,13 @@ impl Rss {
             let mut builder = ItemBuilder::default();
 
             if let Some(title) = item.select(title).next() {
-                builder.title(title.text().map(str::trim).join("\n").trim().to_owned());
+                builder.title(
+                    title
+                        .text()
+                        .map(str::trim)
+                        .filter(|o| !o.is_empty())
+                        .join("\n"),
+                );
             }
 
             // When the item is the link itself

@@ -63,7 +63,7 @@ impl Repo {
             GIT_COMMIT_AUTHOR,
             "--no-gpg-sign",
             "--message",
-            message,
+            message.trim(),
         ])?;
 
         let id = self.git_command(&["rev-parse", "HEAD"])?;
