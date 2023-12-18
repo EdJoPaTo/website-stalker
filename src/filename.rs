@@ -1,9 +1,9 @@
-use lazy_regex::{lazy_regex, Lazy, Regex};
+use lazy_regex::regex;
 use url::Url;
 
 pub fn domainfolder(url: &Url) -> Vec<String> {
     let mut parts = url.domain().map_or_else(
-        || vec![alphanum(url.host_str().expect("url has a host"))],
+        || vec![alphanum(url.host_str().expect("url should have a host"))],
         |domain| {
             domain
                 .trim_start_matches("www.")
@@ -30,12 +30,21 @@ pub fn filename(url: &Url) -> String {
     }
 }
 
+/// Ensure all characters are alphanumeric
+///
+/// Replaces non alphanumeric characters with -
 fn alphanum(str: &str) -> String {
-    static NON_ALPHANUM: Lazy<Regex> = lazy_regex!(r"[^a-zA-Z\d]+");
-    NON_ALPHANUM
+    regex!(r"[^a-zA-Z\d]+")
         .replace_all(str, "-")
         .trim_matches('-')
         .to_owned()
+}
+
+#[test]
+fn alphanum_works() {
+    assert_eq!(alphanum("abc123ABC"), "abc123ABC");
+    assert_eq!(alphanum("gürkchen"), "g-rkchen");
+    assert_eq!(alphanum(":te_st:"), "te-st");
 }
 
 #[cfg(test)]
