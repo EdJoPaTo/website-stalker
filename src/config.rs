@@ -2,7 +2,7 @@ use anyhow::anyhow;
 use serde::Deserialize;
 use url::Url;
 
-use crate::final_message::FinalMessage;
+use crate::final_message::validate_template;
 use crate::http::validate_from;
 use crate::site::{Options, Site};
 
@@ -14,8 +14,12 @@ pub struct Config {
     #[serde(default)]
     pub from: String,
 
-    #[serde(default, skip_serializing_if = "Option::is_none")]
-    pub notification_template: Option<String>,
+    #[serde(
+        default,
+        deserialize_with = "deserialize_mustache_template",
+        skip_serializing_if = "Option::is_none"
+    )]
+    pub notification_template: Option<mustache::Template>,
 
     pub sites: Vec<SiteEntry>,
 }
@@ -80,10 +84,6 @@ impl Config {
     fn validate(&self) -> anyhow::Result<()> {
         validate_from(&self.from)
             .map_err(|err| anyhow!("from ({}) is invalid: {err}", self.from))?;
-        if let Some(template) = &self.notification_template {
-            FinalMessage::validate_template(template)
-                .map_err(|err| anyhow!("notification_template is invalid: {err}"))?;
-        }
         self.validate_sites()?;
         Ok(())
     }
@@ -98,6 +98,18 @@ impl Config {
         Site::validate_no_duplicate(&sites)?;
         Ok(())
     }
+}
+
+fn deserialize_mustache_template<'de, D>(
+    deserializer: D,
+) -> Result<Option<mustache::Template>, D::Error>
+where
+    D: serde::Deserializer<'de>,
+{
+    let s = String::deserialize(deserializer)?;
+    let template = mustache::compile_str(&s).map_err(serde::de::Error::custom)?;
+    validate_template(&template).map_err(serde::de::Error::custom)?;
+    Ok(Some(template))
 }
 
 #[test]

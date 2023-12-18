@@ -1,8 +1,11 @@
 use std::fmt::Write;
 
+use once_cell::sync::Lazy;
 use url::Url;
 
-pub const DEFAULT_NOTIFICATION_TEMPLATE: &str = "
+static DEFAULT_MUSTACHE_TEMPLATE: Lazy<mustache::Template> = Lazy::new(|| {
+    mustache::compile_str(
+        "
 {{#singlehost}}
 {{.}} changed
 {{/singlehost}}
@@ -17,7 +20,10 @@ pub const DEFAULT_NOTIFICATION_TEMPLATE: &str = "
 {{#commit}}
 See {{.}}
 {{/commit}}
-";
+",
+    )
+    .unwrap()
+});
 
 #[derive(serde::Serialize)]
 pub struct FinalMessage {
@@ -28,7 +34,7 @@ pub struct FinalMessage {
 }
 
 #[derive(serde::Serialize)]
-struct MustacheData {
+pub struct MustacheData {
     commit: Option<String>,
     #[deprecated = "use singlehost"]
     singledomain: Option<String>,
@@ -75,7 +81,7 @@ impl FinalMessage {
         text
     }
 
-    fn into_mustache_data(self, commit: Option<String>) -> MustacheData {
+    pub fn into_mustache_data(self, commit: Option<String>) -> MustacheData {
         let singlehost = if let [single] = self.hosts.as_slice() {
             Some(single.clone())
         } else {
@@ -89,17 +95,6 @@ impl FinalMessage {
             siteamount: self.sites.len(),
             msg: self,
         }
-    }
-
-    pub fn into_notification(
-        self,
-        template: Option<&str>,
-        commit: Option<String>,
-    ) -> anyhow::Result<String> {
-        let template = mustache::compile_str(template.unwrap_or(DEFAULT_NOTIFICATION_TEMPLATE))?;
-        let data = self.into_mustache_data(commit);
-        let message = template.render_to_string(&data)?;
-        Ok(message.trim().to_owned())
     }
 
     fn example_single() -> Self {
@@ -119,25 +114,47 @@ impl FinalMessage {
             Url::parse("https://edjopato.de/post/").unwrap(),
         ])
     }
+}
 
-    pub fn validate_template(template: &str) -> anyhow::Result<()> {
-        let template = Some(template);
-        let any_empty = [
-            Self::example_single().into_notification(template, Some("666".into()))?,
-            Self::example_single().into_notification(template, None)?,
-            Self::example_different().into_notification(template, Some("666".into()))?,
-            Self::example_different().into_notification(template, None)?,
-            Self::example_same().into_notification(template, Some("666".into()))?,
-            Self::example_same().into_notification(template, None)?,
-        ]
-        .iter()
-        .any(std::string::String::is_empty);
+impl MustacheData {
+    pub fn apply_to_template(
+        &self,
+        template: Option<&mustache::Template>,
+    ) -> anyhow::Result<String> {
+        let template = template.unwrap_or_else(|| &DEFAULT_MUSTACHE_TEMPLATE);
+        Ok(template.render_to_string(self)?.trim().to_owned())
+    }
+}
 
-        if any_empty {
-            Err(anyhow::anyhow!("template produced empty notification text"))
-        } else {
-            Ok(())
-        }
+pub fn validate_template(template: &mustache::Template) -> anyhow::Result<()> {
+    let template = Some(template);
+    let any_empty = [
+        FinalMessage::example_single()
+            .into_mustache_data(Some("666".into()))
+            .apply_to_template(template)?,
+        FinalMessage::example_single()
+            .into_mustache_data(None)
+            .apply_to_template(template)?,
+        FinalMessage::example_different()
+            .into_mustache_data(Some("666".into()))
+            .apply_to_template(template)?,
+        FinalMessage::example_different()
+            .into_mustache_data(None)
+            .apply_to_template(template)?,
+        FinalMessage::example_same()
+            .into_mustache_data(Some("666".into()))
+            .apply_to_template(template)?,
+        FinalMessage::example_same()
+            .into_mustache_data(None)
+            .apply_to_template(template)?,
+    ]
+    .iter()
+    .any(std::string::String::is_empty);
+
+    if any_empty {
+        Err(anyhow::anyhow!("template produced empty notification text"))
+    } else {
+        Ok(())
     }
 }
 
@@ -190,24 +207,20 @@ fn commit_message_for_two_different_domain_sites() {
 
 #[test]
 fn simple_template_is_valid() {
-    FinalMessage::validate_template("Hello {{name}}").unwrap();
+    let template = mustache::compile_str("Hello {{name}}").unwrap();
+    validate_template(&template).unwrap();
 }
 
 #[test]
 fn default_template_is_valid() {
-    FinalMessage::validate_template(DEFAULT_NOTIFICATION_TEMPLATE).unwrap();
-}
-
-#[test]
-#[should_panic = "unclosed tag"]
-fn invalid_template_isnt_valid() {
-    FinalMessage::validate_template("Hello World {{").unwrap();
+    validate_template(&DEFAULT_MUSTACHE_TEMPLATE).unwrap();
 }
 
 #[test]
 fn notification_message_for_two_same_domain_sites() {
     let text = FinalMessage::example_same()
-        .into_notification(None, Some("1234abc".into()))
+        .into_mustache_data(Some("1234abc".into()))
+        .apply_to_template(None)
         .unwrap();
     assert_eq!(
         text,
@@ -223,7 +236,8 @@ See 1234abc"
 #[test]
 fn notification_message_for_two_different_domain_sites() {
     let text = FinalMessage::example_different()
-        .into_notification(None, Some("1234abc".into()))
+        .into_mustache_data(Some("1234abc".into()))
+        .apply_to_template(None)
         .unwrap();
     assert_eq!(
         text,
@@ -239,7 +253,8 @@ See 1234abc"
 #[test]
 fn notification_message_for_single_site_without_commit() {
     let text = FinalMessage::example_single()
-        .into_notification(None, None)
+        .into_mustache_data(None)
+        .apply_to_template(None)
         .unwrap();
     assert_eq!(
         text,

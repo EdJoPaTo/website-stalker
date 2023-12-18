@@ -217,8 +217,8 @@ Hint: Change the filter or use all sites with 'run --all'."
         None
     };
     if !urls_of_interest.is_empty() {
-        let message = message.into_notification(config.notification_template.as_deref(), commit)?;
-        run_notifications(&message);
+        let mustache_data = message.into_mustache_data(commit);
+        run_notifications(&mustache_data.apply_to_template(config.notification_template.as_ref())?);
     }
 
     if error_occured {
