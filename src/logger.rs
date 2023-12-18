@@ -1,11 +1,11 @@
 use std::env;
 
-fn is_gha() -> bool {
-    env::var_os("GITHUB_ACTIONS").is_some()
-}
+use once_cell::sync::Lazy;
+
+static GHA: Lazy<bool> = Lazy::new(|| env::var_os("GITHUB_ACTIONS").is_some());
 
 pub fn error(message: &str) {
-    if is_gha() {
+    if *GHA {
         println!("::error file=website-stalker.yaml::{message}");
     } else {
         eprintln!("ERROR: {message}");
@@ -13,7 +13,7 @@ pub fn error(message: &str) {
 }
 
 pub fn warn(message: &str) {
-    if is_gha() {
+    if *GHA {
         println!("::warning file=website-stalker.yaml::{message}");
     } else {
         eprintln!("WARN: {message}");
