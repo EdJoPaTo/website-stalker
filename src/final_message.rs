@@ -127,6 +127,46 @@ impl MustacheData {
 }
 
 pub fn validate_template(template: &mustache::Template) -> anyhow::Result<()> {
+    const DEPRECATED_TEXT: &str = "do not use deprecated field";
+
+    let singledomain = template
+        .render_to_string(&MustacheData {
+            commit: None,
+            singledomain: Some(DEPRECATED_TEXT.to_owned()),
+            singlehost: None,
+            siteamount: 42,
+            msg: FinalMessage {
+                domains: vec![],
+                hosts: vec![],
+                sites: vec![],
+            },
+        })?
+        .contains(DEPRECATED_TEXT);
+    if singledomain {
+        crate::logger::warn(
+            "Replace singledomain with singlehost in template. singledomain will be removed in the future.",
+        );
+    }
+
+    let domains = template
+        .render_to_string(&MustacheData {
+            commit: None,
+            singledomain: None,
+            singlehost: None,
+            siteamount: 42,
+            msg: FinalMessage {
+                domains: vec![DEPRECATED_TEXT.to_owned()],
+                hosts: vec![],
+                sites: vec![],
+            },
+        })?
+        .contains(DEPRECATED_TEXT);
+    if domains {
+        crate::logger::warn(
+            "Replace domains with hosts in template. domains will be removed in the future.",
+        );
+    }
+
     let template = Some(template);
     let any_empty = [
         FinalMessage::example_single()

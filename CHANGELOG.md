@@ -11,6 +11,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Improve error output message on editor error
 - `json_prettify` uses tabs instead of spaces now for better accessibility and smaller file sizes (`html_prettify` does the same)
+- Show warnings for deprecated field usage in notification mustache template
 
 ### Fixed
 
