@@ -1,3 +1,7 @@
+#![forbid(unsafe_code)]
+#![warn(clippy::pedantic)]
+#![allow(deprecated)] // TODO: remove on breaking release
+
 use core::fmt::Debug;
 use core::time::Duration;
 use std::collections::HashMap;

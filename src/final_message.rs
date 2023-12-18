@@ -1,6 +1,3 @@
-// wait for release to be breaking
-#![allow(deprecated)]
-
 use std::fmt::Write;
 
 use url::Url;
