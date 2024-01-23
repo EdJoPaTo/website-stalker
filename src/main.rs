@@ -180,7 +180,7 @@ Hint: Change the filter or use all sites with 'run --all'."
 
     let mut urls_of_interest = Vec::new();
     let mut error_occured = false;
-    let mut amount_done = 0_usize;
+    let mut amount_done: usize = 0;
     while let Some((url, result, ignore_error)) = rx.recv().await {
         amount_done += 1;
         match result {
