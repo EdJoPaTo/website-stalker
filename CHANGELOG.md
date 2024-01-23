@@ -9,9 +9,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- `rss` uses the first title / heading element as RSS title (was only title before)
 - Improve error output message on editor error
 - `json_prettify` uses tabs instead of spaces now for better accessibility and smaller file sizes (`html_prettify` does the same)
 - Show warnings for deprecated field usage in notification mustache template
+- Show warning on `rss` without title (neither from explicit configuration nor the input HTML)
 
 ### Fixed
 

@@ -48,7 +48,8 @@ pub struct Rss {
 
 impl Rss {
     pub fn generate(&self, url: &Url, html: &str) -> anyhow::Result<String> {
-        static TITLE: Lazy<Selector> = Lazy::new(|| Selector::parse("title").unwrap());
+        static TITLE: Lazy<Selector> =
+            Lazy::new(|| Selector::parse("title, h1, h2, h3, h4, h5, h6").unwrap());
         static DESCRIPTION: Lazy<Selector> =
             Lazy::new(|| Selector::parse("meta[name=description]").unwrap());
         static DATETIME: Lazy<Selector> = Lazy::new(|| Selector::parse("*[datetime]").unwrap());
@@ -70,6 +71,10 @@ impl Rss {
             channel.title(title.to_string());
         } else if let Some(e) = parsed_html.select(&TITLE).next() {
             channel.title(e.inner_html().trim().to_owned());
+        } else {
+            crate::logger::warn(&format!(
+                "RSS Feed has no title from html or the config: {url}"
+            ));
         }
 
         if let Some(description) = parsed_html
