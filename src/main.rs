@@ -13,7 +13,7 @@ use reqwest::header::{HeaderValue, FROM};
 use tokio::sync::mpsc::channel;
 use tokio::time::sleep;
 
-use crate::cli::SubCommand;
+use crate::cli::Cli;
 use crate::config::{Config, EXAMPLE_CONF};
 use crate::site::Site;
 
@@ -43,9 +43,9 @@ impl core::fmt::Display for ChangeKind {
 
 #[tokio::main]
 async fn main() {
-    match cli::Cli::parse().subcommand {
-        SubCommand::ExampleConfig => print!("{EXAMPLE_CONF}"),
-        SubCommand::Init => {
+    match Cli::parse() {
+        Cli::ExampleConfig => print!("{EXAMPLE_CONF}"),
+        Cli::Init => {
             if git::Repo::new().is_err() {
                 git::Repo::init(std::env::current_dir().expect("failed to get working dir path"))
                     .expect("failed to init git repository");
@@ -58,7 +58,7 @@ async fn main() {
             }
             println!("Init complete.\nNext step: adapt the configuration file to your needs.");
         }
-        SubCommand::Check => {
+        Cli::Check => {
             let notifiers = pling::Notifier::from_env().len();
             eprintln!("Notifiers: {notifiers}. Check https://github.com/EdJoPaTo/pling/ for configuration details.");
 
@@ -71,7 +71,7 @@ async fn main() {
                 }
             }
         }
-        SubCommand::Run {
+        Cli::Run {
             commit: do_commit,
             site_filter,
             ..

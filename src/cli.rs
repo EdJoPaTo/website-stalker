@@ -3,13 +3,7 @@ use regex::Regex;
 
 #[derive(Debug, Parser)]
 #[command(about, version)]
-pub struct Cli {
-    #[clap(subcommand)]
-    pub subcommand: SubCommand,
-}
-
-#[derive(Debug, Parser)]
-pub enum SubCommand {
+pub enum Cli {
     /// Print an example configuration file which can be piped into website-stalker.yaml
     ExampleConfig,
 
