@@ -130,9 +130,9 @@ fn serialize<T: Serialize>(node: &T) -> anyhow::Result<String> {
 
 /// Never receives the ; splitting them
 fn format_css_statement(content: &str) -> String {
-    let splitted = content.split(':').map(str::trim).collect::<Vec<_>>();
-    if let [key, value] = splitted.as_slice() {
-        format!("{key}: {value};")
+    let content = content.trim();
+    if let Some((key, value)) = content.split_once(':') {
+        format!("{}: {};", key.trim_end(), value.trim_start())
     } else {
         format!("{content};")
     }
