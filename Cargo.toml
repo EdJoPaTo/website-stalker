@@ -16,6 +16,7 @@ lto = true
 [build-dependencies]
 clap = { version = "4", features = ["deprecated", "derive"] }
 clap_complete = "4"
+clap_mangen = "0.2"
 regex = "1"
 
 [dependencies]
@@ -62,26 +63,28 @@ recommends = "git"
 maintainer-scripts = "systemd/system/"
 systemd-units = { enable = false, start = false }
 assets = [
-	["target/release/website-stalker", "/usr/bin/website-stalker", "755"],
-	["CHANGELOG.md", "/usr/share/doc/website-stalker/CHANGELOG.md", "644"],
-	["LICENSE", "/usr/share/licenses/website-stalker/LICENSE", "644"],
-	["README.md", "/usr/share/doc/website-stalker/README.md", "644"],
+	["target/release/website-stalker", "/usr/bin/", "755"],
+	["CHANGELOG.md", "/usr/share/doc/website-stalker/", "644"],
+	["LICENSE", "/usr/share/licenses/website-stalker/", "644"],
+	["README.md", "/usr/share/doc/website-stalker/", "644"],
 
 	["systemd/user/service", "/lib/systemd/user/website-stalker.service", "644"],
 	["systemd/user/timer", "/lib/systemd/user/website-stalker.timer", "644"],
 
 	["target/completions/website-stalker.bash", "/usr/share/bash-completion/completions/website-stalker", "644"],
-	["target/completions/website-stalker.fish", "/usr/share/fish/completions/website-stalker.fish", "644"],
-	["target/completions/_website-stalker", "/usr/share/zsh/site-functions/_website-stalker", "644"],
+	["target/completions/website-stalker.fish", "/usr/share/fish/completions/", "644"],
+	["target/completions/_website-stalker", "/usr/share/zsh/site-functions/", "644"],
+
+	["target/manpages/*", "/usr/share/man/man1/", "644"],
 ]
 
 # https://crates.io/crates/cargo-generate-rpm
 [package.metadata.generate-rpm]
 assets = [
-	{ source = "target/release/website-stalker", dest = "/usr/bin/website-stalker", mode = "755" },
-	{ source = "CHANGELOG.md", dest = "/usr/share/doc/website-stalker/CHANGELOG.md", mode = "644", doc = true },
-	{ source = "LICENSE", dest = "/usr/share/licenses/website-stalker/LICENSE", mode = "644", doc = true },
-	{ source = "README.md", dest = "/usr/share/doc/website-stalker/README.md", mode = "644", doc = true },
+	{ source = "target/release/website-stalker", dest = "/usr/bin/", mode = "755" },
+	{ source = "CHANGELOG.md", dest = "/usr/share/doc/website-stalker/", mode = "644", doc = true },
+	{ source = "LICENSE", dest = "/usr/share/licenses/website-stalker/", mode = "644", doc = true },
+	{ source = "README.md", dest = "/usr/share/doc/website-stalker/", mode = "644", doc = true },
 
 	{ source = "systemd/system/service", dest = "/usr/lib/systemd/system/website-stalker.service", mode = "644" },
 	{ source = "systemd/system/timer", dest = "/usr/lib/systemd/system/website-stalker.timer", mode = "644" },
@@ -92,8 +95,10 @@ assets = [
 	{ source = "systemd/user/timer", dest = "/usr/lib/systemd/user/website-stalker.timer", mode = "644" },
 
 	{ source = "target/completions/website-stalker.bash", dest = "/usr/share/bash-completion/completions/website-stalker", mode = "644" },
-	{ source = "target/completions/website-stalker.fish", dest = "/usr/share/fish/vendor_completions.d/website-stalker.fish", mode = "644" },
-	{ source = "target/completions/_website-stalker", dest = "/usr/share/zsh/site-functions/_website-stalker", mode = "644" },
+	{ source = "target/completions/website-stalker.fish", dest = "/usr/share/fish/vendor_completions.d/", mode = "644" },
+	{ source = "target/completions/_website-stalker", dest = "/usr/share/zsh/site-functions/", mode = "644" },
+
+	{ source = "target/manpages/*", dest = "/usr/share/man/man1/", mode = "644", doc = true },
 ]
 
 [package.metadata.generate-rpm.requires]

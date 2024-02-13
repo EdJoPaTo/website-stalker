@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- Automatically generated man pages from the cli definition
+
 ### Changed
 
 - `rss` uses the first title / heading element as RSS title (was only title before)
