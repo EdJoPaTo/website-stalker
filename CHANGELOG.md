@@ -18,6 +18,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 - Correctly detect duplicate hosts for delays between them (to reduce load on the host)
+- Systemd service is `Type=oneshot` now and can no longer be installed. The timer is the relevant unit and not the service.
 
 ## [0.21.0] - 2023-09-05
 
