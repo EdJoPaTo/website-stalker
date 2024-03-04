@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- RSS: remove website-stalker version from the generator field
+
 ## [0.22.0] - 2024-02-13
 
 ### Added

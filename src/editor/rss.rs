@@ -8,13 +8,7 @@ use url::Url;
 
 use super::Editor;
 
-const GENERATOR: &str = concat!(
-    env!("CARGO_PKG_NAME"),
-    "/",
-    env!("CARGO_PKG_VERSION"),
-    " ",
-    env!("CARGO_PKG_REPOSITORY"),
-);
+const GENERATOR: &str = concat!(env!("CARGO_PKG_NAME"), " ", env!("CARGO_PKG_REPOSITORY"),);
 
 #[derive(Debug, Clone, Deserialize)]
 pub struct Rss {
