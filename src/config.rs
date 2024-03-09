@@ -106,8 +106,8 @@ fn deserialize_mustache_template<'de, D>(
 where
     D: serde::Deserializer<'de>,
 {
-    let s = String::deserialize(deserializer)?;
-    let template = mustache::compile_str(&s).map_err(serde::de::Error::custom)?;
+    let str = String::deserialize(deserializer)?;
+    let template = mustache::compile_str(&str).map_err(serde::de::Error::custom)?;
     validate_template(&template).map_err(serde::de::Error::custom)?;
     Ok(Some(template))
 }

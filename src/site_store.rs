@@ -30,7 +30,9 @@ pub fn remove_gone(expected_paths: &[PathBuf]) -> anyhow::Result<Vec<PathBuf>> {
             continue;
         }
         if let Some(filename) = entry.file_name() {
-            let is_relevant = filename.to_str().map_or(false, |o| !o.starts_with('.'));
+            let is_relevant = filename
+                .to_str()
+                .map_or(false, |filename| !filename.starts_with('.'));
             if is_relevant {
                 superfluous.append(&mut inner(expected_paths, Path::new(filename))?);
             }

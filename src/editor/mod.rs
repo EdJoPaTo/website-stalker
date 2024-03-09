@@ -52,13 +52,13 @@ impl Editor {
 
     fn apply(&self, url: &Url, input: &Content) -> anyhow::Result<Content> {
         match &self {
-            Self::CssRemove(s) => Ok(Content {
+            Self::CssRemove(selector) => Ok(Content {
                 extension: Some("html"),
-                text: css_remove::apply(s, &input.text),
+                text: css_remove::apply(selector, &input.text),
             }),
-            Self::CssSelect(s) => Ok(Content {
+            Self::CssSelect(selector) => Ok(Content {
                 extension: Some("html"),
-                text: css_selector::apply(s, &input.text)?,
+                text: css_selector::apply(selector, &input.text)?,
             }),
             Self::HtmlMarkdownify => Ok(Content {
                 extension: Some("md"),
@@ -100,10 +100,10 @@ impl Editor {
         url: &Url,
         mut content: Content,
     ) -> anyhow::Result<Content> {
-        for (i, e) in editors.iter().enumerate() {
-            content = e
+        for (i, editor) in editors.iter().enumerate() {
+            content = editor
                 .apply(url, &content)
-                .map_err(|err| anyhow!("in editor[{i}] {}: {err}", e.log_name()))?;
+                .map_err(|err| anyhow!("in editor[{i}] {}: {err}", editor.log_name()))?;
         }
         Ok(content)
     }
@@ -113,8 +113,8 @@ fn deserialize_selector<'de, D>(deserializer: D) -> Result<scraper::Selector, D:
 where
     D: serde::Deserializer<'de>,
 {
-    let s = String::deserialize(deserializer)?;
-    scraper::Selector::parse(&s).map_err(serde::de::Error::custom)
+    let str = String::deserialize(deserializer)?;
+    scraper::Selector::parse(&str).map_err(serde::de::Error::custom)
 }
 
 fn deserialize_selector_opt<'de, D>(deserializer: D) -> Result<Option<scraper::Selector>, D::Error>

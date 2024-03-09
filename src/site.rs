@@ -46,8 +46,8 @@ impl Site {
                 );
             };
             let mut path = Path::new(first).to_path_buf();
-            for f in rest {
-                path = path.join(f);
+            for folder in rest {
+                path = path.join(folder);
             }
             path.join(filename::filename(&self.url))
         })
@@ -85,12 +85,16 @@ where
     let headers = Vec::<String>::deserialize(deserializer)?;
     let mut result = HeaderMap::new();
     for entry in headers {
-        let (k, v) = entry.split_once(": ").ok_or_else(|| {
+        let (key, value) = entry.split_once(": ").ok_or_else(|| {
             serde::de::Error::custom("does not contain ': ' to separate header key/value")
         })?;
-        let k = k.parse::<HeaderName>().map_err(serde::de::Error::custom)?;
-        let v = v.parse::<HeaderValue>().map_err(serde::de::Error::custom)?;
-        result.append(k, v);
+        let key = key
+            .parse::<HeaderName>()
+            .map_err(serde::de::Error::custom)?;
+        let value = value
+            .parse::<HeaderValue>()
+            .map_err(serde::de::Error::custom)?;
+        result.append(key, value);
     }
     Ok(result)
 }

@@ -63,8 +63,8 @@ impl Rss {
 
         if let Some(title) = &self.title {
             channel.title(title.to_string());
-        } else if let Some(e) = parsed_html.select(&TITLE).next() {
-            channel.title(e.inner_html().trim().to_owned());
+        } else if let Some(element) = parsed_html.select(&TITLE).next() {
+            channel.title(element.inner_html().trim().to_owned());
         } else {
             crate::logger::warn(&format!(
                 "RSS Feed has no title from html or the config: {url}"
@@ -73,7 +73,7 @@ impl Rss {
 
         if let Some(description) = parsed_html
             .select(&DESCRIPTION)
-            .find_map(|e| e.value().attr("content"))
+            .find_map(|element| element.value().attr("content"))
         {
             channel.description(description.to_owned());
         }
@@ -87,7 +87,7 @@ impl Rss {
                     title
                         .text()
                         .map(str::trim)
-                        .filter(|o| !o.is_empty())
+                        .filter(|title| !title.is_empty())
                         .join("\n"),
                 );
             }
@@ -97,14 +97,17 @@ impl Rss {
                 builder.link(url.join(link)?.to_string());
             }
 
-            if let Some(link) = item.select(link).find_map(|o| o.value().attr("href")) {
+            if let Some(link) = item
+                .select(link)
+                .find_map(|element| element.value().attr("href"))
+            {
                 builder.link(url.join(link)?.to_string());
             }
 
             if let Some(bla) = item
                 .select(&DATETIME)
-                .find_map(|o| o.value().attr("datetime"))
-                .and_then(|o| chrono::DateTime::parse_from_rfc3339(o).ok())
+                .find_map(|element| element.value().attr("datetime"))
+                .and_then(|value| chrono::DateTime::parse_from_rfc3339(value).ok())
             {
                 builder.pub_date(bla.to_rfc2822());
             }

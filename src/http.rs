@@ -26,8 +26,8 @@ pub enum IpVersion {
 }
 
 impl core::fmt::Display for IpVersion {
-    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
-        core::fmt::Debug::fmt(self, f)
+    fn fmt(&self, fmt: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+        core::fmt::Debug::fmt(self, fmt)
     }
 }
 
@@ -64,7 +64,7 @@ impl Response {
         self.response
             .headers()
             .get(header::CONTENT_TYPE)
-            .and_then(|o| o.to_str().ok())
+            .and_then(|value| value.to_str().ok())
             .and_then(mime2ext::mime2ext)
     }
 
@@ -81,10 +81,10 @@ impl Response {
     pub fn ip_version(&self) -> IpVersion {
         #[allow(clippy::option_if_let_else)]
         match self.response.remote_addr() {
-            Some(a) => {
-                if a.is_ipv6() {
+            Some(address) => {
+                if address.is_ipv6() {
                     IpVersion::IPv6
-                } else if a.is_ipv4() {
+                } else if address.is_ipv4() {
                     IpVersion::IPv4
                 } else {
                     IpVersion::None

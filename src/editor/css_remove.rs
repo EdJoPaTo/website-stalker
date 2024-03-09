@@ -2,7 +2,10 @@ use scraper::Selector;
 
 pub fn apply(selector: &Selector, html: &str) -> String {
     let mut html = scraper::Html::parse_document(html);
-    let selected = html.select(selector).map(|o| o.id()).collect::<Vec<_>>();
+    let selected = html
+        .select(selector)
+        .map(|element| element.id())
+        .collect::<Vec<_>>();
     for selected in selected {
         if let Some(mut selected_mut) = html.tree.get_mut(selected) {
             selected_mut.detach();

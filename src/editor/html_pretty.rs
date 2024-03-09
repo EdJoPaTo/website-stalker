@@ -48,7 +48,7 @@ impl<Wr: Write> Serializer for HtmlPrettySerializer<Wr> {
                     let mut statements = value
                         .split(';')
                         .map(str::trim)
-                        .filter(|o| !o.is_empty())
+                        .filter(|statement| !statement.is_empty())
                         .map(format_css_statement)
                         .collect::<Vec<_>>();
                     if statements.is_empty() {
@@ -110,7 +110,7 @@ pub fn prettify(html: &str) -> anyhow::Result<String> {
     let result = serialize(&doc)?
         .lines()
         .map(str::trim_end)
-        .filter(|s| !s.is_empty())
+        .filter(|line| !line.is_empty())
         .collect::<Vec<_>>()
         .join("\n");
     Ok(result)

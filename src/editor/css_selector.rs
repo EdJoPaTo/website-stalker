@@ -4,7 +4,7 @@ pub fn apply(selector: &Selector, html: &str) -> anyhow::Result<String> {
     let parsed_html = scraper::Html::parse_document(html);
     let selected = parsed_html
         .select(selector)
-        .map(|o| o.html())
+        .map(|element| element.html())
         .collect::<Vec<_>>();
     anyhow::ensure!(!selected.is_empty(), "selected nothing");
     Ok(selected.join("\n"))

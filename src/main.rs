@@ -36,8 +36,8 @@ pub enum ChangeKind {
 }
 
 impl core::fmt::Display for ChangeKind {
-    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
-        Debug::fmt(self, f)
+    fn fmt(&self, fmt: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+        Debug::fmt(self, fmt)
     }
 }
 
@@ -77,7 +77,7 @@ async fn main() {
             ..
         } => {
             let site_filter =
-                site_filter.map(|v| Regex::new(&format!("(?i){}", v.as_str())).unwrap());
+                site_filter.map(|regex| Regex::new(&format!("(?i){}", regex.as_str())).unwrap());
             let result = run(do_commit, site_filter.as_ref()).await;
             if let Err(err) = &result {
                 logger::error(&err.to_string());

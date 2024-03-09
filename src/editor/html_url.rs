@@ -41,8 +41,12 @@ impl<Wr: Write> Serializer for HtmlAbsLinkSerializer<Wr> {
             };
             result_attrs.push((key, value));
         }
-        self.serializer
-            .start_elem(name, result_attrs.iter().map(|o| (o.0, o.1.as_str())))
+        self.serializer.start_elem(
+            name,
+            result_attrs
+                .iter()
+                .map(|(attribute_name, value)| (*attribute_name, value.as_str())),
+        )
     }
 
     fn end_elem(&mut self, name: QualName) -> std::io::Result<()> {

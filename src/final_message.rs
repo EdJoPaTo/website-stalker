@@ -75,8 +75,8 @@ impl FinalMessage {
             [single] => format!("🌐👀 {single}\n\n"),
             _ => format!("🌐👀 stalked {} website changes\n\n", self.sites.len()),
         };
-        for s in &self.sites {
-            _ = writeln!(&mut text, "- {s}");
+        for site in &self.sites {
+            _ = writeln!(&mut text, "- {site}");
         }
         text
     }
