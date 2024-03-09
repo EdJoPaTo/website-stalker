@@ -80,7 +80,6 @@ impl Repo {
 mod tests {
     use super::*;
     use std::fs;
-    use std::process::Command;
 
     fn simple_command<P: AsRef<Path>>(dir: P, command: &str) -> anyhow::Result<String> {
         let splitted = command.split(' ').collect::<Vec<_>>();
