@@ -1,4 +1,3 @@
-use core::fmt::Debug;
 use core::time::Duration;
 use std::collections::HashMap;
 use std::{fs, process};
@@ -24,7 +23,6 @@ mod logger;
 mod site;
 mod site_store;
 
-#[derive(Debug)]
 pub enum ChangeKind {
     Init,
     Changed,
@@ -33,7 +31,11 @@ pub enum ChangeKind {
 
 impl core::fmt::Display for ChangeKind {
     fn fmt(&self, fmt: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
-        Debug::fmt(self, fmt)
+        match self {
+            Self::Init => fmt.pad("Init"),
+            Self::Changed => fmt.pad("Changed"),
+            Self::ContentSame => fmt.pad("ContentSame"),
+        }
     }
 }
 
@@ -180,11 +182,9 @@ Hint: Change the filter or use all sites with 'run --all'."
     while let Some((url, result, ignore_error)) = rx.recv().await {
         amount_done += 1;
         match result {
-            #[allow(clippy::to_string_in_format_args)]
             Ok((change_kind, ip_version, took)) => {
                 println!(
-                    "{amount_done:4}/{sites_amount} {:12} {:5}ms {ip_version} {url}",
-                    change_kind.to_string(),
+                    "{amount_done:4}/{sites_amount} {change_kind:11} {:5}ms {ip_version} {url}",
                     took.as_millis(),
                 );
                 match change_kind {
