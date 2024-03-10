@@ -1,3 +1,5 @@
+#![allow(deprecated)] // TODO: remove on breaking release
+
 use std::fmt::Write;
 
 use once_cell::sync::Lazy;
