@@ -2,8 +2,8 @@ use anyhow::anyhow;
 use serde::Deserialize;
 use url::Url;
 
-use crate::final_message::validate_template;
 use crate::http::validate_from;
+use crate::notification::validate_template;
 use crate::site::{Options, Site};
 
 pub const EXAMPLE_CONF: &str = include_str!("../sites/website-stalker.yaml");

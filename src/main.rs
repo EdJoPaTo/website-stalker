@@ -13,13 +13,14 @@ use crate::config::{Config, EXAMPLE_CONF};
 use crate::site::Site;
 
 mod cli;
+mod commit_message;
 mod config;
 mod editor;
 mod filename;
-mod final_message;
 mod git;
 mod http;
 mod logger;
+mod notification;
 mod site;
 mod site_store;
 
@@ -206,14 +207,14 @@ Hint: Change the filter or use all sites with 'run --all'."
         }
     }
 
-    let message = final_message::FinalMessage::new(&urls_of_interest);
     let commit = if let Ok(repo) = repo {
-        run_commit(&repo, do_commit, &message.to_commit())?
+        let message = commit_message::commit_message(&urls_of_interest);
+        run_commit(&repo, do_commit, &message)?
     } else {
         None
     };
     if !urls_of_interest.is_empty() {
-        let mustache_data = message.into_mustache_data(commit);
+        let mustache_data = notification::MustacheData::new(commit, urls_of_interest);
         run_notifications(&mustache_data.apply_to_template(config.notification_template.as_ref())?);
     }
 
