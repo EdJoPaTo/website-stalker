@@ -35,7 +35,6 @@ pub enum Editor {
 
 impl Editor {
     pub const fn log_name(&self) -> &'static str {
-        // TODO: can serde do this?
         match self {
             Self::CssRemove(_) => "css_remove",
             Self::CssSelect(_) => "css_select",
