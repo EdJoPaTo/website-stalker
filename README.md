@@ -55,7 +55,7 @@ Check out [website-stalker-example](https://github.com/EdJoPaTo/website-stalker-
     website-stalker run apple
     ```
 
-- Set up a cronjob / [systemd.timer](systemd) executing the following command every now and then
+- Set up a cronjob / [`systemd.timer`](systemd) executing the following command occasionally
 
     ```bash
     website-stalker run --all --commit
@@ -180,7 +180,7 @@ sites:
 
 Allows HTTPS connections with self-signed or invalid / expired certificates.
 
-From [reqwests documentation](https://docs.rs/reqwest/0.11.4/reqwest/struct.ClientBuilder.html#method.danger_accept_invalid_certs):
+From [`reqwests` documentation](https://docs.rs/reqwest/0.11.26/reqwest/struct.ClientBuilder.html#method.danger_accept_invalid_certs):
 
 > You should think very carefully before using this method. If
 > invalid certificates are trusted, *any* certificate for *any* site
@@ -216,14 +216,14 @@ sites:
 
 Overrides the URL based default filename of the site.
 
-Normally the filename is automatically derived from the url.
-For the following example it would be something like `de-edjopato-api-token-0123456789-action-hack-20the-20planet.html`.
-With the `filename` options it is saved as `de-edjopato-api-planet-hack.html` instead.
+Normally the filename is automatically derived from the URL.
+For the following example it would be something like `de-edjopato-api-token-0123456789-action-enjoy-20weather.html`.
+With the `filename` options it is saved as `de-edjopato-api-weather.html` instead.
 
 ```yaml
 sites:
-  - url: "https://edjopato.de/api?token=0123456789&action=hack%20the%20planet"
-    filename: de-edjopato-api-planet-hack
+  - url: "https://edjopato.de/api?token=0123456789&action=enjoy%20weather"
+    filename: de-edjopato-api-weather
 ```
 
 #### `headers`
@@ -295,9 +295,6 @@ editors:
 #### `html_markdownify`
 
 Formats the input HTML as Markdown.
-
-This is rather simple right now.
-Please report issues you find.
 
 Example:
 
@@ -424,11 +421,11 @@ Examples:
 
 ### Notifications
 
-When changes on websites are detected they get saved to filesystem.
+When changes on websites are detected they get saved to the file system.
 When `--commit` is given a git commit is created.
 
 Additionally, you can get notified via Telegram, Slack, E-Mail, ...
-[pling](https://github.com/EdJoPaTo/pling) is used to send these notifications.
+[`pling`](https://github.com/EdJoPaTo/pling) is used to send these notifications.
 Check its documentation about which environment variables to specify in order to get notifications.
 
 Example with Telegram:
@@ -443,7 +440,7 @@ website-stalker run --all
 
 - [Website Changed Bot](https://github.com/EdJoPaTo/website-changed-bot) is a Telegram Bot which might potentially use this tool later on
 - [bernaferrari/ChangeDetection](https://github.com/bernaferrari/ChangeDetection) is an Android app for this
-- [dgtlmoon/changedetection.io](https://github.com/dgtlmoon/changedetection.io) can be selfhosted and configured via web interface
+- [dgtlmoon/changedetection.io](https://github.com/dgtlmoon/changedetection.io) can be self-hosted and configured via web interface
 - [Feed me up, Scotty!](https://gitlab.com/vincenttunru/feed-me-up-scotty) creates RSS feeds from websites
-- [htmlq](https://github.com/mgdm/htmlq) command line tool to format / select html (like jq for html)
+- [htmlq](https://github.com/mgdm/htmlq) command line tool to format / select HTML (like `jq` for HTML)
 - [urlwatch](https://thp.io/2008/urlwatch/)
