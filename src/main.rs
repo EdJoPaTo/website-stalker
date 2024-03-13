@@ -154,7 +154,7 @@ async fn run(do_commit: bool, from: Option<String>, site_filter: Option<&Regex>)
     }
 
     let distinct_hosts = groups.len();
-    println!("Begin stalking of {sites_amount} sites on {distinct_hosts} hosts...");
+    eprintln!("Begin stalking of {sites_amount} sites on {distinct_hosts} hosts...");
     if distinct_hosts < sites_amount {
         logger::info("Some sites are on the same host. There is a wait time of 5 seconds between each request to the same host in order to reduce load on the server.");
     }
@@ -236,6 +236,9 @@ async fn run(do_commit: bool, from: Option<String>, site_filter: Option<&Regex>)
     let summary_json =
         serde_json::to_string(&summary).expect("Should be able to turn summary into valid JSON");
     logger::gha_output("json", &summary_json);
+    let summary_json_pretty = serde_json::to_string_pretty(&summary)
+        .expect("Should be able to turn summary into valid pretty JSON");
+    println!("{summary_json_pretty}");
 
     if summary.siteamount > 0 {
         let notifiers = pling::Notifier::from_env();
