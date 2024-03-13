@@ -1,4 +1,7 @@
 use std::env;
+use std::fs::OpenOptions;
+use std::io::Write;
+use std::path::PathBuf;
 use std::sync::atomic::{AtomicBool, Ordering};
 
 use once_cell::sync::Lazy;
@@ -28,6 +31,22 @@ pub fn warn(message: &str) {
 
 pub fn info(message: &str) {
     eprintln!("INFO: {message}");
+}
+
+/// <https://docs.github.com/en/actions/using-workflows/workflow-commands-for-github-actions#setting-an-output-parameter>
+/// <https://docs.github.com/en/actions/learn-github-actions/contexts#steps-context>
+pub fn gha_output(key: &str, text: &str) {
+    fn inner(key: &str, text: &str) -> std::io::Result<()> {
+        static GITHUB_OUTPUT: Lazy<Option<PathBuf>> =
+            Lazy::new(|| env::var_os("GITHUB_OUTPUT").map(PathBuf::from));
+        if let Some(output) = &*GITHUB_OUTPUT {
+            let mut file = OpenOptions::new().create(true).append(true).open(output)?;
+            // <https://docs.github.com/en/actions/using-workflows/workflow-commands-for-github-actions#multiline-strings>
+            writeln!(file, "{key}<<EOF\n{text}\nEOF")?;
+        }
+        Ok(())
+    }
+    inner(key, text).expect("should be able to write to GITHUB_OUTPUT");
 }
 
 pub fn warn_deprecated_notifications() {
