@@ -3,3 +3,6 @@
 /systemd
 /target
 Dockerfile
+
+# Dont build completions and man pages
+build.rs
