@@ -23,6 +23,7 @@ mod logger;
 mod notification;
 mod site;
 mod site_store;
+mod summary;
 
 pub enum ChangeKind {
     Init,
@@ -231,11 +232,16 @@ async fn run(do_commit: bool, from: Option<String>, site_filter: Option<&Regex>)
             }
         });
 
-    if !urls_of_interest.is_empty() {
+    let summary = summary::Summary::new(commit, urls_of_interest);
+    let summary_json =
+        serde_json::to_string(&summary).expect("Should be able to turn summary into valid JSON");
+    logger::gha_output("json", &summary_json);
+
+    if summary.siteamount > 0 {
         let notifiers = pling::Notifier::from_env();
         if !notifiers.is_empty() {
             logger::warn_deprecated_notifications();
-            let message = notification::MustacheData::new(commit, urls_of_interest)
+            let message = notification::MustacheData::from(summary)
                 .apply_to_template(config.notification_template.as_ref())
                 .expect("Should be able to create notification message from template");
             for notifier in notifiers {

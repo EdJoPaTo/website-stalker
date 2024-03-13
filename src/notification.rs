@@ -1,6 +1,8 @@
 use once_cell::sync::Lazy;
 use url::Url;
 
+use crate::summary::Summary;
+
 static DEFAULT_MUSTACHE_TEMPLATE: Lazy<mustache::Template> = Lazy::new(|| {
     mustache::compile_str(
         "
@@ -27,6 +29,7 @@ See {{.}}
 #[derive(serde::Serialize)]
 pub struct MustacheData {
     commit: Option<String>,
+
     #[deprecated = "use singlehost"]
     singledomain: Option<String>,
     singlehost: Option<String>,
@@ -38,70 +41,57 @@ pub struct MustacheData {
     sites: Vec<Url>,
 }
 
-impl MustacheData {
-    pub fn new(commit: Option<String>, changed_urls: Vec<Url>) -> Self {
-        let mut sites = changed_urls;
-        sites.sort_unstable();
-        sites.dedup();
-
-        let mut hosts = sites
-            .iter()
-            .filter_map(Url::host_str)
-            .map(std::string::ToString::to_string)
-            .collect::<Vec<_>>();
-        hosts.dedup();
-
-        let singlehost = if let [single] = hosts.as_slice() {
-            Some(single.clone())
-        } else {
-            None
-        };
-
+impl From<Summary> for MustacheData {
+    fn from(summary: Summary) -> Self {
         Self {
-            commit,
-            singledomain: singlehost.clone(),
-            singlehost,
-            siteamount: sites.len(),
-
-            domains: hosts.clone(),
-            hosts,
-            sites,
+            commit: summary.commit,
+            singledomain: summary.singlehost.clone(),
+            singlehost: summary.singlehost,
+            siteamount: summary.siteamount,
+            domains: summary.hosts.clone(),
+            hosts: summary.hosts,
+            sites: summary.sites,
         }
     }
+}
 
+impl MustacheData {
     pub fn apply_to_template(
         &self,
         template: Option<&mustache::Template>,
-    ) -> anyhow::Result<String> {
+    ) -> Result<String, mustache::Error> {
         let template = template.unwrap_or_else(|| &DEFAULT_MUSTACHE_TEMPLATE);
         Ok(template.render_to_string(self)?.trim().to_owned())
     }
 
     fn example_single(commit: Option<&str>) -> Self {
-        Self::new(
+        Summary::new(
             commit.map(ToOwned::to_owned),
             vec![Url::parse("https://edjopato.de/post/").unwrap()],
         )
+        .into()
     }
 
     fn example_different(commit: Option<&str>) -> Self {
-        Self::new(
+        Summary::new(
             commit.map(ToOwned::to_owned),
             vec![
                 Url::parse("https://edjopato.de/post/").unwrap(),
                 Url::parse("https://foo.bar/").unwrap(),
             ],
         )
+        .into()
     }
 
     fn example_same(commit: Option<&str>) -> Self {
-        Self::new(
+        Summary::new(
             commit.map(ToOwned::to_owned),
             vec![
                 Url::parse("https://edjopato.de/").unwrap(),
                 Url::parse("https://edjopato.de/post/").unwrap(),
             ],
         )
+        .into()
     }
 }
 
