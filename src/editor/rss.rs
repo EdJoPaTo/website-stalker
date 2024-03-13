@@ -1,4 +1,3 @@
-use itertools::Itertools;
 use once_cell::sync::Lazy;
 use rss::validation::Validate;
 use rss::{ChannelBuilder, ItemBuilder};
@@ -88,6 +87,7 @@ impl Rss {
                         .text()
                         .map(str::trim)
                         .filter(|title| !title.is_empty())
+                        .collect::<Vec<_>>()
                         .join("\n"),
                 );
             }

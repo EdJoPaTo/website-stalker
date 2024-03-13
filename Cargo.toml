@@ -31,7 +31,6 @@ chrono = { version = "0.4", default-features = false }
 clap = { version = "4", features = ["deprecated", "derive", "wrap_help"] }
 html2md = "0.2"
 html5ever = "0.26"
-itertools = "0.12"
 kuchikiki = "0.8"
 lazy-regex = "3"
 mime2ext = "0.1"
