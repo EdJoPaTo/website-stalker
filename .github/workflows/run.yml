@@ -11,10 +11,9 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Setup Rust
-        shell: bash -eux {0}
-        run: |
-          rustup toolchain install stable --profile minimal
-          rustup default stable
+        uses: dtolnay/rust-toolchain@master
+        with:
+          toolchain: stable
 
       - uses: actions/checkout@v4
 
