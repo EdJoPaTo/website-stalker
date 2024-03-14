@@ -14,7 +14,7 @@ See it [in action](https://github.com/EdJoPaTo/website-stalker-example) (literal
 
 - [GitHub Releases](https://github.com/EdJoPaTo/website-stalker/releases)
 - [Arch Linux User Repository (AUR)](https://aur.archlinux.org/packages/website-stalker/)
-- [Docker Hub Image ![Docker Hub Image](https://img.shields.io/docker/image-size/edjopato/website-stalker)](https://hub.docker.com/r/edjopato/website-stalker)
+- [Docker Hub Image](https://hub.docker.com/r/edjopato/website-stalker)
 - Via rust and cargo: Clone → `cargo install --path .`
 
 ## Usage
