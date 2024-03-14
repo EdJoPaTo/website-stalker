@@ -15,7 +15,7 @@ fn git_command(dir: &Path, args: &[&str]) -> anyhow::Result<String> {
         Ok(stdout.trim().to_owned())
     } else {
         Err(anyhow::anyhow!(
-            "failed git command \"{}\" with status code {}\nStdout: {}\nStderr: {}",
+            "failed git command \"{}\" with {}\nStdout: {}\nStderr: {}",
             args.join(" "),
             output.status,
             String::from_utf8_lossy(&output.stdout),
@@ -46,17 +46,16 @@ impl Repo {
         Ok(Self { dir: repodir })
     }
 
-    pub fn init(path: PathBuf) -> anyhow::Result<Self> {
-        git_command(&path, &["init"])?;
-        Ok(Self { dir: path })
+    pub fn init(path: &Path) {
+        git_command(path, &["init"]).expect("Should be able to git init");
     }
 
-    pub fn add_all(&self) -> anyhow::Result<()> {
-        self.git_command(&["add", "-A"])?;
-        Ok(())
+    pub fn add_all(&self) {
+        self.git_command(&["add", "-A"])
+            .expect("Should be able to able to git add all files");
     }
 
-    pub fn commit(&self, message: &str) -> anyhow::Result<String> {
+    pub fn commit(&self, message: &str) -> String {
         self.git_command(&[
             "commit",
             "--author",
@@ -64,15 +63,18 @@ impl Repo {
             "--no-gpg-sign",
             "--message",
             message.trim(),
-        ])?;
+        ])
+        .expect("Should be able to git commit");
 
-        let id = self.git_command(&["rev-parse", "HEAD"])?;
-        Ok(id)
+        self.git_command(&["rev-parse", "HEAD"])
+            .expect("Should be able to get last git commit id")
     }
 
-    pub fn is_something_modified(&self) -> anyhow::Result<bool> {
-        let output = self.git_command(&["status", "--short"])?;
-        Ok(!output.is_empty())
+    pub fn is_something_modified(&self) -> bool {
+        let output = self
+            .git_command(&["status", "--short"])
+            .expect("Should be able to check git repository for modified status");
+        !output.is_empty()
     }
 }
 
@@ -91,7 +93,7 @@ mod tests {
             Ok(stdout.trim().to_owned())
         } else {
             Err(anyhow::anyhow!(
-                "failed command \"{command}\" with status code {}\nStdout: {}\nStderr: {}",
+                "failed command \"{command}\" with {}\nStdout: {}\nStderr: {}",
                 output.status,
                 String::from_utf8_lossy(&output.stdout),
                 String::from_utf8_lossy(&output.stderr),
@@ -135,7 +137,7 @@ mod tests {
             .prefix("website-stalker-testing-")
             .tempdir()?;
         let dir = tempdir.path();
-        Repo::init(dir.to_path_buf())?;
+        Repo::init(dir);
         assert_eq!(simple_command(dir, "git status --short")?, "");
         fs::write(dir.join("bla.txt"), "stuff")?;
         assert_eq!(simple_command(dir, "git status --short")?, "?? bla.txt");
@@ -148,7 +150,7 @@ mod tests {
         let dir = tempdir.path();
         fs::write(dir.join("bla.txt"), "stuff")?;
         assert_eq!(simple_command(dir, "git status --short")?, "?? bla.txt");
-        repo.add_all()?;
+        repo.add_all();
         assert_eq!(simple_command(dir, "git status --short")?, "A  bla.txt");
         Ok(())
     }
@@ -162,7 +164,7 @@ mod tests {
         simple_command(dir, "git add bla.txt")?;
         overview(dir);
         assert_eq!(simple_command(dir, "git log")?.lines().count(), 5);
-        repo.commit("bla")?;
+        repo.commit("bla");
         overview(dir);
         assert_eq!(simple_command(dir, "git log")?.lines().count(), 11);
         Ok(())
@@ -175,7 +177,7 @@ mod tests {
         fs::write(dir.join("bla.txt"), "stuff")?;
         simple_command(dir, "git add bla.txt")?;
         overview(dir);
-        repo.commit("bla")?;
+        repo.commit("bla");
         overview(dir);
         assert_eq!(simple_command(dir, "git log")?.lines().count(), 5);
         Ok(())
@@ -185,16 +187,16 @@ mod tests {
     fn is_something_modified_untracked() -> anyhow::Result<()> {
         let (tempdir, repo) = init_test_env()?;
         let dir = tempdir.path();
-        assert!(!repo.is_something_modified()?);
+        assert!(!repo.is_something_modified());
 
         fs::write(dir.join("bla.txt"), "stuff")?;
-        assert!(repo.is_something_modified()?);
+        assert!(repo.is_something_modified());
         simple_command(dir, "git add bla.txt")?;
-        assert!(repo.is_something_modified()?);
+        assert!(repo.is_something_modified());
         simple_command(dir, "git reset")?;
-        assert!(repo.is_something_modified()?);
+        assert!(repo.is_something_modified());
         simple_command(dir, "git clean -xdf")?;
-        assert!(!repo.is_something_modified()?);
+        assert!(!repo.is_something_modified());
         Ok(())
     }
 
@@ -202,21 +204,21 @@ mod tests {
     fn is_something_modified_changed() -> anyhow::Result<()> {
         let (tempdir, repo) = init_test_env()?;
         let dir = tempdir.path();
-        assert!(!repo.is_something_modified()?);
+        assert!(!repo.is_something_modified());
 
         fs::write(dir.join("bla.txt"), "foo")?;
         simple_command(dir, "git add bla.txt")?;
         simple_command(dir, "git commit -m bla")?;
-        assert!(!repo.is_something_modified()?);
+        assert!(!repo.is_something_modified());
 
         fs::write(dir.join("bla.txt"), "bar")?;
-        assert!(repo.is_something_modified()?);
+        assert!(repo.is_something_modified());
         simple_command(dir, "git add bla.txt")?;
-        assert!(repo.is_something_modified()?);
+        assert!(repo.is_something_modified());
         simple_command(dir, "git reset")?;
-        assert!(repo.is_something_modified()?);
+        assert!(repo.is_something_modified());
         simple_command(dir, "git checkout bla.txt")?;
-        assert!(!repo.is_something_modified()?);
+        assert!(!repo.is_something_modified());
         Ok(())
     }
 }

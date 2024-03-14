@@ -4,6 +4,11 @@ use once_cell::sync::Lazy;
 
 static GHA: Lazy<bool> = Lazy::new(|| env::var_os("GITHUB_ACTIONS").is_some());
 
+pub fn error_exit(message: &str) -> ! {
+    error(message);
+    std::process::exit(1);
+}
+
 pub fn error(message: &str) {
     if *GHA {
         println!("::error file=website-stalker.yaml::{message}");
