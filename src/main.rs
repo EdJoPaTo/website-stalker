@@ -233,12 +233,8 @@ async fn run(do_commit: bool, from: Option<String>, site_filter: Option<&Regex>)
         });
 
     let summary = summary::Summary::new(commit, urls_of_interest);
-    let summary_json =
-        serde_json::to_string(&summary).expect("Should be able to turn summary into valid JSON");
-    logger::gha_output("json", &summary_json);
-    let summary_json_pretty = serde_json::to_string_pretty(&summary)
-        .expect("Should be able to turn summary into valid pretty JSON");
-    println!("{summary_json_pretty}");
+    summary.to_gha_output();
+    println!("{}", summary.to_pretty_json());
 
     if summary.siteamount > 0 {
         let notifiers = pling::Notifier::from_env();
