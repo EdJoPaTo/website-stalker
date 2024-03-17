@@ -4,8 +4,9 @@ use crate::logger::gha_output;
 
 #[derive(serde::Serialize)]
 pub struct Summary {
-    pub commit: Option<String>,
+    pub change: bool,
     pub siteamount: usize,
+    pub commit: Option<String>,
     pub singlehost: Option<String>,
     pub hosts: Vec<String>,
     pub sites: Vec<Url>,
@@ -31,8 +32,9 @@ impl Summary {
         };
 
         Self {
-            commit,
+            change: !sites.is_empty(),
             siteamount: sites.len(),
+            commit,
             singlehost,
             hosts,
             sites,
@@ -45,8 +47,9 @@ impl Summary {
     }
 
     pub fn to_gha_output(&self) {
-        gha_output_option("commit", self.commit.as_deref());
+        gha_output("change", &self.change.to_string());
         gha_output("siteamount", &self.siteamount.to_string());
+        gha_output_option("commit", self.commit.as_deref());
         gha_output_option("singlehost", self.singlehost.as_deref());
 
         gha_output("hosts", &to_json(&self.hosts));
