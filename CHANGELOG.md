@@ -1,8 +1,8 @@
-# Changelog
+# Change log
 
 All notable changes to this project will be documented in this file.
 
-The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
+The format is based on [Keep a change log](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
@@ -16,7 +16,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- Automatically generated man pages from the cli definition
+- Automatically generated man pages from the CLI definition
 
 ### Changed
 
@@ -29,7 +29,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 - Correctly detect duplicate hosts for delays between them (to reduce load on the host)
-- Systemd service is `Type=oneshot` now and can no longer be installed. The timer is the relevant unit and not the service.
+- systemd service is `Type=oneshot` now and can no longer be installed. The timer is the relevant unit and not the service.
 
 ## [0.21.0] - 2023-09-05
 

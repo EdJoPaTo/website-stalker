@@ -231,7 +231,7 @@ sites:
 Add additional [HTTP headers](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers) to the request to the given site.
 
 This is useful for sites that respond differently based on different headers.
-Each header Key/Value pair is supplied as YAML String separated with a `: ` followed by a space in the config.
+Each header Key/Value pair is supplied as YAML String separated with a `:` followed by a space in the config.
 
 This is the same syntax as HTTP uses which sadly collides with YAML.
 YAML assumes something with a `:` is an object.
