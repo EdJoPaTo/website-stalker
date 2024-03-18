@@ -60,7 +60,10 @@ async fn main() {
         }
         Cli::Check => {
             let notifiers = pling::Notifier::from_env().len();
-            eprintln!("Notifiers: {notifiers}. Check https://github.com/EdJoPaTo/pling/ for configuration details.");
+            if notifiers > 0 {
+                logger::warn_deprecated_notifications();
+                eprintln!("Notifiers: {notifiers}. Check https://github.com/EdJoPaTo/pling/ for configuration details.");
+            }
 
             eprintln!("\nConfiguration...");
             match Config::load() {
@@ -218,6 +221,7 @@ async fn run(do_commit: bool, site_filter: Option<&Regex>) {
     if !urls_of_interest.is_empty() {
         let notifiers = pling::Notifier::from_env();
         if !notifiers.is_empty() {
+            logger::warn_deprecated_notifications();
             let message = notification::MustacheData::new(commit, urls_of_interest)
                 .apply_to_template(config.notification_template.as_ref())
                 .expect("Should be able to create notification message from template");

@@ -1,5 +1,3 @@
-#![allow(deprecated)] // TODO: remove on breaking release
-
 use once_cell::sync::Lazy;
 use url::Url;
 
@@ -25,6 +23,7 @@ See {{.}}
     .unwrap()
 });
 
+#[deprecated = "The notification feature will be removed"]
 #[derive(serde::Serialize)]
 pub struct MustacheData {
     commit: Option<String>,
