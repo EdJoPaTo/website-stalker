@@ -43,14 +43,20 @@ pub struct MustacheData {
 
 impl From<Summary> for MustacheData {
     fn from(summary: Summary) -> Self {
+        let singlehost = if let [single] = summary.changed_hosts.as_slice() {
+            Some(single.clone())
+        } else {
+            None
+        };
+
         Self {
             commit: summary.commit,
-            singledomain: summary.singlehost.clone(),
-            singlehost: summary.singlehost,
-            siteamount: summary.siteamount,
-            domains: summary.hosts.clone(),
-            hosts: summary.hosts,
-            sites: summary.sites,
+            singledomain: singlehost.clone(),
+            singlehost,
+            siteamount: summary.changed_amount,
+            domains: summary.changed_hosts.clone(),
+            hosts: summary.changed_hosts,
+            sites: summary.changed_sites,
         }
     }
 }
@@ -68,6 +74,7 @@ impl MustacheData {
         Summary::new(
             commit.map(ToOwned::to_owned),
             vec![Url::parse("https://edjopato.de/post/").unwrap()],
+            vec![],
         )
         .into()
     }
@@ -79,6 +86,7 @@ impl MustacheData {
                 Url::parse("https://edjopato.de/post/").unwrap(),
                 Url::parse("https://foo.bar/").unwrap(),
             ],
+            vec![],
         )
         .into()
     }
@@ -90,6 +98,7 @@ impl MustacheData {
                 Url::parse("https://edjopato.de/").unwrap(),
                 Url::parse("https://edjopato.de/post/").unwrap(),
             ],
+            vec![],
         )
         .into()
     }
