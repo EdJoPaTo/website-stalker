@@ -3,6 +3,7 @@ use serde::Deserialize;
 use url::Url;
 
 use crate::http::validate_from;
+use crate::logger;
 use crate::notification::validate_template;
 use crate::site::{Options, Site};
 
@@ -14,6 +15,7 @@ pub struct Config {
     #[serde(default)]
     pub from: String,
 
+    #[deprecated = "The notification feature will be removed"]
     #[serde(
         default,
         deserialize_with = "deserialize_mustache_template",
@@ -106,6 +108,7 @@ fn deserialize_mustache_template<'de, D>(
 where
     D: serde::Deserializer<'de>,
 {
+    logger::warn_deprecated_notifications();
     let str = String::deserialize(deserializer)?;
     let template = mustache::compile_str(&str).map_err(serde::de::Error::custom)?;
     validate_template(&template).map_err(serde::de::Error::custom)?;

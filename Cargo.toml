@@ -8,6 +8,7 @@ authors = ["EdJoPaTo <website-stalker-rust@edjopato.de>"]
 edition = "2021"
 
 [lints.rust]
+deprecated = "allow"
 unsafe_code = "forbid"
 [lints.clippy]
 pedantic = "warn"

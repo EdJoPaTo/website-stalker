@@ -121,36 +121,6 @@ Alternatively you can specify FROM via environment variable
 export WEBSITE_STALKER_FROM=my-email-address
 ```
 
-#### `notification_template`
-
-When using the [notifications](#notifications) you might want to use your own style of notification instead of the default one.
-You can specify your own template which is handled via the [Mustache Syntax](https://mustache.github.io/mustache.5.html).
-The following example contains all currently available data points.
-
-When writing your own template use `website-stalker check` to ensure the template will work.
-
-```yaml
-notification_template: |
-  These {{siteamount}} sites changed:
-  {{#sites}}
-  - {{.}}
-  {{/sites}}
-
-  The following hosts are involved:
-  {{#hosts}}
-  - {{.}}
-  {{/hosts}}
-
-  {{#singlehost}}
-  All changes happened on only one host: {{singlehost}}
-  {{/singlehost}}
-  {{^singlehost}}
-  The changes happened on various hosts.
-  {{/singlehost}}
-
-  The {{commit}} contains all these changes.
-```
-
 ### Per Site Config Options
 
 Options available per site besides the [editors](#editors) which are explained below.
@@ -417,23 +387,6 @@ Examples:
   - url: "https://edjopato.de/post/"
     editors:
       - rss: {}
-```
-
-### Notifications
-
-When changes on websites are detected they get saved to the file system.
-When `--commit` is given a git commit is created.
-
-Additionally, you can get notified via Telegram, Slack, E-Mail, ...
-[`pling`](https://github.com/EdJoPaTo/pling) is used to send these notifications.
-Check its documentation about which environment variables to specify in order to get notifications.
-
-Example with Telegram:
-
-```bash
-export TELEGRAM_BOT_TOKEN='123:ABC'
-export TELEGRAM_TARGET_CHAT='1234'
-website-stalker run --all
 ```
 
 ## Alternatives
