@@ -1,6 +1,7 @@
 use clap::{Parser, ValueHint};
 use regex::Regex;
 
+#[allow(clippy::doc_markdown, rustdoc::bare_urls)]
 #[derive(Debug, Parser)]
 #[command(about, version)]
 pub enum Cli {
@@ -46,11 +47,17 @@ pub enum Cli {
         /// This is made to be machine readable and piped into another tool.
         /// For example you could send yourself notifications based on the output.
         ///
-        /// Warning: When this option is used the status code will no longer be 1 when some site failed.
+        /// Tip: When this option is used the status code will no longer be 1 when some site failed.
         /// Instead the failed sites are also included in the JSON and this command will be successful.
         /// This allows usage together with pipefail.
         ///
         /// When used on GitHub Actions consider the outputs of the step instead.
+        ///
+        /// Warning: The exact JSON output is still experimental and might change.
+        /// Join in on the discussion to improve it:
+        /// https://github.com/EdJoPaTo/website-stalker/discussions/172
+        ///
+        /// In the long run the JSON summary should be fairly stable between releases (especially once v1.0.0 is reached) but I dont want to guarantee that yet.
         #[arg(long)]
         json_summary: bool,
 
