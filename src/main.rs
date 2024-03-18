@@ -80,21 +80,27 @@ async fn main() {
             }
         }
         Cli::Run {
+            all: _all,
             commit: do_commit,
             from,
+            json_summary,
             site_filter,
-            ..
         } => {
             let site_filter =
                 site_filter.map(|regex| Regex::new(&format!("(?i){}", regex.as_str())).unwrap());
-            run(do_commit, from, site_filter.as_ref()).await;
+            run(do_commit, from, json_summary, site_filter.as_ref()).await;
             eprintln!("Thank you for using website-stalker!");
         }
     }
 }
 
 #[allow(clippy::too_many_lines)]
-async fn run(do_commit: bool, from: Option<String>, site_filter: Option<&Regex>) {
+async fn run(
+    do_commit: bool,
+    from: Option<String>,
+    json_summary: bool,
+    site_filter: Option<&Regex>,
+) {
     let config = Config::load(from).expect("failed to load your configuration");
     let from = config
         .from
@@ -179,8 +185,8 @@ async fn run(do_commit: bool, from: Option<String>, site_filter: Option<&Regex>)
         rx
     };
 
-    let mut urls_of_interest = Vec::new();
-    let mut error_occurred = false;
+    let mut sites_changed = Vec::new();
+    let mut sites_failed = Vec::new();
     let mut amount_done: usize = 0;
     while let Some((url, result, ignore_error)) = rx.recv().await {
         amount_done += 1;
@@ -200,7 +206,7 @@ async fn run(do_commit: bool, from: Option<String>, site_filter: Option<&Regex>)
                 );
                 match change_kind {
                     ChangeKind::Init | ChangeKind::Changed => {
-                        urls_of_interest.push(url);
+                        sites_changed.push(url);
                     }
                     ChangeKind::ContentSame => {}
                 }
@@ -211,7 +217,7 @@ async fn run(do_commit: bool, from: Option<String>, site_filter: Option<&Regex>)
                     logger::warn(&message);
                 } else {
                     logger::error(&message);
-                    error_occurred = true;
+                    sites_failed.push(url);
                 }
             }
         }
@@ -223,7 +229,7 @@ async fn run(do_commit: bool, from: Option<String>, site_filter: Option<&Regex>)
         .and_then(|repo| {
             if do_commit {
                 repo.add_all();
-                let message = commit_message::commit_message(&urls_of_interest);
+                let message = commit_message::commit_message(&sites_changed);
                 let id = repo.commit(&message);
                 Some(id)
             } else {
@@ -232,11 +238,14 @@ async fn run(do_commit: bool, from: Option<String>, site_filter: Option<&Regex>)
             }
         });
 
-    let summary = summary::Summary::new(commit, urls_of_interest);
+    let error_occurred = !sites_failed.is_empty();
+    let summary = summary::Summary::new(commit, sites_changed, sites_failed);
     summary.to_gha_output();
-    println!("{}", summary.to_pretty_json());
+    if json_summary {
+        println!("{}", summary.to_pretty_json());
+    }
 
-    if summary.siteamount > 0 {
+    if summary.changed_amount > 0 {
         let notifiers = pling::Notifier::from_env();
         if !notifiers.is_empty() {
             logger::warn_deprecated_notifications();
@@ -251,7 +260,7 @@ async fn run(do_commit: bool, from: Option<String>, site_filter: Option<&Regex>)
         }
     }
 
-    if error_occurred {
+    if error_occurred && !json_summary {
         logger::error_exit("All done but some site failed. Thank you for using website stalker!");
     }
 }

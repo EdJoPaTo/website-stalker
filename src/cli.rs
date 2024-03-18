@@ -41,6 +41,19 @@ pub enum Cli {
         )]
         from: Option<String>,
 
+        /// Output a JSON summary to stdout containing the changes that happened
+        ///
+        /// This is made to be machine readable and piped into another tool.
+        /// For example you could send yourself notifications based on the output.
+        ///
+        /// Warning: When this option is used the status code will no longer be 1 when some site failed.
+        /// Instead the failed sites are also included in the JSON and this command will be successful.
+        /// This allows usage together with pipefail.
+        ///
+        /// When used on GitHub Actions consider the outputs of the step instead.
+        #[arg(long)]
+        json_summary: bool,
+
         /// Filter the sites to be run (case insensitive regular expression)
         #[arg(
             value_hint = ValueHint::Other,
