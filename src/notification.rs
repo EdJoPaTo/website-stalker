@@ -43,19 +43,19 @@ pub struct MustacheData {
 
 impl From<Summary> for MustacheData {
     fn from(summary: Summary) -> Self {
-        let singlehost = if let [single] = summary.changed_hosts.as_slice() {
+        let changed_hosts = summary.changed_hosts.into_keys().collect::<Vec<_>>();
+        let singlehost = if let [single] = changed_hosts.as_slice() {
             Some(single.clone())
         } else {
             None
         };
-
         Self {
             commit: summary.commit,
             singledomain: singlehost.clone(),
             singlehost,
             siteamount: summary.changed_amount,
-            domains: summary.changed_hosts.clone(),
-            hosts: summary.changed_hosts,
+            domains: changed_hosts.clone(),
+            hosts: changed_hosts,
             sites: summary.changed_sites,
         }
     }
