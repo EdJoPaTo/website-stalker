@@ -1,3 +1,5 @@
+use std::collections::BTreeMap;
+
 use url::Url;
 
 use crate::logger::gha_output;
@@ -12,7 +14,7 @@ pub struct Summary {
 
     pub commit: Option<String>,
 
-    pub changed_hosts: Vec<String>,
+    pub changed_hosts: BTreeMap<String, Vec<Url>>,
     pub changed_sites: Vec<Url>,
     pub failed_sites: Vec<Url>,
 }
@@ -25,12 +27,13 @@ impl Summary {
         failed.sort_unstable();
         failed.dedup();
 
-        let mut changed_hosts = changed
-            .iter()
-            .filter_map(Url::host_str)
-            .map(std::string::ToString::to_string)
-            .collect::<Vec<_>>();
-        changed_hosts.dedup();
+        let mut changed_hosts = BTreeMap::<String, Vec<Url>>::new();
+        for url in &changed {
+            if let Some(host) = url.host_str() {
+                let host = host.to_owned();
+                changed_hosts.entry(host).or_default().push(url.clone());
+            }
+        }
 
         Self {
             change: !changed.is_empty(),
