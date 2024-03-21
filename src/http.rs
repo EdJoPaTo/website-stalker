@@ -1,9 +1,12 @@
 use core::time::Duration;
+use std::net::SocketAddr;
 use std::time::Instant;
 
 use reqwest::header::{HeaderMap, HeaderValue};
 use reqwest::{header, ClientBuilder};
 use url::Url;
+
+use crate::editor::Content;
 
 const USER_AGENT: &str = concat!(
     env!("CARGO_PKG_NAME"),
@@ -13,9 +16,11 @@ const USER_AGENT: &str = concat!(
     env!("CARGO_PKG_REPOSITORY"),
 );
 
-pub struct Response {
-    response: reqwest::Response,
-    took: Duration,
+pub struct ResponseMeta {
+    pub ip_version: IpVersion,
+    pub took: Duration,
+    /// Get the final `Url` of this `Response`.
+    pub url: Url,
 }
 
 #[derive(Debug)]
@@ -39,7 +44,7 @@ pub async fn get(
     url: &str,
     additional_headers: HeaderMap,
     accept_invalid_certs: bool,
-) -> anyhow::Result<Response> {
+) -> anyhow::Result<(Content, ResponseMeta)> {
     let request = ClientBuilder::new()
         .danger_accept_invalid_certs(accept_invalid_certs)
         .timeout(Duration::from_secs(30))
@@ -52,47 +57,24 @@ pub async fn get(
     let response = request.send().await?.error_for_status()?;
     let took = Instant::now().saturating_duration_since(start);
 
-    Ok(Response { response, took })
-}
-
-impl Response {
-    pub const fn took(&self) -> Duration {
-        self.took
-    }
-
-    pub fn file_extension(&self) -> Option<&'static str> {
-        self.response
-            .headers()
-            .get(header::CONTENT_TYPE)
-            .and_then(|value| value.to_str().ok())
-            .and_then(mime2ext::mime2ext)
-    }
-
-    pub async fn text(self) -> anyhow::Result<String> {
-        let text = self.response.text().await?;
-        Ok(text)
-    }
-
-    /// Get the final `Url` of this `Response`.
-    pub fn url(&self) -> &Url {
-        self.response.url()
-    }
-
-    pub fn ip_version(&self) -> IpVersion {
-        #[allow(clippy::option_if_let_else)]
-        match self.response.remote_addr() {
-            Some(address) => {
-                if address.is_ipv6() {
-                    IpVersion::IPv6
-                } else if address.is_ipv4() {
-                    IpVersion::IPv4
-                } else {
-                    IpVersion::None
-                }
-            }
-            None => IpVersion::None,
-        }
-    }
+    let extension = response
+        .headers()
+        .get(header::CONTENT_TYPE)
+        .and_then(|value| value.to_str().ok())
+        .and_then(mime2ext::mime2ext);
+    let ip_version = match response.remote_addr() {
+        Some(SocketAddr::V4(_)) => IpVersion::IPv4,
+        Some(SocketAddr::V6(_)) => IpVersion::IPv6,
+        None => IpVersion::None,
+    };
+    let meta = ResponseMeta {
+        ip_version,
+        took,
+        url: response.url().clone(),
+    };
+    let text = response.text().await?;
+    let content = Content { extension, text };
+    Ok((content, meta))
 }
 
 pub fn validate_from(from: &str) -> anyhow::Result<()> {

@@ -179,8 +179,15 @@ async fn run(do_commit: bool, site_filter: Option<&Regex>) {
     while let Some((url, result, ignore_error)) = rx.recv().await {
         amount_done += 1;
         match result {
-            Ok((change_kind, ip_version, took)) => {
-                println!(
+            Ok((
+                change_kind,
+                http::ResponseMeta {
+                    ip_version,
+                    took,
+                    url,
+                },
+            )) => {
+                eprintln!(
                     "{amount_done:4}/{sites_amount} {change_kind:11} {:5}ms {ip_version} {url}",
                     took.as_millis(),
                 );
@@ -241,37 +248,29 @@ async fn run(do_commit: bool, site_filter: Option<&Regex>) {
 async fn stalk_and_save_site(
     from: &HeaderValue,
     site: &Site,
-) -> anyhow::Result<(ChangeKind, http::IpVersion, Duration)> {
+) -> anyhow::Result<(ChangeKind, http::ResponseMeta)> {
     let mut headers = site.options.headers.clone();
     if !headers.contains_key(FROM) {
         headers.insert(FROM, from.clone());
     }
-    let response = http::get(
+    let (content, response) = http::get(
         site.url.as_str(),
         headers,
         site.options.accept_invalid_certs,
     )
     .await?;
-    let took = response.took();
-    let ip_version = response.ip_version();
 
-    if site.url.as_str() != response.url().as_str() {
-        logger::warn(&format!("The URL {} was redirected to {}. This caused additional traffic which can be reduced by changing the URL to the target one.", site.url, response.url()));
+    if site.url.as_str() != response.url.as_str() {
+        logger::warn(&format!("The URL {} was redirected to {}. This caused additional traffic which can be reduced by changing the URL to the target one.", site.url, response.url));
     }
 
-    let url = response.url().clone();
-    let content = editor::Content {
-        extension: response.file_extension(),
-        text: response.text().await?,
-    };
-
     // Use response.url as canonical urls for example are relative to the actual url
-    let content = editor::Editor::apply_many(&site.options.editors, &url, content)?;
+    let content = editor::Editor::apply_many(&site.options.editors, &response.url, content)?;
     let extension = content.extension.unwrap_or("txt");
 
     // Use site.url as the file basename should only change when the config changes (manually)
     let mut path = site.to_file_path();
     path.set_extension(extension);
     let changed = site_store::write_only_changed(&path, &content.text)?;
-    Ok((changed, ip_version, took))
+    Ok((changed, response))
 }
