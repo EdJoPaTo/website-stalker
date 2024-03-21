@@ -174,7 +174,7 @@ async fn run(do_commit: bool, site_filter: Option<&Regex>) {
     };
 
     let mut urls_of_interest = Vec::new();
-    let mut error_occured = false;
+    let mut error_occurred = false;
     let mut amount_done: usize = 0;
     while let Some((url, result, ignore_error)) = rx.recv().await {
         amount_done += 1;
@@ -204,7 +204,7 @@ async fn run(do_commit: bool, site_filter: Option<&Regex>) {
                     logger::warn(&message);
                 } else {
                     logger::error(&message);
-                    error_occured = true;
+                    error_occurred = true;
                 }
             }
         }
@@ -240,7 +240,7 @@ async fn run(do_commit: bool, site_filter: Option<&Regex>) {
         }
     }
 
-    if error_occured {
+    if error_occurred {
         logger::error_exit("All done but some site failed. Thank you for using website stalker!");
     }
 }

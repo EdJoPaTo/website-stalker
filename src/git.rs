@@ -84,9 +84,9 @@ mod tests {
     use std::fs;
 
     fn simple_command<P: AsRef<Path>>(dir: P, command: &str) -> anyhow::Result<String> {
-        let splitted = command.split(' ').collect::<Vec<_>>();
-        let program = splitted[0];
-        let args = &splitted[1..];
+        let parts = command.split(' ').collect::<Vec<_>>();
+        let program = parts[0];
+        let args = &parts[1..];
         let output = Command::new(program).args(args).current_dir(dir).output()?;
         if output.status.success() {
             let stdout = String::from_utf8(output.stdout)?;

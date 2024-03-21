@@ -95,7 +95,7 @@ sites:
 There is a bigger [config](https://github.com/EdJoPaTo/website-stalker-example/blob/main/website-stalker.yaml) in my [example repo](https://github.com/EdJoPaTo/website-stalker-example).
 The example repo is also used by me to detect changes of interesting sites.
 
-### Global Config Options
+### Global Options
 
 Options which are globally configured at the root level of the configuration file `website-stalker.yaml`.
 
@@ -108,7 +108,7 @@ The idea here is to provide a way for a website host to contact whoever is doing
 As this tool is self-hosted and can be run as often as the user likes this can annoy website hosts.
 While this tool is named "stalker" and is made to track websites it is not intended to annoy people.
 
-This tool sets the [`User-Agent` header](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/User-Agent) always to `website-stalker/<version> https://github.com/EdJoPaTo/website-stalker` and the [`From` header](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/From) to the config value.
+This tool sets the [`User-Agent` header](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/User-Agent) to `website-stalker/<version> https://github.com/EdJoPaTo/website-stalker` and the [`From` header](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/From) to the user configured value.
 This way both the creator and the user of this tool can be reached in case of problems.
 
 ```yaml
@@ -121,7 +121,7 @@ Alternatively you can specify FROM via environment variable
 export WEBSITE_STALKER_FROM=my-email-address
 ```
 
-### Per Site Config Options
+### Per Site Options
 
 Options available per site besides the [editors](#editors) which are explained below.
 
@@ -201,7 +201,7 @@ sites:
 Add additional [HTTP headers](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers) to the request to the given site.
 
 This is useful for sites that respond differently based on different headers.
-Each header Key/Value pair is supplied as YAML String separated with a `:` followed by a space in the config.
+Each header Key/Value pair is supplied as YAML String separated with a `:` followed by a space.
 
 This is the same syntax as HTTP uses which sadly collides with YAML.
 YAML assumes something with a `:` is an object.
@@ -338,7 +338,7 @@ Examples:
 
 ```yaml
 editors:
-  # Remove all occurences of that word
+  # Remove all occurrences of that word
   - regex_replace:
       pattern: "tree"
       replace: ""
