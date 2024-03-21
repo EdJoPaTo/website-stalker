@@ -2,8 +2,8 @@ use std::fmt::Write;
 
 use url::Url;
 
-pub fn commit_message(changed_urls: &[Url]) -> String {
-    let mut sites = changed_urls.iter().collect::<Vec<_>>();
+pub fn commit_message(changed: &[Url]) -> String {
+    let mut sites = changed.iter().collect::<Vec<_>>();
     sites.sort_unstable();
     sites.dedup();
 

@@ -30,7 +30,15 @@ jobs:
       - run: cargo build
 
       - name: website-stalker run --all
+        id: website-stalker
         working-directory: sites
         env:
           WEBSITE_STALKER_FROM: website-stalker-run-workflow@edjopato.de
         run: cargo run -- run --all
+
+      - name: Print all output
+        if: always()
+        run: echo '${{ toJSON(steps) }}' | jq
+      - name: Print json output
+        if: always()
+        run: echo '${{ steps.website-stalker.outputs.json }}' | jq
