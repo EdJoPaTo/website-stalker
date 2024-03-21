@@ -45,6 +45,7 @@ async fn main() {
     match Cli::parse() {
         Cli::ExampleConfig => print!("{EXAMPLE_CONF}"),
         Cli::Init => {
+            logger::warn("website-stalker init is deprecated. Use `git init && website-stalker example-config > website-stalker.yaml`");
             if git::Repo::new().is_err() {
                 git::Repo::init(
                     &std::env::current_dir().expect("Should be run in a valid working directory"),
@@ -59,6 +60,7 @@ async fn main() {
             println!("Init complete.\nNext step: adapt the configuration file to your needs.");
         }
         Cli::Check => {
+            logger::warn("website-stalker check is deprecated. website-stalker run also checks the config and runs it when valid.");
             let notifiers = pling::Notifier::from_env().len();
             if notifiers > 0 {
                 logger::warn_deprecated_notifications();

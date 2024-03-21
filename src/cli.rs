@@ -8,9 +8,11 @@ pub enum Cli {
     ExampleConfig,
 
     /// Initialize the current directory with a git repository and a configuration file (website-stalker.yaml)
+    #[command(hide = true)]
     Init,
 
     /// Check if the configuration is fine but do not run
+    #[command(hide = true)]
     Check,
 
     /// Stalk all the websites you specified

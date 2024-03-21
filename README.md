@@ -25,15 +25,14 @@ Check out [website-stalker-example](https://github.com/EdJoPaTo/website-stalker-
 
 ### Locally
 
-- First create a new folder / repo for tracking website changes
+- First create a new folder / git repository for tracking website changes
 
     ```bash
     mkdir personal-stalker
     cd personal-stalker
-    website-stalker init
+    git init
+    website-stalker example-config > website-stalker.yaml
     ```
-
-    `website-stalker init` will create a git repo (`git init`) and the example config (`website-stalker example-config > website-stalker.yaml`) for you.
 
 - Add your favorite website to the configuration file `website-stalker.yaml`.
     Also make sure to set the value of [from](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/From) to an email address of yours.
@@ -41,12 +40,6 @@ Check out [website-stalker-example](https://github.com/EdJoPaTo/website-stalker-
     ```bash
     website-stalker example-config > website-stalker.yaml
     nano website-stalker.yaml
-    ```
-
-- Check if your config is valid
-
-    ```bash
-    website-stalker check
     ```
 
 - Run your newly added website. If you added `https://apple.com/newsroom` use something like this to test if everything works like you want:
