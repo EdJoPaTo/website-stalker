@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- Show used HTTP version in the output (`HTTP/1.1`, `HTTP/2.0`, …)
+
 ### Changed
 
 - RSS: remove website-stalker version from the generator field

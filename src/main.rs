@@ -182,13 +182,14 @@ async fn run(do_commit: bool, site_filter: Option<&Regex>) {
             Ok((
                 change_kind,
                 http::ResponseMeta {
+                    http_version,
                     ip_version,
                     took,
                     url,
                 },
             )) => {
                 eprintln!(
-                    "{amount_done:4}/{sites_amount} {change_kind:11} {:5}ms {ip_version} {url}",
+                    "{amount_done:4}/{sites_amount} {change_kind:11} {:5}ms {http_version:?} {ip_version} {url}",
                     took.as_millis(),
                 );
                 match change_kind {

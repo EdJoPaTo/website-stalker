@@ -17,6 +17,7 @@ const USER_AGENT: &str = concat!(
 );
 
 pub struct ResponseMeta {
+    pub http_version: reqwest::Version,
     pub ip_version: IpVersion,
     pub took: Duration,
     /// Get the final `Url` of this `Response`.
@@ -68,6 +69,7 @@ pub async fn get(
         None => IpVersion::None,
     };
     let meta = ResponseMeta {
+        http_version: response.version(),
         ip_version,
         took,
         url: response.url().clone(),
