@@ -25,6 +25,22 @@ pub enum Cli {
         #[arg(long)]
         commit: bool,
 
+        /// Used as the From header in the web requests.
+        ///
+        /// See <https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/From>
+        ///
+        /// The idea here is to provide a way for a website host to contact whoever is doing something to their web server.
+        /// As this tool is self-hosted and can be run as often as the user likes this can annoy website hosts.
+        /// While this tool is named "stalker" and is made to track websites it is not intended to annoy people.
+        ///
+        /// Can also be specified in the config instead.
+        #[arg(
+            long,
+            env = "WEBSITE_STALKER_FROM",
+            value_hint = ValueHint::EmailAddress,
+        )]
+        from: Option<String>,
+
         /// Filter the sites to be run (case insensitive regular expression)
         #[arg(
             value_hint = ValueHint::Other,

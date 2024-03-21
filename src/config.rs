@@ -50,11 +50,11 @@ pub struct SiteEntry {
 }
 
 impl Config {
-    pub fn load() -> anyhow::Result<Self> {
+    pub fn load(cli_from: Option<String>) -> anyhow::Result<Self> {
         let filecontent = std::fs::read_to_string("website-stalker.yaml")?;
         let mut config = serde_yaml::from_str::<Self>(&filecontent)?;
 
-        if let Ok(from) = std::env::var("WEBSITE_STALKER_FROM") {
+        if let Some(from) = cli_from {
             config.from = from;
         }
 

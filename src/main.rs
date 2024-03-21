@@ -52,7 +52,8 @@ async fn main() {
                 );
                 println!("Git repository initialized.");
             }
-            if Config::load().is_err() {
+            let from = std::env::var("WEBSITE_STALKER_FROM").ok();
+            if Config::load(from).is_err() {
                 fs::write("website-stalker.yaml", EXAMPLE_CONF)
                     .expect("failed to write example configuration file");
                 println!("Example configuration file generated.");
@@ -68,7 +69,8 @@ async fn main() {
             }
 
             eprintln!("\nConfiguration...");
-            match Config::load() {
+            let from = std::env::var("WEBSITE_STALKER_FROM").ok();
+            match Config::load(from) {
                 Ok(_) => eprintln!("ok"),
                 Err(err) => {
                     eprintln!("not ok.\n\n{err}\n\nCheck https://github.com/EdJoPaTo/website-stalker for configuration details.");
@@ -78,20 +80,21 @@ async fn main() {
         }
         Cli::Run {
             commit: do_commit,
+            from,
             site_filter,
             ..
         } => {
             let site_filter =
                 site_filter.map(|regex| Regex::new(&format!("(?i){}", regex.as_str())).unwrap());
-            run(do_commit, site_filter.as_ref()).await;
+            run(do_commit, from, site_filter.as_ref()).await;
             eprintln!("Thank you for using website-stalker!");
         }
     }
 }
 
 #[allow(clippy::too_many_lines)]
-async fn run(do_commit: bool, site_filter: Option<&Regex>) {
-    let config = Config::load().expect("failed to load your configuration");
+async fn run(do_commit: bool, from: Option<String>, site_filter: Option<&Regex>) {
+    let config = Config::load(from).expect("failed to load your configuration");
     let from = config
         .from
         .parse::<HeaderValue>()
