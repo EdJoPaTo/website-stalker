@@ -17,7 +17,6 @@ nursery = "warn"
 [profile.release]
 codegen-units = 1
 lto = true
-strip = "debuginfo"
 
 [build-dependencies]
 clap = { version = "4", features = ["deprecated", "derive"] }
