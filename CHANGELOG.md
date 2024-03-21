@@ -50,7 +50,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - new editor: `html_sanitize`
 - `headers` site options to supply additional headers on requests
-- `filename` option to override the automatically derived file base name from an url
+- `filename` option to override the automatically derived file base name from a URL
 - Support URLs with IP addresses
 
 ### Changed
