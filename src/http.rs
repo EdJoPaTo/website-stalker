@@ -45,14 +45,16 @@ pub async fn get(
     url: &str,
     additional_headers: HeaderMap,
     accept_invalid_certs: bool,
+    http1_only: bool,
 ) -> anyhow::Result<(Content, ResponseMeta)> {
-    let request = ClientBuilder::new()
+    let mut builder = ClientBuilder::new()
         .danger_accept_invalid_certs(accept_invalid_certs)
         .timeout(Duration::from_secs(30))
-        .user_agent(USER_AGENT)
-        .build()?
-        .get(url)
-        .headers(additional_headers);
+        .user_agent(USER_AGENT);
+    if http1_only {
+        builder = builder.http1_only();
+    }
+    let request = builder.build()?.get(url).headers(additional_headers);
 
     let start = Instant::now();
     let response = request.send().await?.error_for_status()?;

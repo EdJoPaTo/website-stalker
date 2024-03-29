@@ -142,10 +142,11 @@ fn validate_fails_on_sites_list_with_empty_many() {
             url: UrlVariants::Many(vec![]),
             options: Options {
                 accept_invalid_certs: false,
+                http1_only: false,
                 ignore_error: false,
+                filename: None,
                 headers: reqwest::header::HeaderMap::new(),
                 editors: vec![],
-                filename: None,
             },
         }],
     };

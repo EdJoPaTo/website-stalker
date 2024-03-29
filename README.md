@@ -160,6 +160,19 @@ sites:
     accept_invalid_certs: true
 ```
 
+#### `http1_only`
+
+Only use HTTP/1 for the web request.
+
+Backends might use HTTP/2 fingerprinting which could result in different or unusable output depending on what the backend assumes about the client.
+HTTP/1 is a simpler protocol which does not allow such kinds of backend optimizations.
+
+```yaml
+sites:
+  - url: "https://edjopato.de/post/"
+    http1_only: true
+```
+
 #### `ignore_error`
 
 Only show warning when the site errors.

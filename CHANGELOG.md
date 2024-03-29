@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 - Show used HTTP version in the output (`HTTP/1.1`, `HTTP/2.0`, …)
+- `http1_only` option to force usage of `HTTP/1`
 
 ### Changed
 

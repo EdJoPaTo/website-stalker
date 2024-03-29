@@ -19,6 +19,9 @@ pub struct Options {
     pub accept_invalid_certs: bool,
 
     #[serde(default, skip_serializing_if = "core::ops::Not::not")]
+    pub http1_only: bool,
+
+    #[serde(default, skip_serializing_if = "core::ops::Not::not")]
     pub ignore_error: bool,
 
     #[serde(default, skip_serializing_if = "Option::is_none")]
@@ -107,30 +110,33 @@ fn validate_finds_duplicates() {
             url: Url::parse("https://edjopato.de/post/").unwrap(),
             options: Options {
                 accept_invalid_certs: false,
+                http1_only: false,
                 ignore_error: false,
+                filename: None,
                 headers: HeaderMap::new(),
                 editors: vec![],
-                filename: None,
             },
         },
         Site {
             url: Url::parse("https://edjopato.de/robots.txt").unwrap(),
             options: Options {
                 accept_invalid_certs: false,
+                http1_only: false,
                 ignore_error: false,
+                filename: None,
                 headers: HeaderMap::new(),
                 editors: vec![],
-                filename: None,
             },
         },
         Site {
             url: Url::parse("https://edjopato.de/post").unwrap(),
             options: Options {
                 accept_invalid_certs: false,
+                http1_only: false,
                 ignore_error: false,
+                filename: None,
                 headers: HeaderMap::new(),
                 editors: vec![],
-                filename: None,
             },
         },
     ];

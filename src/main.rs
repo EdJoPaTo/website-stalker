@@ -263,6 +263,7 @@ async fn stalk_and_save_site(
         site.url.as_str(),
         headers,
         site.options.accept_invalid_certs,
+        site.options.http1_only,
     )
     .await?;
 
