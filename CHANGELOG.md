@@ -9,7 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- Summary JSON when done. This is published to GHA_OUTPUT (when available) and to stdout when `--json-summary` is given. The exact JSON structure is still experimental.
+- Provide a machine-readable summary as JSON when done. This is published to GHA_OUTPUT (when available) and to stdout when `--json-summary` is given. The exact JSON structure is still experimental.
 - Show used HTTP version in the output (`HTTP/1.1`, `HTTP/2.0`, …)
 - `http1_only` option to force usage of `HTTP/1`
 

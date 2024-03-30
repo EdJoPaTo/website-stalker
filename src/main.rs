@@ -245,7 +245,7 @@ async fn run(
         println!("{}", summary.to_pretty_json());
     }
 
-    if summary.changed_amount > 0 {
+    if summary.change {
         let notifiers = pling::Notifier::from_env();
         if !notifiers.is_empty() {
             logger::warn_deprecated_notifications();

@@ -44,7 +44,7 @@ pub enum Cli {
 
         /// Output a JSON summary to stdout containing the changes that happened
         ///
-        /// This is made to be machine readable and piped into another tool.
+        /// This is machine readable and can be piped into other tools.
         /// For example you could send yourself notifications based on the output.
         ///
         /// Tip: When this option is used the status code will no longer be 1 when some site failed.
