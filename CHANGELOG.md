@@ -17,9 +17,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - RSS: remove website-stalker version from the generator field
 - Instantly panic or print cleaner human error message
 - Document `WEBSITE_STALKER_FROM` in `--help`. Also allows for `--from`
-- Deprecate notifications
+- Move notifications from environment variables to CLI. Can still be configured via environment variables, but they have different names now. Check --help.
 - Deprecate `init` sub-command. Its more transparent to use `git init && website-stalker example-config > website-stalker.yaml`
 - Deprecate `check` sub-command. `run` also checks the config and additionally runs it when correct which most people probably need.
+
+### Breaking Changes
+
+- Environment variable names for notifications differ and can now also be provided via --flags. Check --help.
 
 ## [0.22.0] - 2024-02-13
 

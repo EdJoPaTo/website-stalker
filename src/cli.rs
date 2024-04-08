@@ -1,7 +1,9 @@
 use clap::{Parser, ValueHint};
+use pling::clap::Args as Pling;
 use regex::Regex;
 
-#[derive(Debug, Parser)]
+#[allow(clippy::large_enum_variant)]
+#[derive(Parser)]
 #[command(about, version)]
 pub enum Cli {
     /// Print an example configuration file which can be piped into website-stalker.yaml
@@ -24,6 +26,9 @@ pub enum Cli {
         /// git commit changed files
         #[arg(long)]
         commit: bool,
+
+        #[command(flatten)]
+        notifications: Pling,
 
         /// Used as the From header in the web requests.
         ///

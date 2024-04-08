@@ -23,7 +23,7 @@ See {{.}}
     .unwrap()
 });
 
-#[deprecated = "The notification feature will be removed"]
+#[deprecated = "The notification template will be removed"]
 #[derive(serde::Serialize)]
 pub struct MustacheData {
     commit: Option<String>,
