@@ -3,7 +3,6 @@ use serde::Deserialize;
 use url::Url;
 
 use crate::http::validate_from;
-use crate::logger;
 use crate::site::{Options, Site};
 
 pub const EXAMPLE_CONF: &str = include_str!("../sites/website-stalker.yaml");
@@ -84,7 +83,7 @@ impl Config {
         self.validate_sites()?;
 
         if self.notification_template.is_some() {
-            logger::warn_deprecated_notifications();
+            anyhow::bail!("Notifications got reworked and the notification_template in the config file is no longer used. Check website-stalker run --help for the new notification settings.")
         }
 
         Ok(())
