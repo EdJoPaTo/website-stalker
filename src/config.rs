@@ -4,7 +4,6 @@ use url::Url;
 
 use crate::http::validate_from;
 use crate::logger;
-use crate::notification::validate_template;
 use crate::site::{Options, Site};
 
 pub const EXAMPLE_CONF: &str = include_str!("../sites/website-stalker.yaml");
@@ -15,13 +14,9 @@ pub struct Config {
     #[serde(default)]
     pub from: String,
 
-    #[deprecated = "The notification feature will be removed"]
-    #[serde(
-        default,
-        deserialize_with = "deserialize_mustache_template",
-        skip_serializing_if = "Option::is_none"
-    )]
-    pub notification_template: Option<mustache::Template>,
+    #[deprecated = "The notification template was removed"]
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub notification_template: Option<String>,
 
     pub sites: Vec<SiteEntry>,
 }
@@ -87,6 +82,11 @@ impl Config {
         validate_from(&self.from)
             .map_err(|err| anyhow!("from ({}) is invalid: {err}", self.from))?;
         self.validate_sites()?;
+
+        if self.notification_template.is_some() {
+            logger::warn_deprecated_notifications();
+        }
+
         Ok(())
     }
 
@@ -100,19 +100,6 @@ impl Config {
         Site::validate_no_duplicate(&sites)?;
         Ok(())
     }
-}
-
-fn deserialize_mustache_template<'de, D>(
-    deserializer: D,
-) -> Result<Option<mustache::Template>, D::Error>
-where
-    D: serde::Deserializer<'de>,
-{
-    logger::warn_deprecated_notifications();
-    let str = String::deserialize(deserializer)?;
-    let template = mustache::compile_str(&str).map_err(serde::de::Error::custom)?;
-    validate_template(&template).map_err(serde::de::Error::custom)?;
-    Ok(Some(template))
 }
 
 #[test]

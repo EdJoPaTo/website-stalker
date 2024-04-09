@@ -73,15 +73,23 @@ async fn main() {
             }
         }
         Cli::Run {
+            all: _all,
             commit: do_commit,
             from,
+            notification_commit_template,
             notifications,
             site_filter,
-            ..
         } => {
             let site_filter =
                 site_filter.map(|regex| Regex::new(&format!("(?i){}", regex.as_str())).unwrap());
-            run(do_commit, from, notifications, site_filter.as_ref()).await;
+            run(
+                do_commit,
+                from,
+                notifications,
+                notification_commit_template,
+                site_filter.as_ref(),
+            )
+            .await;
             eprintln!("Thank you for using website-stalker!");
         }
     }
@@ -92,6 +100,7 @@ async fn run(
     do_commit: bool,
     from: Option<String>,
     notifications: pling::clap::Args,
+    notification_commit_template: Option<String>,
     site_filter: Option<&Regex>,
 ) {
     let config = Config::load(from).expect("failed to load your configuration");
@@ -232,9 +241,8 @@ async fn run(
         });
 
     if !urls_of_interest.is_empty() {
-        let message = notification::MustacheData::new(commit, urls_of_interest)
-            .apply_to_template(config.notification_template.as_ref())
-            .expect("Should be able to create notification message from template");
+        let message =
+            notification::generate_text(commit, notification_commit_template, urls_of_interest);
         if let Err(err) = notifications.send_reqwest(&message).await {
             logger::error(&format!("notifier failed to send with Err: {err}"));
         }

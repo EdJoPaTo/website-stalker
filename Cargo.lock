@@ -661,7 +661,7 @@ version = "0.26.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "bea68cab48b8459f17cf1c944c67ddc572d272d9f2b274140f223ecb1da4a3b7"
 dependencies = [
- "log 0.4.20",
+ "log",
  "mac",
  "markup5ever",
  "proc-macro2",
@@ -812,7 +812,7 @@ dependencies = [
  "cesu8",
  "combine",
  "jni-sys",
- "log 0.4.20",
+ "log",
  "thiserror",
  "walkdir",
 ]
@@ -885,15 +885,6 @@ dependencies = [
 
 [[package]]
 name = "log"
-version = "0.3.9"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "e19e8d5c34a3e0e2223db8e060f9e8264aeeb5c5fc64a4ee9965c062211c024b"
-dependencies = [
- "log 0.4.20",
-]
-
-[[package]]
-name = "log"
 version = "0.4.20"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "b5e6163cb8c49088c2c36f57875e58ccd8c87c7427f7fbd50ea6710b2f3f2e8f"
@@ -916,7 +907,7 @@ version = "0.11.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "7a2629bb1404f3d34c2e921f21fd34ba00b206124c81f65c50b43b6aaefeb016"
 dependencies = [
- "log 0.4.20",
+ "log",
  "phf 0.10.1",
  "phf_codegen",
  "string_cache",
@@ -972,16 +963,6 @@ dependencies = [
  "libc",
  "wasi",
  "windows-sys 0.48.0",
-]
-
-[[package]]
-name = "mustache"
-version = "0.9.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "51956ef1c5d20a1384524d91e616fb44dfc7d8f249bf696d49c97dd3289ecab5"
-dependencies = [
- "log 0.3.9",
- "serde",
 ]
 
 [[package]]
@@ -1308,7 +1289,7 @@ dependencies = [
  "hyper-util",
  "ipnet",
  "js-sys",
- "log 0.4.20",
+ "log",
  "mime",
  "once_cell",
  "percent-encoding",
@@ -1393,7 +1374,7 @@ version = "0.22.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "e87c9956bd9807afa1f77e0f7594af32566e830e088a5576d27c5b6f30f49d41"
 dependencies = [
- "log 0.4.20",
+ "log",
  "ring",
  "rustls-pki-types",
  "rustls-webpki",
@@ -1476,7 +1457,7 @@ dependencies = [
  "cssparser",
  "derive_more",
  "fxhash",
- "log 0.4.20",
+ "log",
  "new_debug_unreachable",
  "phf 0.10.1",
  "phf_codegen",
@@ -1834,7 +1815,7 @@ version = "0.1.40"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "c3523ab5a71916ccf420eebdf5521fcef02141234bbc0b8a49f2fdc4544364ef"
 dependencies = [
- "log 0.4.20",
+ "log",
  "pin-project-lite",
  "tracing-core",
 ]
@@ -1965,7 +1946,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "c9e7e1900c352b609c8488ad12639a311045f40a35491fb69ba8c12f758af70b"
 dependencies = [
  "bumpalo",
- "log 0.4.20",
+ "log",
  "once_cell",
  "proc-macro2",
  "quote",
@@ -2047,7 +2028,6 @@ dependencies = [
  "html5ever",
  "lazy-regex",
  "mime2ext",
- "mustache",
  "once_cell",
  "pling",
  "regex",
@@ -2241,7 +2221,7 @@ version = "0.17.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "4034e1d05af98b51ad7214527730626f019682d797ba38b51689212118d8e650"
 dependencies = [
- "log 0.4.20",
+ "log",
  "mac",
  "markup5ever",
 ]

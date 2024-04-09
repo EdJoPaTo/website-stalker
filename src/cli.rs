@@ -27,6 +27,20 @@ pub enum Cli {
         #[arg(long)]
         commit: bool,
 
+        /// Prefix or format the commit hash used in notifications.
+        ///
+        /// In order to have some URL in the notification containing the commit hash it needs to be placed inside an URL.
+        /// When the template contains `{commit}` its replaced by the commit hash.
+        /// When it's not in the template the commit hash is concatinated to the template: `{template}{commit}`.
+        #[arg(
+            long,
+            env,
+            value_hint = ValueHint::Other,
+            requires = "commit",
+            help_heading = "Notification Options",
+        )]
+        notification_commit_template: Option<String>,
+
         #[command(flatten)]
         notifications: Pling,
 
