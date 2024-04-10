@@ -3,6 +3,7 @@ use serde::Deserialize;
 use url::Url;
 
 use crate::http::validate_from;
+use crate::logger;
 use crate::site::{Options, Site};
 
 pub const EXAMPLE_CONF: &str = include_str!("../sites/website-stalker.yaml");
@@ -78,12 +79,42 @@ impl Config {
     }
 
     fn validate(&self) -> anyhow::Result<()> {
+        const OLD_PLING_ENV_VARS: [&str; 20] = [
+            "EMAIL_FROM",
+            "EMAIL_PASSWORD",
+            "EMAIL_PORT",
+            "EMAIL_SERVER",
+            "EMAIL_SUBJECT",
+            "EMAIL_TO",
+            "EMAIL_USERNAME",
+            "MATRIX_ACCESS_TOKEN",
+            "MATRIX_HOMESERVER",
+            "MATRIX_ROOM_ID",
+            "PLING_COMMAND_ARGS",
+            "PLING_COMMAND_PROGRAM",
+            "PLING_DESKTOP_ENABLED",
+            "PLING_DESKTOP_SUMMARY",
+            "SLACK_HOOK",
+            "TELEGRAM_BOT_TOKEN",
+            "TELEGRAM_DISABLE_NOTIFICATION",
+            "TELEGRAM_DISABLE_WEB_PAGE_PREVIEW",
+            "TELEGRAM_TARGET_CHAT",
+            "WEBHOOK_URL",
+        ];
+
         validate_from(&self.from)
             .map_err(|err| anyhow!("from ({}) is invalid: {err}", self.from))?;
         self.validate_sites()?;
 
         if self.notification_template.is_some() {
             anyhow::bail!("Notifications got reworked and the notification_template in the config file is no longer used. Check website-stalker run --help for the new notification settings.")
+        }
+
+        for (key, _value) in std::env::vars_os().filter(|(key, _value)| {
+            key.to_str()
+                .is_some_and(|key| OLD_PLING_ENV_VARS.contains(&key))
+        }) {
+            logger::warn(&format!("Environment variable {key:?} was part of the old notification setup. Check website-stalker run --help for the new notification settings."));
         }
 
         Ok(())
