@@ -5,13 +5,13 @@ use html5ever::QualName;
 use scraper::Html;
 use url::Url;
 
-struct HtmlAbsLinkSerializer<Wr: Write> {
+struct HtmlAbsLinkSerializer<'url, Wr: Write> {
     serializer: HtmlSerializer<Wr>,
-    base_url: Url,
+    base_url: &'url Url,
 }
 
-impl<Wr: Write> HtmlAbsLinkSerializer<Wr> {
-    fn new(writer: Wr, opts: SerializeOpts, base_url: Url) -> Self {
+impl<'url, Wr: Write> HtmlAbsLinkSerializer<'url, Wr> {
+    fn new(writer: Wr, opts: SerializeOpts, base_url: &'url Url) -> Self {
         Self {
             serializer: HtmlSerializer::new(writer, opts),
             base_url,
@@ -19,7 +19,7 @@ impl<Wr: Write> HtmlAbsLinkSerializer<Wr> {
     }
 }
 
-impl<Wr: Write> Serializer for HtmlAbsLinkSerializer<Wr> {
+impl<'url, Wr: Write> Serializer for HtmlAbsLinkSerializer<'url, Wr> {
     fn start_elem<'a, AttrIter>(&mut self, name: QualName, attrs: AttrIter) -> std::io::Result<()>
     where
         AttrIter: Iterator<Item = AttrRef<'a>>,
@@ -78,7 +78,7 @@ fn reserialize(html: &str, base_url: &Url) -> anyhow::Result<String> {
     let mut buf = Vec::new();
 
     let opts = SerializeOpts::default();
-    let mut ser = HtmlAbsLinkSerializer::new(&mut buf, opts, base_url.clone());
+    let mut ser = HtmlAbsLinkSerializer::new(&mut buf, opts, base_url);
     let opts = SerializeOpts::default();
     Html::parse_document(html).serialize(&mut ser, opts.traversal_scope)?;
 
