@@ -1154,8 +1154,9 @@ checksum = "8b870d8c151b6f2fb93e84a13146138f05d02ed11c7e7c54f8826aaaf7c9f184"
 
 [[package]]
 name = "pling"
-version = "0.3.0"
-source = "git+https://github.com/EdJoPaTo/pling?branch=main#2315d02b28a78b02fc1e5ce44b6952ac6861abae"
+version = "0.4.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "c298ed673fef019022e5b482d35fa76e5b5a86c686a3645909f7fc6f735c6ae5"
 dependencies = [
  "anyhow",
  "clap",
