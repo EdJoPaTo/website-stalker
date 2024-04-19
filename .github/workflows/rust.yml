@@ -63,18 +63,14 @@ jobs:
         uses: dtolnay/rust-toolchain@master
         with:
           toolchain: ${{ matrix.toolchain }}
-
       - uses: actions/checkout@v4
       - run: cargo fetch --locked
       - run: cargo build --offline --all-targets
+      - run: cargo test --offline
 
-      - name: Run tests
-        run: cargo test --offline
-
-  github-release:
+  release:
     name: Release ${{ matrix.triple }}
     runs-on: ${{ matrix.os }}
-    needs: test
     permissions:
       contents: write
     strategy:
