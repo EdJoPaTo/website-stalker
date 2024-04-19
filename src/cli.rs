@@ -27,11 +27,14 @@ pub enum Cli {
         #[arg(long)]
         commit: bool,
 
-        /// Prefix or format the commit hash used in notifications.
+        /// Format the commit hash in notifications to have a link to your git instance displaying the diff.
         ///
-        /// In order to have some URL in the notification containing the commit hash it needs to be placed inside an URL.
+        /// In order to have some URL to the change in the notification it needs to place the commit hash inside an URL.
         /// When the template contains `{commit}` its replaced by the commit hash.
         /// When it's not in the template the commit hash is concatinated to the template: `{template}{commit}`.
+        ///
+        /// For example with GitHub this would be:
+        /// <https://github.com/EdJoPaTo/website-stalker-example/commit/{commit}>
         #[arg(
             long,
             env,
