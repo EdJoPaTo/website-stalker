@@ -4,6 +4,8 @@ use std::fmt::Write;
 use url::Url;
 
 fn generate_change_lines(mut changed: Vec<Url>) -> String {
+    debug_assert!(!changed.is_empty(), "no change no notification");
+
     changed.sort_unstable();
     changed.dedup();
 
@@ -63,7 +65,7 @@ pub fn generate_text(
 }
 
 #[test]
-fn e2e() {
+fn e2e_with_commit() {
     let result = generate_text(
         Some("1234abc".to_owned()),
         None,
@@ -72,8 +74,18 @@ fn e2e() {
     assert_eq!(result, "1234abc\n\n- https://edjopato.de/");
 }
 
+#[test]
+fn e2e_without_commit() {
+    let result = generate_text(
+        None,
+        None,
+        vec![Url::parse("https://edjopato.de/").unwrap()],
+    );
+    assert_eq!(result, "- https://edjopato.de/");
+}
+
 #[cfg(test)]
-mod change_line_tests {
+mod change_lines_tests {
     use super::*;
 
     fn test(changed: &[&str], expected: &str) {
