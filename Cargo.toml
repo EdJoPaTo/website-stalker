@@ -48,6 +48,9 @@ url = { version = "2", features = ["serde"] }
 version = "0.12"
 default-features = false
 features = [
+	"charset",
+	"http2",
+	"macos-system-configuration",
 	"rustls-tls",
 	"socks", # Socks5 Proxy support
 	"brotli", # response body decompression
