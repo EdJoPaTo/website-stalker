@@ -62,12 +62,6 @@ async fn main() {
         }
         Cli::Check => {
             logger::warn("website-stalker check is deprecated. website-stalker run also checks the config and runs it when valid.");
-            let notifiers = pling::Notifier::from_env().len();
-            if notifiers > 0 {
-                logger::warn_deprecated_notifications();
-                eprintln!("Notifiers: {notifiers}. Check https://github.com/EdJoPaTo/pling/ for configuration details.");
-            }
-
             eprintln!("\nConfiguration...");
             let from = std::env::var("WEBSITE_STALKER_FROM").ok();
             match Config::load(from) {
@@ -79,21 +73,36 @@ async fn main() {
             }
         }
         Cli::Run {
+            all: _all,
             commit: do_commit,
             from,
+            notification_commit_template,
+            notifications,
             site_filter,
-            ..
         } => {
             let site_filter =
                 site_filter.map(|regex| Regex::new(&format!("(?i){}", regex.as_str())).unwrap());
-            run(do_commit, from, site_filter.as_ref()).await;
+            run(
+                do_commit,
+                from,
+                notifications,
+                notification_commit_template,
+                site_filter.as_ref(),
+            )
+            .await;
             eprintln!("Thank you for using website-stalker!");
         }
     }
 }
 
 #[allow(clippy::too_many_lines)]
-async fn run(do_commit: bool, from: Option<String>, site_filter: Option<&Regex>) {
+async fn run(
+    do_commit: bool,
+    from: Option<String>,
+    notifications: pling::clap::Args,
+    notification_commit_template: Option<String>,
+    site_filter: Option<&Regex>,
+) {
     let config = Config::load(from).expect("failed to load your configuration");
     let from = config
         .from
@@ -232,17 +241,10 @@ async fn run(do_commit: bool, from: Option<String>, site_filter: Option<&Regex>)
         });
 
     if !urls_of_interest.is_empty() {
-        let notifiers = pling::Notifier::from_env();
-        if !notifiers.is_empty() {
-            logger::warn_deprecated_notifications();
-            let message = notification::MustacheData::new(commit, urls_of_interest)
-                .apply_to_template(config.notification_template.as_ref())
-                .expect("Should be able to create notification message from template");
-            for notifier in notifiers {
-                if let Err(err) = notifier.send_sync(&message) {
-                    logger::error(&format!("notifier failed to send with Err: {err}"));
-                }
-            }
+        let message =
+            notification::generate_text(commit, notification_commit_template, urls_of_interest);
+        if let Err(err) = notifications.send_reqwest(&message).await {
+            logger::error(&format!("notifier failed to send with Err: {err}"));
         }
     }
 

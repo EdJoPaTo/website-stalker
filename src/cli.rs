@@ -1,7 +1,9 @@
 use clap::{Parser, ValueHint};
+use pling::clap::Args as Pling;
 use regex::Regex;
 
-#[derive(Debug, Parser)]
+#[allow(clippy::large_enum_variant)]
+#[derive(Parser)]
 #[command(about, version)]
 pub enum Cli {
     /// Print an example configuration file which can be piped into website-stalker.yaml
@@ -24,6 +26,26 @@ pub enum Cli {
         /// git commit changed files
         #[arg(long)]
         commit: bool,
+
+        /// Format the commit hash in notifications to have a link to your git instance displaying the diff.
+        ///
+        /// In order to have some URL to the change in the notification it needs to place the commit hash inside an URL.
+        /// When the template contains `{commit}` its replaced by the commit hash.
+        /// When it's not in the template the commit hash is concatinated to the template: `{template}{commit}`.
+        ///
+        /// For example with GitHub this would be:
+        /// <https://github.com/EdJoPaTo/website-stalker-example/commit/{commit}>
+        #[arg(
+            long,
+            env,
+            value_hint = ValueHint::Other,
+            requires = "commit",
+            help_heading = "Notification Options",
+        )]
+        notification_commit_template: Option<String>,
+
+        #[command(flatten)]
+        notifications: Pling,
 
         /// Used as the From header in the web requests.
         ///

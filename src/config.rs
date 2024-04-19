@@ -4,7 +4,6 @@ use url::Url;
 
 use crate::http::validate_from;
 use crate::logger;
-use crate::notification::validate_template;
 use crate::site::{Options, Site};
 
 pub const EXAMPLE_CONF: &str = include_str!("../sites/website-stalker.yaml");
@@ -15,13 +14,9 @@ pub struct Config {
     #[serde(default)]
     pub from: String,
 
-    #[deprecated = "The notification feature will be removed"]
-    #[serde(
-        default,
-        deserialize_with = "deserialize_mustache_template",
-        skip_serializing_if = "Option::is_none"
-    )]
-    pub notification_template: Option<mustache::Template>,
+    #[deprecated = "The notification template was removed"]
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub notification_template: Option<String>,
 
     pub sites: Vec<SiteEntry>,
 }
@@ -84,9 +79,45 @@ impl Config {
     }
 
     fn validate(&self) -> anyhow::Result<()> {
+        const OLD_PLING_ENV_VARS: [&str; 20] = [
+            "EMAIL_FROM",
+            "EMAIL_PASSWORD",
+            "EMAIL_PORT",
+            "EMAIL_SERVER",
+            "EMAIL_SUBJECT",
+            "EMAIL_TO",
+            "EMAIL_USERNAME",
+            "MATRIX_ACCESS_TOKEN",
+            "MATRIX_HOMESERVER",
+            "MATRIX_ROOM_ID",
+            "PLING_COMMAND_ARGS",
+            "PLING_COMMAND_PROGRAM",
+            "PLING_DESKTOP_ENABLED",
+            "PLING_DESKTOP_SUMMARY",
+            "SLACK_HOOK",
+            "TELEGRAM_BOT_TOKEN",
+            "TELEGRAM_DISABLE_NOTIFICATION",
+            "TELEGRAM_DISABLE_WEB_PAGE_PREVIEW",
+            "TELEGRAM_TARGET_CHAT",
+            "WEBHOOK_URL",
+        ];
+
         validate_from(&self.from)
             .map_err(|err| anyhow!("from ({}) is invalid: {err}", self.from))?;
         self.validate_sites()?;
+
+        #[allow(deprecated)]
+        if self.notification_template.is_some() {
+            anyhow::bail!("Notifications got reworked and the notification_template in the config file is no longer used. Check website-stalker run --help for the new notification settings.")
+        }
+
+        for (key, _value) in std::env::vars_os().filter(|(key, _value)| {
+            key.to_str()
+                .is_some_and(|key| OLD_PLING_ENV_VARS.contains(&key))
+        }) {
+            logger::warn(&format!("Environment variable {key:?} was part of the old notification setup. Check website-stalker run --help for the new notification settings."));
+        }
+
         Ok(())
     }
 
@@ -102,19 +133,6 @@ impl Config {
     }
 }
 
-fn deserialize_mustache_template<'de, D>(
-    deserializer: D,
-) -> Result<Option<mustache::Template>, D::Error>
-where
-    D: serde::Deserializer<'de>,
-{
-    logger::warn_deprecated_notifications();
-    let str = String::deserialize(deserializer)?;
-    let template = mustache::compile_str(&str).map_err(serde::de::Error::custom)?;
-    validate_template(&template).map_err(serde::de::Error::custom)?;
-    Ok(Some(template))
-}
-
 #[test]
 fn example_sites_are_valid() {
     let config = serde_yaml::from_str::<Config>(EXAMPLE_CONF).unwrap();
@@ -124,6 +142,7 @@ fn example_sites_are_valid() {
 #[test]
 #[should_panic = "site list is empty"]
 fn validate_fails_on_empty_sites_list() {
+    #[allow(deprecated)]
     let config = Config {
         from: "dummy".to_owned(),
         notification_template: None,
@@ -135,6 +154,7 @@ fn validate_fails_on_empty_sites_list() {
 #[test]
 #[should_panic = "site entry has no urls"]
 fn validate_fails_on_sites_list_with_empty_many() {
+    #[allow(deprecated)]
     let config = Config {
         from: "dummy".to_owned(),
         notification_template: None,
