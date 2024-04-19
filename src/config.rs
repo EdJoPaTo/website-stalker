@@ -106,6 +106,7 @@ impl Config {
             .map_err(|err| anyhow!("from ({}) is invalid: {err}", self.from))?;
         self.validate_sites()?;
 
+        #[allow(deprecated)]
         if self.notification_template.is_some() {
             anyhow::bail!("Notifications got reworked and the notification_template in the config file is no longer used. Check website-stalker run --help for the new notification settings.")
         }
@@ -141,6 +142,7 @@ fn example_sites_are_valid() {
 #[test]
 #[should_panic = "site list is empty"]
 fn validate_fails_on_empty_sites_list() {
+    #[allow(deprecated)]
     let config = Config {
         from: "dummy".to_owned(),
         notification_template: None,
@@ -152,6 +154,7 @@ fn validate_fails_on_empty_sites_list() {
 #[test]
 #[should_panic = "site entry has no urls"]
 fn validate_fails_on_sites_list_with_empty_many() {
+    #[allow(deprecated)]
     let config = Config {
         from: "dummy".to_owned(),
         notification_template: None,
