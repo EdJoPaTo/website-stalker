@@ -1,8 +1,8 @@
 use std::io::Write;
 
 use html5ever::serialize::{AttrRef, HtmlSerializer, Serialize, SerializeOpts, Serializer};
-use html5ever::tendril::TendrilSink;
 use html5ever::QualName;
+use scraper::Html;
 use url::Url;
 
 struct HtmlAbsLinkSerializer<Wr: Write> {
@@ -71,18 +71,16 @@ impl<Wr: Write> Serializer for HtmlAbsLinkSerializer<Wr> {
 }
 
 pub fn canonicalize(url: &Url, html: &str) -> anyhow::Result<String> {
-    let doc = kuchikiki::parse_html().one(html);
-    let result = serialize(&doc, url)?;
-    Ok(result)
+    reserialize(html, url)
 }
 
-fn serialize<T: Serialize>(node: &T, base_url: &Url) -> anyhow::Result<String> {
+fn reserialize(html: &str, base_url: &Url) -> anyhow::Result<String> {
     let mut buf = Vec::new();
 
     let opts = SerializeOpts::default();
     let mut ser = HtmlAbsLinkSerializer::new(&mut buf, opts, base_url.clone());
     let opts = SerializeOpts::default();
-    node.serialize(&mut ser, opts.traversal_scope)?;
+    Html::parse_document(html).serialize(&mut ser, opts.traversal_scope)?;
 
     let result = String::from_utf8(buf)?;
     Ok(result)
