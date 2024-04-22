@@ -35,7 +35,7 @@ pub enum Cli {
         ///
         /// For example with GitHub this would be:
         /// <https://github.com/EdJoPaTo/website-stalker-example/commit/{commit}>.
-        /// When run via GitHub Actions this is the default.
+        /// When run via GitHub Actions this is the default for your given repository.
         #[arg(
             long,
             env,
