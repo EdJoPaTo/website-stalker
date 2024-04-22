@@ -57,8 +57,8 @@ pub fn generate_text(
 ) -> String {
     let change_lines = generate_change_lines(changed);
 
-    if let Some(part) = generate_commit_part(commit, commit_template) {
-        format!("{part}\n\n{change_lines}")
+    if let Some(commit) = generate_commit_part(commit, commit_template) {
+        format!("{change_lines}\n\n{commit}")
     } else {
         change_lines
     }
@@ -71,7 +71,7 @@ fn e2e_with_commit() {
         None,
         vec![Url::parse("https://edjopato.de/").unwrap()],
     );
-    assert_eq!(result, "1234abc\n\n- https://edjopato.de/");
+    assert_eq!(result, "- https://edjopato.de/\n\n1234abc");
 }
 
 #[test]
