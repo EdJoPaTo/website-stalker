@@ -34,7 +34,8 @@ pub enum Cli {
         /// When it's not in the template the commit hash is concatinated to the template: `{template}{commit}`.
         ///
         /// For example with GitHub this would be:
-        /// <https://github.com/EdJoPaTo/website-stalker-example/commit/{commit}>
+        /// <https://github.com/EdJoPaTo/website-stalker-example/commit/{commit}>.
+        /// When run via GitHub Actions this is the default.
         #[arg(
             long,
             env,
