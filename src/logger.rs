@@ -1,8 +1,4 @@
-use std::env;
-
-use once_cell::sync::Lazy;
-
-static GHA: Lazy<bool> = Lazy::new(|| env::var_os("GITHUB_ACTIONS").is_some());
+use crate::github;
 
 pub fn error_exit(message: &str) -> ! {
     error(message);
@@ -10,16 +6,16 @@ pub fn error_exit(message: &str) -> ! {
 }
 
 pub fn error(message: &str) {
-    if *GHA {
-        println!("::error file=website-stalker.yaml::{message}");
+    if *github::IS_RUN_AS_GITHUB_ACTION {
+        github::error(message);
     } else {
         eprintln!("ERROR: {message}");
     }
 }
 
 pub fn warn(message: &str) {
-    if *GHA {
-        println!("::warning file=website-stalker.yaml::{message}");
+    if *github::IS_RUN_AS_GITHUB_ACTION {
+        github::warning(message);
     } else {
         eprintln!("WARN: {message}");
     }

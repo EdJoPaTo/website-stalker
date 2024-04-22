@@ -18,6 +18,7 @@ mod config;
 mod editor;
 mod filename;
 mod git;
+mod github;
 mod http;
 mod logger;
 mod notification;
@@ -241,8 +242,11 @@ async fn run(
         });
 
     if !urls_of_interest.is_empty() {
-        let message =
-            notification::generate_text(commit, notification_commit_template, urls_of_interest);
+        let message = notification::generate_text(
+            commit,
+            notification_commit_template.or_else(github::commit_prefix),
+            urls_of_interest,
+        );
         if let Err(err) = notifications.send_reqwest(&message).await {
             logger::error(&format!("notifier failed to send with Err: {err}"));
         }
