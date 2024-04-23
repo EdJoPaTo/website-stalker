@@ -27,7 +27,7 @@ fn generate_change_lines(mut changed: Vec<Url>) -> String {
 
     for (host, urls) in changed_hosts {
         if urls.len() > 1 {
-            _ = writeln!(text, "{host}");
+            _ = writeln!(text, "\n{host}");
             for url in urls {
                 _ = writeln!(text, "- {url}");
             }
@@ -133,6 +133,7 @@ mod change_lines_tests {
                 "https://foo.bar/",
             ],
             "- https://foo.bar/
+
 edjopato.de
 - https://edjopato.de/
 - https://edjopato.de/post/",
