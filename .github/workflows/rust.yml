@@ -5,6 +5,11 @@ on:
   pull_request:
   workflow_dispatch:
 
+env:
+  CARGO_INCREMENTAL: 0
+  CARGO_TERM_COLOR: always
+  RUSTFLAGS: --allow unknown-lints --deny warnings
+
 jobs:
   rustfmt:
     runs-on: ubuntu-latest
@@ -37,6 +42,10 @@ jobs:
           toolchain: ${{ matrix.toolchain }}
           components: clippy
       - uses: actions/checkout@v4
+      - uses: actions/cache@v4
+        with:
+          key: clippy-${{ matrix.toolchain }}-${{ hashFiles('**/Cargo.lock') }}
+          path: target/
       - run: cargo fetch --locked
       - run: cargo clippy --offline --all-targets
       - run: cargo doc --offline --no-deps
@@ -56,14 +65,16 @@ jobs:
           - ubuntu-latest
           - macos-latest
           - windows-latest
-    env:
-      RUSTFLAGS: --allow unknown-lints --deny warnings
     steps:
       - name: Setup Rust
         uses: dtolnay/rust-toolchain@master
         with:
           toolchain: ${{ matrix.toolchain }}
       - uses: actions/checkout@v4
+      - uses: actions/cache@v4
+        with:
+          key: test-${{ matrix.toolchain }}-${{ matrix.os }}-${{ hashFiles('**/Cargo.lock') }}
+          path: target/
       - run: cargo fetch --locked
       - run: cargo build --offline --all-targets
       - run: cargo test --offline
@@ -100,8 +111,6 @@ jobs:
             os: windows-latest
           - triple: aarch64-pc-windows-msvc
             os: windows-latest
-    env:
-      RUSTFLAGS: --allow unknown-lints --deny warnings
     steps:
       - name: Setup Rust
         uses: dtolnay/rust-toolchain@master
@@ -130,6 +139,10 @@ jobs:
           echo "artifact: $name"
           echo "ARTIFACT_NAME=$name" >> $GITHUB_ENV
 
+      - uses: actions/cache@v4
+        with:
+          key: release-${{ matrix.triple }}-${{ hashFiles('**/Cargo.lock') }}
+          path: target/
       - run: cargo fetch --locked
 
       - name: Build
