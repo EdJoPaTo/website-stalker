@@ -16,9 +16,7 @@ jobs:
           - website-stalker
           - website-stalker-bin
     steps:
-      - uses: ATiltedTree/create-aur-release@v1
+      - uses: EdJoPaTo/update-aur-package-github-action@main
         with:
           package_name: ${{ matrix.name }}
-          commit_username: GitHub Actions
-          commit_email: website-stalker-github-actions@edjopato.de
           ssh_private_key: ${{ secrets.AUR_SSH_PRIVATE_KEY }}
