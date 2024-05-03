@@ -80,8 +80,9 @@ impl Repo {
 
 #[cfg(test)]
 mod tests {
-    use super::*;
     use std::fs;
+
+    use super::*;
 
     fn simple_command<P: AsRef<Path>>(dir: P, command: &str) -> anyhow::Result<String> {
         let parts = command.split(' ').collect::<Vec<_>>();
