@@ -25,14 +25,15 @@ fn generate_change_lines(mut changed: Vec<Url>) -> String {
         }
     }
 
-    for (host, urls) in changed_hosts {
+    for urls in changed_hosts.values() {
         if urls.len() > 1 {
-            _ = writeln!(text, "\n{host}");
+            _ = writeln!(text);
             for url in urls {
                 _ = writeln!(text, "- {url}");
             }
         }
     }
+
     text.trim().to_owned()
 }
 
@@ -106,21 +107,37 @@ mod change_lines_tests {
     }
 
     #[test]
-    fn same_host() {
+    fn multiple_on_single_host() {
         test(
             &["https://edjopato.de/", "https://edjopato.de/post/"],
-            "edjopato.de
-- https://edjopato.de/
+            "- https://edjopato.de/
 - https://edjopato.de/post/",
+        );
+    }
+
+    #[test]
+    fn multiple_per_host() {
+        test(
+            &[
+                "https://edjopato.de/",
+                "https://edjopato.de/post/",
+                "https://example.com/",
+                "https://example.com/path",
+            ],
+            "- https://edjopato.de/
+- https://edjopato.de/post/
+
+- https://example.com/
+- https://example.com/path",
         );
     }
 
     #[test]
     fn different_hosts() {
         test(
-            &["https://edjopato.de/post/", "https://foo.bar/"],
+            &["https://edjopato.de/post/", "https://example.com/"],
             "- https://edjopato.de/post/
-- https://foo.bar/",
+- https://example.com/",
         );
     }
 
@@ -130,11 +147,10 @@ mod change_lines_tests {
             &[
                 "https://edjopato.de/",
                 "https://edjopato.de/post/",
-                "https://foo.bar/",
+                "https://example.com/",
             ],
-            "- https://foo.bar/
+            "- https://example.com/
 
-edjopato.de
 - https://edjopato.de/
 - https://edjopato.de/post/",
         );
