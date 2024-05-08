@@ -84,7 +84,7 @@ mod tests {
 
     use super::*;
 
-    fn simple_command<P: AsRef<Path>>(dir: P, command: &str) -> anyhow::Result<String> {
+    fn simple_command(dir: &Path, command: &str) -> anyhow::Result<String> {
         let parts = command.split(' ').collect::<Vec<_>>();
         let program = parts[0];
         let args = &parts[1..];
@@ -117,7 +117,7 @@ mod tests {
         Ok((tempdir, repo))
     }
 
-    fn println_command<P: AsRef<Path>>(dir: P, command: &str) {
+    fn println_command(dir: &Path, command: &str) {
         println!("# {command}");
         match simple_command(dir, command) {
             Ok(output) => println!("{output}"),
@@ -125,11 +125,11 @@ mod tests {
         };
     }
 
-    fn overview<P: AsRef<Path>>(dir: P) {
-        println_command(&dir, "pwd");
-        println_command(&dir, "ls -al");
-        println_command(&dir, "git status --short");
-        println_command(&dir, "git log");
+    fn overview(dir: &Path) {
+        println_command(dir, "pwd");
+        println_command(dir, "ls -al");
+        println_command(dir, "git status --short");
+        println_command(dir, "git log");
     }
 
     #[test]
