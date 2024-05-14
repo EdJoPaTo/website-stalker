@@ -31,7 +31,7 @@ pub enum Cli {
         ///
         /// In order to have some URL to the change in the notification it needs to place the commit hash inside an URL.
         /// When the template contains `{commit}` its replaced by the commit hash.
-        /// When it's not in the template the commit hash is concatinated to the template: `{template}{commit}`.
+        /// When it's not in the template the commit hash is concatenated to the template: `{template}{commit}`.
         ///
         /// For example with GitHub this would be:
         /// <https://github.com/EdJoPaTo/website-stalker-example/commit/{commit}>.

@@ -85,8 +85,8 @@ sites:
   - url: "https://edjopato.de/robots.txt"
 ```
 
-There is a bigger [config](https://github.com/EdJoPaTo/website-stalker-example/blob/main/website-stalker.yaml) in my [example repo](https://github.com/EdJoPaTo/website-stalker-example).
-The example repo is also used by me to detect changes of interesting sites.
+There is a bigger [config](https://github.com/EdJoPaTo/website-stalker-example/blob/main/website-stalker.yaml) in my [example repository](https://github.com/EdJoPaTo/website-stalker-example).
+The example repository is also used by me to detect changes of interesting sites.
 
 ### Global Options
 
@@ -164,8 +164,8 @@ sites:
 
 Only use HTTP/1 for the web request.
 
-Backends might use HTTP/2 fingerprinting which could result in different or unusable output depending on what the backend assumes about the client.
-HTTP/1 is a simpler protocol which does not allow such kinds of backend optimizations.
+Back-ends might use HTTP/2 fingerprinting which could result in different or unusable output depending on what the back-end assumes about the client.
+HTTP/1 is a simpler protocol which does not allow such kinds of back-end optimizations.
 
 ```yaml
 sites:
@@ -226,7 +226,7 @@ sites:
 
 Editors are manipulating the content of a webpage to simplify comparing them later on.
 
-For example: If you are interested in the content of a webpage the `<head>` with changing stylesheets isn't interesting to you.
+For example: If you are interested in the content of a webpage the `<head>` with changing style-sheets isn't interesting to you.
 When keeping it, it will still create diffs which end up being commits.
 This will create noise you're probably just going to ignore.
 That's why editors exist.
