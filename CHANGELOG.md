@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.23.0] - 2024-05-14
+
 ### Added
 
 - Show used HTTP version in the output (`HTTP/1.1`, `HTTP/2.0`, …)
@@ -14,16 +16,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
-- RSS: remove website-stalker version from the generator field
-- Instantly panic or print cleaner human error message
-- Document `WEBSITE_STALKER_FROM` in `--help`. Also allows for `--from`
 - Move notifications from environment variables to CLI. Can still be configured via environment variables, but they have different names now. Check --help.
+- Document `WEBSITE_STALKER_FROM` in `--help`. Also allows for `--from`
+- RSS: remove website-stalker version from the generator field
+- Improve error handling by instant panic or cleaner human error message
 - Deprecate `init` sub-command. Its more transparent to use `git init && website-stalker example-config > website-stalker.yaml`
 - Deprecate `check` sub-command. `run` also checks the config and additionally runs it when correct which most people probably need.
 
 ### Breaking Changes
 
 - Environment variable names for notifications differ and can now also be provided via --flags. Check --help.
+- Error on notification_template in config. Notification configuration changed and is likely not working anymore, so hard error over a warning.
 
 ## [0.22.0] - 2024-02-13
 
