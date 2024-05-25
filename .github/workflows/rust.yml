@@ -8,7 +8,6 @@ on:
 env:
   CARGO_INCREMENTAL: 0
   CARGO_TERM_COLOR: always
-  RUSTFLAGS: --allow unknown-lints --deny warnings
 
 jobs:
   rustfmt:
@@ -43,7 +42,7 @@ jobs:
           toolchain: ${{ matrix.toolchain }}
           components: clippy
       - uses: actions/checkout@v4
-      - run: cargo fetch --locked
+      - run: cargo fetch
       - uses: actions/cache@v4
         with:
           key: clippy-${{ steps.rust.outputs.cachekey }}-${{ hashFiles('**/Cargo.*') }}
@@ -73,13 +72,13 @@ jobs:
         with:
           toolchain: ${{ matrix.toolchain }}
       - uses: actions/checkout@v4
-      - run: cargo fetch --locked
+      - run: cargo fetch
       - uses: actions/cache@v4
         with:
           key: test-${{ matrix.os }}-${{ steps.rust.outputs.cachekey }}-${{ hashFiles('**/Cargo.*') }}
           path: target/
       - run: cargo build --offline --all-targets
-      - run: cargo test --offline
+      - run: cargo test --offline --no-fail-fast
 
   release:
     name: Release ${{ matrix.triple }}
@@ -113,6 +112,8 @@ jobs:
             os: windows-latest
           - triple: aarch64-pc-windows-msvc
             os: windows-latest
+    env:
+      RUSTFLAGS: --deny warnings
     steps:
       - name: Setup Rust
         id: rust
