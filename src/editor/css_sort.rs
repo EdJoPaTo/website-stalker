@@ -31,8 +31,8 @@ impl CssSort {
                 text: item.html(),
             };
             for editor in &self.sort_by {
-                if let Ok(c) = editor.apply(url, &content) {
-                    content = c;
+                if let Ok(inner) = editor.apply(url, &content) {
+                    content = inner;
                 } else {
                     break;
                 }
@@ -59,12 +59,12 @@ fn simple_example() {
     let expected = "<p>A</p>
 <p>B</p>
 <p>C</p>";
-    let s = CssSort {
+    let example = CssSort {
         selector: Selector::parse("p").unwrap(),
         sort_by: Vec::new(),
         reverse: false,
     };
-    let html = s.apply(&url, input).unwrap();
+    let html = example.apply(&url, input).unwrap();
     assert_eq!(html, expected);
 }
 
@@ -75,12 +75,12 @@ fn simple_example_reverse() {
     let expected = "<p>C</p>
 <p>B</p>
 <p>A</p>";
-    let s = CssSort {
+    let example = CssSort {
         selector: Selector::parse("p").unwrap(),
         sort_by: Vec::new(),
         reverse: true,
     };
-    let html = s.apply(&url, input).unwrap();
+    let html = example.apply(&url, input).unwrap();
     assert_eq!(html, expected);
 }
 
@@ -93,11 +93,11 @@ fn sort_by_example() {
 </body></html>"#;
     let expected = r#"<article><h3>B</h3><a id="A">Bla</a></article>
 <article><h3>A</h3><a id="B">Bla</a></article>"#;
-    let s = CssSort {
+    let example = CssSort {
         selector: Selector::parse("article").unwrap(),
         sort_by: vec![Editor::CssSelect(Selector::parse("a").unwrap())],
         reverse: false,
     };
-    let html = s.apply(&url, input).unwrap();
+    let html = example.apply(&url, input).unwrap();
     assert_eq!(html, expected);
 }

@@ -62,9 +62,9 @@ impl Editor {
                 extension: Some("html"),
                 text: css_selector::apply(selector, &input.text)?,
             }),
-            Self::CssSort(e) => Ok(Content {
+            Self::CssSort(sort) => Ok(Content {
                 extension: Some("html"),
-                text: e.apply(url, &input.text)?,
+                text: sort.apply(url, &input.text)?,
             }),
             Self::HtmlMarkdownify => Ok(Content {
                 extension: Some("md"),
