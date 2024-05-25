@@ -117,7 +117,7 @@ impl Rss {
                 text: item.html(),
             };
             for editor in &self.content_editors {
-                content = editor.apply(url, &content)?;
+                content = editor.apply(url, content)?;
             }
             builder.content(content.text);
 

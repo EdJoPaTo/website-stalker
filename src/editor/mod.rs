@@ -1,9 +1,12 @@
+use std::path::PathBuf;
+
 use anyhow::anyhow;
 use serde::Deserialize;
 use url::Url;
 
 pub mod css_remove;
 pub mod css_selector;
+pub mod debug_files;
 pub mod html_markdown;
 pub mod html_pretty;
 pub mod html_sanitize;
@@ -23,6 +26,7 @@ pub struct Content {
 pub enum Editor {
     CssRemove(#[serde(deserialize_with = "deserialize_selector")] scraper::Selector),
     CssSelect(#[serde(deserialize_with = "deserialize_selector")] scraper::Selector),
+    DebugFiles(PathBuf),
     HtmlMarkdownify,
     HtmlPrettify,
     HtmlSanitize,
@@ -38,6 +42,7 @@ impl Editor {
         match self {
             Self::CssRemove(_) => "css_remove",
             Self::CssSelect(_) => "css_select",
+            Self::DebugFiles(_) => "debug_files",
             Self::HtmlMarkdownify => "html_markdownify",
             Self::HtmlPrettify => "html_prettify",
             Self::HtmlSanitize => "html_sanitize",
@@ -49,7 +54,7 @@ impl Editor {
         }
     }
 
-    fn apply(&self, url: &Url, input: &Content) -> anyhow::Result<Content> {
+    fn apply(&self, url: &Url, input: Content) -> anyhow::Result<Content> {
         match &self {
             Self::CssRemove(selector) => Ok(Content {
                 extension: Some("html"),
@@ -59,6 +64,7 @@ impl Editor {
                 extension: Some("html"),
                 text: css_selector::apply(selector, &input.text)?,
             }),
+            Self::DebugFiles(path) => debug_files::debug_files(path, input),
             Self::HtmlMarkdownify => Ok(Content {
                 extension: Some("md"),
                 text: html_markdown::markdownify(&input.text),
@@ -101,7 +107,7 @@ impl Editor {
     ) -> anyhow::Result<Content> {
         for (i, editor) in editors.iter().enumerate() {
             content = editor
-                .apply(url, &content)
+                .apply(url, content)
                 .map_err(|err| anyhow!("in editor[{i}] {}: {err}", editor.log_name()))?;
         }
         Ok(content)
