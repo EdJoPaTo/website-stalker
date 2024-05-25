@@ -1,20 +1,21 @@
-use std::env;
+use crate::github;
 
-fn is_gha() -> bool {
-    env::var_os("GITHUB_ACTIONS").is_some()
+pub fn error_exit(message: &str) -> ! {
+    error(message);
+    std::process::exit(1);
 }
 
 pub fn error(message: &str) {
-    if is_gha() {
-        println!("::error file=website-stalker.yaml::{message}");
+    if *github::IS_RUN_AS_GITHUB_ACTION {
+        github::error(message);
     } else {
         eprintln!("ERROR: {message}");
     }
 }
 
 pub fn warn(message: &str) {
-    if is_gha() {
-        println!("::warning file=website-stalker.yaml::{message}");
+    if *github::IS_RUN_AS_GITHUB_ACTION {
+        github::warning(message);
     } else {
         eprintln!("WARN: {message}");
     }

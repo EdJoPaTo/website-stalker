@@ -1,4 +1,3 @@
-use core::fmt::Debug;
 use core::time::Duration;
 use std::collections::HashMap;
 use std::{fs, process};
@@ -9,22 +8,23 @@ use reqwest::header::{HeaderValue, FROM};
 use tokio::sync::mpsc::channel;
 use tokio::time::sleep;
 
-use crate::cli::SubCommand;
+use crate::cli::Cli;
 use crate::config::{Config, EXAMPLE_CONF};
 use crate::site::Site;
 
 mod cli;
+mod commit_message;
 mod config;
 mod editor;
 mod filename;
-mod final_message;
 mod git;
+mod github;
 mod http;
 mod logger;
+mod notification;
 mod site;
 mod site_store;
 
-#[derive(Debug)]
 pub enum ChangeKind {
     Init,
     Changed,
@@ -32,34 +32,40 @@ pub enum ChangeKind {
 }
 
 impl core::fmt::Display for ChangeKind {
-    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
-        Debug::fmt(self, f)
+    fn fmt(&self, fmt: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+        match self {
+            Self::Init => fmt.pad("Init"),
+            Self::Changed => fmt.pad("Changed"),
+            Self::ContentSame => fmt.pad("ContentSame"),
+        }
     }
 }
 
 #[tokio::main]
 async fn main() {
-    match cli::Cli::parse().subcommand {
-        SubCommand::ExampleConfig => print!("{EXAMPLE_CONF}"),
-        SubCommand::Init => {
+    match Cli::parse() {
+        Cli::ExampleConfig => print!("{EXAMPLE_CONF}"),
+        Cli::Init => {
+            logger::warn("website-stalker init is deprecated. Use `git init && website-stalker example-config > website-stalker.yaml`");
             if git::Repo::new().is_err() {
-                git::Repo::init(std::env::current_dir().expect("failed to get working dir path"))
-                    .expect("failed to init git repository");
+                git::Repo::init(
+                    &std::env::current_dir().expect("Should be run in a valid working directory"),
+                );
                 println!("Git repository initialized.");
             }
-            if Config::load().is_err() {
+            let from = std::env::var("WEBSITE_STALKER_FROM").ok();
+            if Config::load(from).is_err() {
                 fs::write("website-stalker.yaml", EXAMPLE_CONF)
                     .expect("failed to write example configuration file");
                 println!("Example configuration file generated.");
             }
             println!("Init complete.\nNext step: adapt the configuration file to your needs.");
         }
-        SubCommand::Check => {
-            let notifiers = pling::Notifier::from_env().len();
-            eprintln!("Notifiers: {notifiers}. Check https://github.com/EdJoPaTo/pling/ for configuration details.");
-
+        Cli::Check => {
+            logger::warn("website-stalker check is deprecated. website-stalker run also checks the config and runs it when valid.");
             eprintln!("\nConfiguration...");
-            match Config::load() {
+            let from = std::env::var("WEBSITE_STALKER_FROM").ok();
+            match Config::load(from) {
                 Ok(_) => eprintln!("ok"),
                 Err(err) => {
                     eprintln!("not ok.\n\n{err}\n\nCheck https://github.com/EdJoPaTo/website-stalker for configuration details.");
@@ -67,30 +73,38 @@ async fn main() {
                 }
             }
         }
-        SubCommand::Run {
+        Cli::Run {
+            all: _all,
             commit: do_commit,
+            from,
+            notification_commit_template,
+            notifications,
             site_filter,
-            ..
         } => {
             let site_filter =
-                site_filter.map(|v| Regex::new(&format!("(?i){}", v.as_str())).unwrap());
-            let result = run(do_commit, site_filter.as_ref()).await;
-            if let Err(err) = &result {
-                logger::error(&err.to_string());
-            } else {
-                println!("All done.");
-            }
-            println!("Thanks for using website-stalker!");
-            if result.is_err() {
-                process::exit(1);
-            }
+                site_filter.map(|regex| Regex::new(&format!("(?i){}", regex.as_str())).unwrap());
+            run(
+                do_commit,
+                from,
+                notifications,
+                notification_commit_template,
+                site_filter.as_ref(),
+            )
+            .await;
+            eprintln!("Thank you for using website-stalker!");
         }
     }
 }
 
 #[allow(clippy::too_many_lines)]
-async fn run(do_commit: bool, site_filter: Option<&Regex>) -> anyhow::Result<()> {
-    let config = Config::load().expect("failed to load your configuration");
+async fn run(
+    do_commit: bool,
+    from: Option<String>,
+    notifications: pling::clap::Args,
+    notification_commit_template: Option<String>,
+    site_filter: Option<&Regex>,
+) {
+    let config = Config::load(from).expect("failed to load your configuration");
     let from = config
         .from
         .parse::<HeaderValue>()
@@ -104,27 +118,26 @@ async fn run(do_commit: bool, site_filter: Option<&Regex>) -> anyhow::Result<()>
         .collect::<Vec<_>>();
     let sites_amount = sites.len();
     if sites.is_empty() {
-        eprintln!(
-            "Error: The site-filter filtered everything out.
-Hint: Change the filter or use all sites with 'run --all'."
+        logger::error_exit(
+            "The site-filter filtered everything out. Change the filter or use all sites with 'run --all'.",
         );
-        process::exit(1);
     }
 
     let repo = git::Repo::new();
     match &repo {
         Ok(repo) => {
-            if repo.is_something_modified()? {
-                anyhow::ensure!(
-                    !do_commit,
-                    "The git repository is unclean. --commit can only be used in a clean repository."
-                );
+            if repo.is_something_modified() {
+                if do_commit {
+                    logger::error_exit("The git repository is unclean. --commit can only be used in a clean repository.");
+                }
                 logger::warn("The git repository is unclean.");
             }
         }
         Err(err) => {
             if do_commit {
-                anyhow::bail!("Not a git repository. --commit only works in git repos: {err}");
+                logger::error_exit(&format!(
+                    "Not a git repository. --commit only works in git repos: {err}"
+                ));
             }
             logger::warn("Not a git repository. Will run but won't do git actions.");
         }
@@ -132,7 +145,8 @@ Hint: Change the filter or use all sites with 'run --all'."
 
     if sites_amount == sites_total {
         let paths = Site::get_all_file_paths(&sites);
-        let removed = site_store::remove_gone(&paths)?;
+        let removed = site_store::remove_gone(&paths)
+            .expect("Should be able to cleanup the superfluous files");
         for filename in removed {
             logger::warn(&format!("Remove superfluous {filename:?}"));
         }
@@ -175,16 +189,22 @@ Hint: Change the filter or use all sites with 'run --all'."
     };
 
     let mut urls_of_interest = Vec::new();
-    let mut error_occured = false;
-    let mut amount_done = 0_usize;
+    let mut error_occurred = false;
+    let mut amount_done: usize = 0;
     while let Some((url, result, ignore_error)) = rx.recv().await {
         amount_done += 1;
         match result {
-            #[allow(clippy::to_string_in_format_args)]
-            Ok((change_kind, ip_version, took)) => {
-                println!(
-                    "{amount_done:4}/{sites_amount} {:12} {:5}ms {ip_version} {url}",
-                    change_kind.to_string(),
+            Ok((
+                change_kind,
+                http::ResponseMeta {
+                    http_version,
+                    ip_version,
+                    took,
+                    url,
+                },
+            )) => {
+                eprintln!(
+                    "{amount_done:4}/{sites_amount} {change_kind:11} {:5}ms {http_version:?} {ip_version} {url}",
                     took.as_millis(),
                 );
                 match change_kind {
@@ -200,87 +220,70 @@ Hint: Change the filter or use all sites with 'run --all'."
                     logger::warn(&message);
                 } else {
                     logger::error(&message);
-                    error_occured = true;
+                    error_occurred = true;
                 }
             }
         }
     }
 
-    let message = final_message::FinalMessage::new(&urls_of_interest);
-    let commit = if let Ok(repo) = repo {
-        run_commit(&repo, do_commit, &message.to_commit())?
-    } else {
-        None
-    };
+    let commit = repo
+        .ok()
+        .filter(git::Repo::is_something_modified)
+        .and_then(|repo| {
+            if do_commit {
+                repo.add_all();
+                let message = commit_message::commit_message(&urls_of_interest);
+                let id = repo.commit(&message);
+                Some(id)
+            } else {
+                logger::warn("No commit is created without the --commit flag.");
+                None
+            }
+        });
+
     if !urls_of_interest.is_empty() {
-        let message = message.into_notification(config.notification_template.as_deref(), commit)?;
-        run_notifications(&message);
+        let message = notification::generate_text(
+            commit,
+            notification_commit_template.or_else(github::commit_prefix),
+            urls_of_interest,
+        );
+        if let Err(err) = notifications.send_reqwest(&message).await {
+            logger::error(&format!("notifier failed to send with Err: {err}"));
+        }
     }
 
-    if error_occured {
-        Err(anyhow::anyhow!("All done but some site failed."))
-    } else {
-        Ok(())
+    if error_occurred {
+        logger::error_exit("All done but some site failed. Thank you for using website stalker!");
     }
 }
 
 async fn stalk_and_save_site(
     from: &HeaderValue,
     site: &Site,
-) -> anyhow::Result<(ChangeKind, http::IpVersion, Duration)> {
+) -> anyhow::Result<(ChangeKind, http::ResponseMeta)> {
     let mut headers = site.options.headers.clone();
     if !headers.contains_key(FROM) {
         headers.insert(FROM, from.clone());
     }
-    let response = http::get(
+    let (content, response) = http::get(
         site.url.as_str(),
         headers,
         site.options.accept_invalid_certs,
+        site.options.http1_only,
     )
     .await?;
-    let took = response.took();
-    let ip_version = response.ip_version();
 
-    if site.url.as_str() != response.url().as_str() {
-        logger::warn(&format!("The URL {} was redirected to {}. This caused additional traffic which can be reduced by changing the URL to the target one.", site.url, response.url()));
+    if site.url.as_str() != response.url.as_str() {
+        logger::warn(&format!("The URL {} was redirected to {}. This caused additional traffic which can be reduced by changing the URL to the target one.", site.url, response.url));
     }
 
-    let url = response.url().clone();
-    let content = editor::Content {
-        extension: response.file_extension(),
-        text: response.text().await?,
-    };
-
     // Use response.url as canonical urls for example are relative to the actual url
-    let content = editor::Editor::apply_many(&site.options.editors, &url, content)?;
+    let content = editor::Editor::apply_many(&site.options.editors, &response.url, content)?;
     let extension = content.extension.unwrap_or("txt");
 
     // Use site.url as the file basename should only change when the config changes (manually)
     let mut path = site.to_file_path();
     path.set_extension(extension);
     let changed = site_store::write_only_changed(&path, &content.text)?;
-    Ok((changed, ip_version, took))
-}
-
-fn run_commit(repo: &git::Repo, do_commit: bool, message: &str) -> anyhow::Result<Option<String>> {
-    if repo.is_something_modified()? {
-        if do_commit {
-            repo.add_all()?;
-            let id = repo.commit(message)?;
-            Ok(Some(id))
-        } else {
-            logger::warn("No commit is created without the --commit flag.");
-            Ok(None)
-        }
-    } else {
-        Ok(None)
-    }
-}
-
-fn run_notifications(message: &str) {
-    for notifier in pling::Notifier::from_env() {
-        if let Err(err) = notifier.send_sync(message) {
-            logger::error(&format!("notifier failed to send with Err: {err}"));
-        }
-    }
+    Ok((changed, response))
 }

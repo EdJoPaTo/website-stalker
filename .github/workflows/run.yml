@@ -3,6 +3,7 @@ name: Run with example config
 on:
   push:
   pull_request:
+  workflow_dispatch:
 
 jobs:
   run:
@@ -10,27 +11,21 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Setup Rust
-        shell: bash -eux {0}
-        run: |
-          rustup toolchain install stable --profile minimal
-          rustup default stable
-
-      - uses: actions/checkout@v3
-
-      - uses: actions/cache@v3
+        id: rust
+        uses: dtolnay/rust-toolchain@master
         with:
-          key: run-${{ hashFiles('**/Cargo.lock') }}
-          path: |
-            ~/.cargo/registry/index/
-            ~/.cargo/registry/cache/
-            ~/.cargo/git/db/
-            target/
+          toolchain: stable
 
+      - uses: actions/checkout@v4
       - run: cargo fetch
+      - uses: actions/cache@v4
+        with:
+          key: run-${{ steps.rust.outputs.cachekey }}-${{ hashFiles('**/Cargo.*') }}
+          path: target/
       - run: cargo build
 
       - name: website-stalker run --all
         working-directory: sites
         env:
-          WEBSITE_STALKER_FROM: ${{ secrets.WEBSITE_STALKER_FROM }}
+          WEBSITE_STALKER_FROM: website-stalker-run-workflow@edjopato.de
         run: cargo run -- run --all

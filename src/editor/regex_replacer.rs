@@ -20,8 +20,8 @@ fn deserialize_regex<'de, D>(deserializer: D) -> Result<regex::Regex, D::Error>
 where
     D: serde::Deserializer<'de>,
 {
-    let s = String::deserialize(deserializer)?;
-    regex::Regex::new(&s).map_err(serde::de::Error::custom)
+    let str = String::deserialize(deserializer)?;
+    regex::Regex::new(&str).map_err(serde::de::Error::custom)
 }
 
 #[test]

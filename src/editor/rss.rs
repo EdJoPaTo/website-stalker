@@ -1,4 +1,3 @@
-use itertools::Itertools;
 use once_cell::sync::Lazy;
 use rss::validation::Validate;
 use rss::{ChannelBuilder, ItemBuilder};
@@ -8,13 +7,7 @@ use url::Url;
 
 use super::Editor;
 
-const GENERATOR: &str = concat!(
-    env!("CARGO_PKG_NAME"),
-    "/",
-    env!("CARGO_PKG_VERSION"),
-    " ",
-    env!("CARGO_PKG_REPOSITORY"),
-);
+const GENERATOR: &str = concat!(env!("CARGO_PKG_NAME"), " ", env!("CARGO_PKG_REPOSITORY"),);
 
 #[derive(Debug, Clone, Deserialize)]
 pub struct Rss {
@@ -48,7 +41,8 @@ pub struct Rss {
 
 impl Rss {
     pub fn generate(&self, url: &Url, html: &str) -> anyhow::Result<String> {
-        static TITLE: Lazy<Selector> = Lazy::new(|| Selector::parse("title").unwrap());
+        static TITLE: Lazy<Selector> =
+            Lazy::new(|| Selector::parse("title, h1, h2, h3, h4, h5, h6").unwrap());
         static DESCRIPTION: Lazy<Selector> =
             Lazy::new(|| Selector::parse("meta[name=description]").unwrap());
         static DATETIME: Lazy<Selector> = Lazy::new(|| Selector::parse("*[datetime]").unwrap());
@@ -68,13 +62,17 @@ impl Rss {
 
         if let Some(title) = &self.title {
             channel.title(title.to_string());
-        } else if let Some(e) = parsed_html.select(&TITLE).next() {
-            channel.title(e.inner_html().trim().to_owned());
+        } else if let Some(element) = parsed_html.select(&TITLE).next() {
+            channel.title(element.inner_html().trim().to_owned());
+        } else {
+            crate::logger::warn(&format!(
+                "RSS Feed has no title from html or the config: {url}"
+            ));
         }
 
         if let Some(description) = parsed_html
             .select(&DESCRIPTION)
-            .find_map(|e| e.value().attr("content"))
+            .find_map(|element| element.value().attr("content"))
         {
             channel.description(description.to_owned());
         }
@@ -84,7 +82,14 @@ impl Rss {
             let mut builder = ItemBuilder::default();
 
             if let Some(title) = item.select(title).next() {
-                builder.title(title.text().map(str::trim).join("\n").trim().to_owned());
+                builder.title(
+                    title
+                        .text()
+                        .map(str::trim)
+                        .filter(|title| !title.is_empty())
+                        .collect::<Vec<_>>()
+                        .join("\n"),
+                );
             }
 
             // When the item is the link itself
@@ -92,14 +97,17 @@ impl Rss {
                 builder.link(url.join(link)?.to_string());
             }
 
-            if let Some(link) = item.select(link).find_map(|o| o.value().attr("href")) {
+            if let Some(link) = item
+                .select(link)
+                .find_map(|element| element.value().attr("href"))
+            {
                 builder.link(url.join(link)?.to_string());
             }
 
             if let Some(bla) = item
                 .select(&DATETIME)
-                .find_map(|o| o.value().attr("datetime"))
-                .and_then(|o| chrono::DateTime::parse_from_rfc3339(o).ok())
+                .find_map(|element| element.value().attr("datetime"))
+                .and_then(|value| chrono::DateTime::parse_from_rfc3339(value).ok())
             {
                 builder.pub_date(bla.to_rfc2822());
             }

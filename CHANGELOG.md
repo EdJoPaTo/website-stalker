@@ -1,20 +1,51 @@
-# Changelog
+# Change log
 
 All notable changes to this project will be documented in this file.
 
-The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
+The format is based on [Keep a change log](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+## [0.23.0] - 2024-05-14
+
+### Added
+
+- Show used HTTP version in the output (`HTTP/1.1`, `HTTP/2.0`, …)
+- `http1_only` option to force usage of `HTTP/1`
+
 ### Changed
 
+- Move notifications from environment variables to CLI. Can still be configured via environment variables, but they have different names now. Check --help.
+- Document `WEBSITE_STALKER_FROM` in `--help`. Also allows for `--from`
+- RSS: remove website-stalker version from the generator field
+- Improve error handling by instant panic or cleaner human error message
+- Deprecate `init` sub-command. Its more transparent to use `git init && website-stalker example-config > website-stalker.yaml`
+- Deprecate `check` sub-command. `run` also checks the config and additionally runs it when correct which most people probably need.
+
+### Breaking Changes
+
+- Environment variable names for notifications differ and can now also be provided via --flags. Check --help.
+- Error on notification_template in config. Notification configuration changed and is likely not working anymore, so hard error over a warning.
+
+## [0.22.0] - 2024-02-13
+
+### Added
+
+- Automatically generated man pages from the CLI definition
+
+### Changed
+
+- `rss` uses the first title / heading element as RSS title (was only title before)
 - Improve error output message on editor error
 - `json_prettify` uses tabs instead of spaces now for better accessibility and smaller file sizes (`html_prettify` does the same)
+- Show warnings for deprecated field usage in notification mustache template
+- Show warning on `rss` without title (neither from explicit configuration nor the input HTML)
 
 ### Fixed
 
 - Correctly detect duplicate hosts for delays between them (to reduce load on the host)
+- systemd service is `Type=oneshot` now and can no longer be installed. The timer is the relevant unit and not the service.
 
 ## [0.21.0] - 2023-09-05
 
@@ -28,7 +59,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - new editor: `html_sanitize`
 - `headers` site options to supply additional headers on requests
-- `filename` option to override the automatically derived file base name from an url
+- `filename` option to override the automatically derived file base name from a URL
 - Support URLs with IP addresses
 
 ### Changed

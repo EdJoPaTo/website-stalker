@@ -1,17 +1,17 @@
 use std::io::Write;
 
 use html5ever::serialize::{AttrRef, HtmlSerializer, Serialize, SerializeOpts, Serializer};
-use html5ever::tendril::TendrilSink;
 use html5ever::QualName;
+use scraper::Html;
 use url::Url;
 
-struct HtmlAbsLinkSerializer<Wr: Write> {
+struct HtmlAbsLinkSerializer<'url, Wr: Write> {
     serializer: HtmlSerializer<Wr>,
-    base_url: Url,
+    base_url: &'url Url,
 }
 
-impl<Wr: Write> HtmlAbsLinkSerializer<Wr> {
-    fn new(writer: Wr, opts: SerializeOpts, base_url: Url) -> Self {
+impl<'url, Wr: Write> HtmlAbsLinkSerializer<'url, Wr> {
+    fn new(writer: Wr, opts: SerializeOpts, base_url: &'url Url) -> Self {
         Self {
             serializer: HtmlSerializer::new(writer, opts),
             base_url,
@@ -19,7 +19,7 @@ impl<Wr: Write> HtmlAbsLinkSerializer<Wr> {
     }
 }
 
-impl<Wr: Write> Serializer for HtmlAbsLinkSerializer<Wr> {
+impl<'url, Wr: Write> Serializer for HtmlAbsLinkSerializer<'url, Wr> {
     fn start_elem<'a, AttrIter>(&mut self, name: QualName, attrs: AttrIter) -> std::io::Result<()>
     where
         AttrIter: Iterator<Item = AttrRef<'a>>,
@@ -41,8 +41,12 @@ impl<Wr: Write> Serializer for HtmlAbsLinkSerializer<Wr> {
             };
             result_attrs.push((key, value));
         }
-        self.serializer
-            .start_elem(name, result_attrs.iter().map(|o| (o.0, o.1.as_str())))
+        self.serializer.start_elem(
+            name,
+            result_attrs
+                .iter()
+                .map(|(attribute_name, value)| (*attribute_name, value.as_str())),
+        )
     }
 
     fn end_elem(&mut self, name: QualName) -> std::io::Result<()> {
@@ -67,18 +71,16 @@ impl<Wr: Write> Serializer for HtmlAbsLinkSerializer<Wr> {
 }
 
 pub fn canonicalize(url: &Url, html: &str) -> anyhow::Result<String> {
-    let doc = kuchikiki::parse_html().one(html);
-    let result = serialize(&doc, url)?;
-    Ok(result)
+    reserialize(html, url)
 }
 
-fn serialize<T: Serialize>(node: &T, base_url: &Url) -> anyhow::Result<String> {
+fn reserialize(html: &str, base_url: &Url) -> anyhow::Result<String> {
     let mut buf = Vec::new();
 
     let opts = SerializeOpts::default();
-    let mut ser = HtmlAbsLinkSerializer::new(&mut buf, opts, base_url.clone());
+    let mut ser = HtmlAbsLinkSerializer::new(&mut buf, opts, base_url);
     let opts = SerializeOpts::default();
-    node.serialize(&mut ser, opts.traversal_scope)?;
+    Html::parse_document(html).serialize(&mut ser, opts.traversal_scope)?;
 
     let result = String::from_utf8(buf)?;
     Ok(result)

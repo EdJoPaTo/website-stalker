@@ -1,8 +1,8 @@
 use std::io::Write;
 
 use html5ever::serialize::{AttrRef, HtmlSerializer, Serialize, SerializeOpts, Serializer};
-use html5ever::tendril::TendrilSink;
 use html5ever::QualName;
+use scraper::Html;
 
 struct HtmlPrettySerializer<Wr: Write> {
     serializer: HtmlSerializer<Wr>,
@@ -48,7 +48,7 @@ impl<Wr: Write> Serializer for HtmlPrettySerializer<Wr> {
                     let mut statements = value
                         .split(';')
                         .map(str::trim)
-                        .filter(|o| !o.is_empty())
+                        .filter(|statement| !statement.is_empty())
                         .map(format_css_statement)
                         .collect::<Vec<_>>();
                     if statements.is_empty() {
@@ -106,23 +106,22 @@ impl<Wr: Write> Serializer for HtmlPrettySerializer<Wr> {
 }
 
 pub fn prettify(html: &str) -> anyhow::Result<String> {
-    let doc = kuchikiki::parse_html().one(html);
-    let result = serialize(&doc)?
+    let result = reserialize(html)?
         .lines()
         .map(str::trim_end)
-        .filter(|s| !s.is_empty())
+        .filter(|line| !line.is_empty())
         .collect::<Vec<_>>()
         .join("\n");
     Ok(result)
 }
 
-fn serialize<T: Serialize>(node: &T) -> anyhow::Result<String> {
+fn reserialize(html: &str) -> anyhow::Result<String> {
     let mut buf = Vec::new();
 
     let opts = SerializeOpts::default();
     let mut ser = HtmlPrettySerializer::new(&mut buf, opts);
     let opts = SerializeOpts::default();
-    node.serialize(&mut ser, opts.traversal_scope)?;
+    Html::parse_document(html).serialize(&mut ser, opts.traversal_scope)?;
 
     let result = String::from_utf8(buf)?;
     Ok(result)
@@ -130,9 +129,9 @@ fn serialize<T: Serialize>(node: &T) -> anyhow::Result<String> {
 
 /// Never receives the ; splitting them
 fn format_css_statement(content: &str) -> String {
-    let splitted = content.split(':').map(str::trim).collect::<Vec<_>>();
-    if let [key, value] = splitted.as_slice() {
-        format!("{key}: {value};")
+    let content = content.trim();
+    if let Some((key, value)) = content.split_once(':') {
+        format!("{}: {};", key.trim_end(), value.trim_start())
     } else {
         format!("{content};")
     }

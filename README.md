@@ -14,7 +14,7 @@ See it [in action](https://github.com/EdJoPaTo/website-stalker-example) (literal
 
 - [GitHub Releases](https://github.com/EdJoPaTo/website-stalker/releases)
 - [Arch Linux User Repository (AUR)](https://aur.archlinux.org/packages/website-stalker/)
-- [Docker Hub Image ![Docker Hub Image](https://img.shields.io/docker/image-size/edjopato/website-stalker)](https://hub.docker.com/r/edjopato/website-stalker)
+- [Docker Hub Image](https://hub.docker.com/r/edjopato/website-stalker)
 - Via rust and cargo: Clone → `cargo install --path .`
 
 ## Usage
@@ -25,15 +25,14 @@ Check out [website-stalker-example](https://github.com/EdJoPaTo/website-stalker-
 
 ### Locally
 
-- First create a new folder / repo for tracking website changes
+- First create a new folder / git repository for tracking website changes
 
     ```bash
     mkdir personal-stalker
     cd personal-stalker
-    website-stalker init
+    git init
+    website-stalker example-config > website-stalker.yaml
     ```
-
-    `website-stalker init` will create a git repo (`git init`) and the example config (`website-stalker example-config > website-stalker.yaml`) for you.
 
 - Add your favorite website to the configuration file `website-stalker.yaml`.
     Also make sure to set the value of [from](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/From) to an email address of yours.
@@ -43,19 +42,13 @@ Check out [website-stalker-example](https://github.com/EdJoPaTo/website-stalker-
     nano website-stalker.yaml
     ```
 
-- Check if your config is valid
-
-    ```bash
-    website-stalker check
-    ```
-
 - Run your newly added website. If you added `https://apple.com/newsroom` use something like this to test if everything works like you want:
 
     ```bash
     website-stalker run apple
     ```
 
-- Set up a cronjob / [systemd.timer](systemd) executing the following command every now and then
+- Set up a cronjob / [`systemd.timer`](systemd) executing the following command occasionally
 
     ```bash
     website-stalker run --all --commit
@@ -92,10 +85,10 @@ sites:
   - url: "https://edjopato.de/robots.txt"
 ```
 
-There is a bigger [config](https://github.com/EdJoPaTo/website-stalker-example/blob/main/website-stalker.yaml) in my [example repo](https://github.com/EdJoPaTo/website-stalker-example).
-The example repo is also used by me to detect changes of interesting sites.
+There is a bigger [config](https://github.com/EdJoPaTo/website-stalker-example/blob/main/website-stalker.yaml) in my [example repository](https://github.com/EdJoPaTo/website-stalker-example).
+The example repository is also used by me to detect changes of interesting sites.
 
-### Global Config Options
+### Global Options
 
 Options which are globally configured at the root level of the configuration file `website-stalker.yaml`.
 
@@ -108,7 +101,7 @@ The idea here is to provide a way for a website host to contact whoever is doing
 As this tool is self-hosted and can be run as often as the user likes this can annoy website hosts.
 While this tool is named "stalker" and is made to track websites it is not intended to annoy people.
 
-This tool sets the [`User-Agent` header](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/User-Agent) always to `website-stalker/<version> https://github.com/EdJoPaTo/website-stalker` and the [`From` header](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/From) to the config value.
+This tool sets the [`User-Agent` header](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/User-Agent) to `website-stalker/<version> https://github.com/EdJoPaTo/website-stalker` and the [`From` header](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/From) to the user configured value.
 This way both the creator and the user of this tool can be reached in case of problems.
 
 ```yaml
@@ -121,37 +114,7 @@ Alternatively you can specify FROM via environment variable
 export WEBSITE_STALKER_FROM=my-email-address
 ```
 
-#### `notification_template`
-
-When using the [notifications](#notifications) you might want to use your own style of notification instead of the default one.
-You can specify your own template which is handled via the [Mustache Syntax](https://mustache.github.io/mustache.5.html).
-The following example contains all currently available data points.
-
-When writing your own template use `website-stalker check` to ensure the template will work.
-
-```yaml
-notification_template: |
-  These {{siteamount}} sites changed:
-  {{#sites}}
-  - {{.}}
-  {{/sites}}
-
-  The following hosts are involved:
-  {{#hosts}}
-  - {{.}}
-  {{/hosts}}
-
-  {{#singlehost}}
-  All changes happened on only one host: {{singlehost}}
-  {{/singlehost}}
-  {{^singlehost}}
-  The changes happened on various hosts.
-  {{/singlehost}}
-
-  The {{commit}} contains all these changes.
-```
-
-### Per Site Config Options
+### Per Site Options
 
 Options available per site besides the [editors](#editors) which are explained below.
 
@@ -180,7 +143,7 @@ sites:
 
 Allows HTTPS connections with self-signed or invalid / expired certificates.
 
-From [reqwests documentation](https://docs.rs/reqwest/0.11.4/reqwest/struct.ClientBuilder.html#method.danger_accept_invalid_certs):
+From [`reqwests` documentation](https://docs.rs/reqwest/0.11.26/reqwest/struct.ClientBuilder.html#method.danger_accept_invalid_certs):
 
 > You should think very carefully before using this method. If
 > invalid certificates are trusted, *any* certificate for *any* site
@@ -195,6 +158,19 @@ Please share about it in [Issue #39](https://github.com/EdJoPaTo/website-stalker
 sites:
   - url: "https://edjopato.de/post/"
     accept_invalid_certs: true
+```
+
+#### `http1_only`
+
+Only use HTTP/1 for the web request.
+
+Back-ends might use HTTP/2 fingerprinting which could result in different or unusable output depending on what the back-end assumes about the client.
+HTTP/1 is a simpler protocol which does not allow such kinds of back-end optimizations.
+
+```yaml
+sites:
+  - url: "https://edjopato.de/post/"
+    http1_only: true
 ```
 
 #### `ignore_error`
@@ -216,14 +192,14 @@ sites:
 
 Overrides the URL based default filename of the site.
 
-Normally the filename is automatically derived from the url.
-For the following example it would be something like `de-edjopato-api-token-0123456789-action-hack-20the-20planet.html`.
-With the `filename` options it is saved as `de-edjopato-api-planet-hack.html` instead.
+Normally the filename is automatically derived from the URL.
+For the following example it would be something like `de-edjopato-api-token-0123456789-action-enjoy-20weather.html`.
+With the `filename` options it is saved as `de-edjopato-api-weather.html` instead.
 
 ```yaml
 sites:
-  - url: "https://edjopato.de/api?token=0123456789&action=hack%20the%20planet"
-    filename: de-edjopato-api-planet-hack
+  - url: "https://edjopato.de/api?token=0123456789&action=enjoy%20weather"
+    filename: de-edjopato-api-weather
 ```
 
 #### `headers`
@@ -231,7 +207,7 @@ sites:
 Add additional [HTTP headers](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers) to the request to the given site.
 
 This is useful for sites that respond differently based on different headers.
-Each header Key/Value pair is supplied as YAML String separated with a `: ` followed by a space in the config.
+Each header Key/Value pair is supplied as YAML String separated with a `:` followed by a space.
 
 This is the same syntax as HTTP uses which sadly collides with YAML.
 YAML assumes something with a `:` is an object.
@@ -250,7 +226,7 @@ sites:
 
 Editors are manipulating the content of a webpage to simplify comparing them later on.
 
-For example: If you are interested in the content of a webpage the `<head>` with changing stylesheets isn't interesting to you.
+For example: If you are interested in the content of a webpage the `<head>` with changing style-sheets isn't interesting to you.
 When keeping it, it will still create diffs which end up being commits.
 This will create noise you're probably just going to ignore.
 That's why editors exist.
@@ -295,9 +271,6 @@ editors:
 #### `html_markdownify`
 
 Formats the input HTML as Markdown.
-
-This is rather simple right now.
-Please report issues you find.
 
 Example:
 
@@ -371,7 +344,7 @@ Examples:
 
 ```yaml
 editors:
-  # Remove all occurences of that word
+  # Remove all occurrences of that word
   - regex_replace:
       pattern: "tree"
       replace: ""
@@ -422,101 +395,11 @@ Examples:
       - rss: {}
 ```
 
-### Notifications
-
-When changes on websites are detected they get saved to filesystem.
-When `--commit` is given a git commit is created.
-
-Additionally, you can get notified via Telegram, Slack, E-Mail, ...
-[pling](https://github.com/EdJoPaTo/pling) is used to send these notifications.
-Check its documentation about which environment variables to specify in order to get notifications.
-
-Example with Telegram:
-
-```bash
-export TELEGRAM_BOT_TOKEN='123:ABC'
-export TELEGRAM_TARGET_CHAT='1234'
-website-stalker run --all
-```
-
-### Command Line Arguments
-
-```plaintext
-Website Stalker 0.16.0
-
-EdJoPaTo <website-stalker-rust@edjopato.de>
-
-Track changes on websites via git
-
-USAGE:
-    website-stalker <SUBCOMMAND>
-
-OPTIONS:
-    -h, --help       Print help information
-    -V, --version    Print version information
-
-SUBCOMMANDS:
-    check             Check if the config is fine but do not run
-    example-config    Print an example config which can be piped into website-stalker.yaml
-    help              Print this message or the help of the given subcommand(s)
-    init              Initialize the current directory with a git repo and a config (website-stalker.yaml)
-    run               Stalk all the websites you specified
-```
-
-```plaintext
-website-stalker-check
-
-Check if the config is fine but do not run
-
-USAGE:
-    website-stalker check [OPTIONS]
-
-OPTIONS:
-    -h, --help            Print help information
-        --print-yaml      Print out valid config as yaml
-        --rewrite-yaml    Write valid config as website-stalker.yaml
-```
-
-```plaintext
-website-stalker-example-config
-
-Print an example config which can be piped into website-stalker.yaml
-
-USAGE:
-    website-stalker example-config
-```
-
-```plaintext
-website-stalker-init
-
-Initialize the current directory with a git repo and a config (website-stalker.yaml)
-
-USAGE:
-    website-stalker init
-```
-
-```plaintext
-website-stalker-run
-
-Stalk all the websites you specified
-
-USAGE:
-    website-stalker run [OPTIONS] [site filter]
-
-ARGS:
-    <site filter>    Filter the sites to be run (case insensitive regular expression)
-
-OPTIONS:
-        --all       run for all sites
-        --commit    git commit changed files
-    -h, --help      Print help information
-```
-
-# Alternatives
+## Alternatives
 
 - [Website Changed Bot](https://github.com/EdJoPaTo/website-changed-bot) is a Telegram Bot which might potentially use this tool later on
 - [bernaferrari/ChangeDetection](https://github.com/bernaferrari/ChangeDetection) is an Android app for this
-- [dgtlmoon/changedetection.io](https://github.com/dgtlmoon/changedetection.io) can be selfhosted and configured via web interface
+- [dgtlmoon/changedetection.io](https://github.com/dgtlmoon/changedetection.io) can be self-hosted and configured via web interface
 - [Feed me up, Scotty!](https://gitlab.com/vincenttunru/feed-me-up-scotty) creates RSS feeds from websites
-- [htmlq](https://github.com/mgdm/htmlq) command line tool to format / select html (like jq for html)
+- [htmlq](https://github.com/mgdm/htmlq) command line tool to format / select HTML (like `jq` for HTML)
 - [urlwatch](https://thp.io/2008/urlwatch/)

@@ -1,40 +1,43 @@
 [package]
 name = "website-stalker"
 description = "Track changes on websites via git"
-version = "0.21.0"
+version = "0.23.0"
 license = "LGPL-2.1-or-later"
 repository = "https://github.com/EdJoPaTo/website-stalker"
 authors = ["EdJoPaTo <website-stalker-rust@edjopato.de>"]
 edition = "2021"
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[lints.rust]
+unsafe_code = "forbid"
+[lints.clippy]
+pedantic = "warn"
+nursery = "warn"
 
 [profile.release]
-# See https://doc.rust-lang.org/rustc/codegen-options/index.html
 codegen-units = 1
 lto = true
 
 [build-dependencies]
-clap = { version = "4", features = ["deprecated", "derive"] }
+clap = { version = "4", features = ["deprecated", "derive", "env"] }
 clap_complete = "4"
+clap_mangen = "0.2"
+pling = { version = "0.4", default-features = false, features = ["clap"] }
 regex = "1"
 
 [dependencies]
-ammonia = "3"
+ammonia = "4"
 anyhow = "1"
 chrono = { version = "0.4", default-features = false }
-clap = { version = "4", features = ["deprecated", "derive", "wrap_help"] }
+clap = { version = "4", features = ["deprecated", "derive", "env", "wrap_help"] }
 html2md = "0.2"
 html5ever = "0.26"
-itertools = "0.11"
-kuchikiki = "0.8"
 lazy-regex = "3"
 mime2ext = "0.1"
-mustache = "0.9"
 once_cell = "1"
-pling = "0.3"
+pling = { version = "0.4", default-features = false, features = ["clap", "reqwest"] }
 regex = "1"
 rss = { version = "2", features = ["validation"] }
-scraper = "0.17"
+scraper = { version = "0.19", features = ["deterministic"] }
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
 serde_yaml = "0.9"
@@ -42,9 +45,12 @@ tokio = { version = "1", features = ["full"] }
 url = { version = "2", features = ["serde"] }
 
 [dependencies.reqwest]
-version = "0.11"
+version = "0.12"
 default-features = false
 features = [
+	"charset",
+	"http2",
+	"macos-system-configuration",
 	"rustls-tls",
 	"socks", # Socks5 Proxy support
 	"brotli", # response body decompression
@@ -62,26 +68,28 @@ recommends = "git"
 maintainer-scripts = "systemd/system/"
 systemd-units = { enable = false, start = false }
 assets = [
-	["target/release/website-stalker", "/usr/bin/website-stalker", "755"],
-	["CHANGELOG.md", "/usr/share/doc/website-stalker/CHANGELOG.md", "644"],
-	["LICENSE", "/usr/share/licenses/website-stalker/LICENSE", "644"],
-	["README.md", "/usr/share/doc/website-stalker/README.md", "644"],
+	["target/release/website-stalker", "/usr/bin/", "755"],
+	["CHANGELOG.md", "/usr/share/doc/website-stalker/", "644"],
+	["LICENSE", "/usr/share/licenses/website-stalker/", "644"],
+	["README.md", "/usr/share/doc/website-stalker/", "644"],
 
 	["systemd/user/service", "/lib/systemd/user/website-stalker.service", "644"],
 	["systemd/user/timer", "/lib/systemd/user/website-stalker.timer", "644"],
 
 	["target/completions/website-stalker.bash", "/usr/share/bash-completion/completions/website-stalker", "644"],
-	["target/completions/website-stalker.fish", "/usr/share/fish/completions/website-stalker.fish", "644"],
-	["target/completions/_website-stalker", "/usr/share/zsh/site-functions/_website-stalker", "644"],
+	["target/completions/website-stalker.fish", "/usr/share/fish/completions/", "644"],
+	["target/completions/_website-stalker", "/usr/share/zsh/site-functions/", "644"],
+
+	["target/manpages/*", "/usr/share/man/man1/", "644"],
 ]
 
 # https://crates.io/crates/cargo-generate-rpm
 [package.metadata.generate-rpm]
 assets = [
-	{ source = "target/release/website-stalker", dest = "/usr/bin/website-stalker", mode = "755" },
-	{ source = "CHANGELOG.md", dest = "/usr/share/doc/website-stalker/CHANGELOG.md", mode = "644", doc = true },
-	{ source = "LICENSE", dest = "/usr/share/licenses/website-stalker/LICENSE", mode = "644", doc = true },
-	{ source = "README.md", dest = "/usr/share/doc/website-stalker/README.md", mode = "644", doc = true },
+	{ source = "target/release/website-stalker", dest = "/usr/bin/", mode = "755" },
+	{ source = "CHANGELOG.md", dest = "/usr/share/doc/website-stalker/", mode = "644", doc = true },
+	{ source = "LICENSE", dest = "/usr/share/licenses/website-stalker/", mode = "644", doc = true },
+	{ source = "README.md", dest = "/usr/share/doc/website-stalker/", mode = "644", doc = true },
 
 	{ source = "systemd/system/service", dest = "/usr/lib/systemd/system/website-stalker.service", mode = "644" },
 	{ source = "systemd/system/timer", dest = "/usr/lib/systemd/system/website-stalker.timer", mode = "644" },
@@ -92,8 +100,10 @@ assets = [
 	{ source = "systemd/user/timer", dest = "/usr/lib/systemd/user/website-stalker.timer", mode = "644" },
 
 	{ source = "target/completions/website-stalker.bash", dest = "/usr/share/bash-completion/completions/website-stalker", mode = "644" },
-	{ source = "target/completions/website-stalker.fish", dest = "/usr/share/fish/vendor_completions.d/website-stalker.fish", mode = "644" },
-	{ source = "target/completions/_website-stalker", dest = "/usr/share/zsh/site-functions/_website-stalker", mode = "644" },
+	{ source = "target/completions/website-stalker.fish", dest = "/usr/share/fish/vendor_completions.d/", mode = "644" },
+	{ source = "target/completions/_website-stalker", dest = "/usr/share/zsh/site-functions/", mode = "644" },
+
+	{ source = "target/manpages/*", dest = "/usr/share/man/man1/", mode = "644", doc = true },
 ]
 
 [package.metadata.generate-rpm.requires]

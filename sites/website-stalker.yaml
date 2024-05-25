@@ -5,8 +5,7 @@
 # Adapt the config to your needs and set the FROM email address which is used as a request header:
 # https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/From
 #
-# Check if your config is valid via `website-stalker check`.
-# And then do a run via `website-stalker run --all`.
+# Then do a run via `website-stalker run --all`.
 #
 #
 # In this example, the website `edjopato.de` is tracked.

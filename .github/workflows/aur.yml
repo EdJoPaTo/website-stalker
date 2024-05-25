@@ -1,0 +1,22 @@
+name: Update Arch Linux User Repository (AUR)
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  aur-publish:
+    name: AUR ${{ matrix.name }}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        name:
+          - website-stalker
+          - website-stalker-bin
+    steps:
+      - uses: EdJoPaTo/update-aur-package-github-action@main
+        with:
+          package_name: ${{ matrix.name }}
+          ssh_private_key: ${{ secrets.AUR_SSH_PRIVATE_KEY }}
