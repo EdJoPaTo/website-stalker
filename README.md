@@ -268,6 +268,57 @@ editors:
   - css_select: h1 > a
 ```
 
+#### `css_sort`
+
+Similar to [`css_select`](#css_select) but sorts the matched HTML elements before returning them.
+
+Takes both a [CSS Selector](https://developer.mozilla.org/en-US/docs/Learn/CSS/Building_blocks/Selectors) and editors to sort by key.
+
+Examples:
+
+```yaml
+editors:
+  # Get all articles and sort them
+  - css_sort:
+      selector: article
+```
+
+The above example sorts by the whole element, so it includes stuff like HTML element attributes.
+In order to sort by a given key, editors can be used.
+
+```yaml
+editors:
+  # Get all articles and sort them by their heading
+  - css_sort:
+      selector: article
+      sort_by:
+        - css_select: h2
+```
+
+This can still result in surprising results as the attributes are still included.
+Therefore, editors like [`html_textify`](#html_textify) or [`html_sanitize`](#html_sanitize) are likely a good idea to be used.
+
+Tip: [`debug_files`](#debug_files) can help you understand what is happening. But don't forget to remove it after you are done testing:
+
+```yaml
+editors:
+  - css_sort:
+      selector: article
+      sort_by:
+        - css_select: h2
+        - html_sanitize
+        - debug_files: /tmp/website-stalker/
+```
+
+You can also reverse the sorting:
+
+```yaml
+editors:
+  - css_sort:
+      selector: article
+      reverse: true
+```
+
 #### `debug_files`
 
 This editor passes its input through without modifying it.
