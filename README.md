@@ -291,7 +291,7 @@ editors:
   # Get all articles and sort them by their heading
   - css_sort:
       selector: article
-      sort_by:
+      sort_by: # here you can use every editor again which is applied to every selected html element
         - css_select: h2
 ```
 
