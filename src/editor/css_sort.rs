@@ -31,10 +31,10 @@ impl CssSort {
                 text: item.html(),
             };
             for editor in &self.sort_by {
-                if let Ok(inner) = editor.apply(url, &content) {
+                if let Ok(inner) = editor.apply(url, content) {
                     content = inner;
                 } else {
-                    break;
+                    return String::new();
                 }
             }
             content.text

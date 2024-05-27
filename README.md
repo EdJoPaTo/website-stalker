@@ -268,6 +268,26 @@ editors:
   - css_select: h1 > a
 ```
 
+#### `debug_files`
+
+This editor passes its input through without modifying it.
+The content is written to a file in the given directory.
+The filename is created from the current UNIX Timestamp.
+
+This is neat when looking at steps in between editors is of interest.
+Especially for editors like [RSS](#rss) which use editors per item this can be handy to look at the steps in between.
+
+Warning: It's not recommended committing these files.
+`debug_files` should be removed before when committing the config.
+It might have unintended side effects or might spam your repository with many potentially large files.
+
+Examples:
+
+```yaml
+editors:
+  - debug_files: /tmp/website-stalker/
+```
+
 #### `html_markdownify`
 
 Formats the input HTML as Markdown.
