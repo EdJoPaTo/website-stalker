@@ -30,9 +30,7 @@ impl CssSort {
             }
         }
 
-        if grouped_by_parent.is_empty() {
-            anyhow::bail!("nothing to sort");
-        }
+        anyhow::ensure!(!grouped_by_parent.is_empty(), "nothing to sort");
 
         // A single element can not be sorted. Only keep the ones with more than one.
         grouped_by_parent.retain(|_, elements| elements.len() > 1);
