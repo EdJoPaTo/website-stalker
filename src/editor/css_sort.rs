@@ -52,52 +52,74 @@ impl CssSort {
     }
 }
 
-#[test]
-fn simple_example() {
-    let url = Url::parse("https://edjopato.de/").unwrap();
-    let input = "<html><head></head><body><p>A</p><p>C</p><p>B</p></body></html>";
-    let expected = "<p>A</p>
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[track_caller]
+    fn case(css_sort: &CssSort, input: &str, expected: &str) {
+        let url = Url::parse("https://edjopato.de/").unwrap();
+        let html = css_sort.apply(&url, input).unwrap();
+        assert_eq!(html, expected);
+    }
+
+    #[test]
+    fn simple_example() {
+        let input = "<html><head></head><body><p>A</p><p>C</p><p>B</p></body></html>";
+        let expected = "<p>A</p>
 <p>B</p>
 <p>C</p>";
-    let example = CssSort {
-        selector: Selector::parse("p").unwrap(),
-        sort_by: Vec::new(),
-        reverse: false,
-    };
-    let html = example.apply(&url, input).unwrap();
-    assert_eq!(html, expected);
-}
+        let sort_by = CssSort {
+            selector: Selector::parse("p").unwrap(),
+            sort_by: Vec::new(),
+            reverse: false,
+        };
+        case(&sort_by, input, expected);
+    }
 
-#[test]
-fn simple_example_reverse() {
-    let url = Url::parse("https://edjopato.de/").unwrap();
-    let input = "<html><head></head><body><p>A</p><p>C</p><p>B</p></body></html>";
-    let expected = "<p>C</p>
+    #[test]
+    fn reverse() {
+        let input = "<html><head></head><body><p>A</p><p>C</p><p>B</p></body></html>";
+        let expected = "<p>C</p>
 <p>B</p>
 <p>A</p>";
-    let example = CssSort {
-        selector: Selector::parse("p").unwrap(),
-        sort_by: Vec::new(),
-        reverse: true,
-    };
-    let html = example.apply(&url, input).unwrap();
-    assert_eq!(html, expected);
-}
+        let sort_by = CssSort {
+            selector: Selector::parse("p").unwrap(),
+            sort_by: Vec::new(),
+            reverse: true,
+        };
+        case(&sort_by, input, expected);
+    }
 
-#[test]
-fn sort_by_example() {
-    let url = Url::parse("https://edjopato.de/").unwrap();
-    let input = r#"<html><head></head><body>
-<article><h3>A</h3><a id="B">Bla</a></article>
-<article><h3>B</h3><a id="A">Bla</a></article>
+    #[test]
+    fn sort_by() {
+        let input = r#"<html><head></head><body>
+<article><h3>A</h3><a id="Y">Bla</a></article>
+<article><h3>B</h3><a id="X">Bla</a></article>
 </body></html>"#;
-    let expected = r#"<article><h3>B</h3><a id="A">Bla</a></article>
-<article><h3>A</h3><a id="B">Bla</a></article>"#;
-    let example = CssSort {
-        selector: Selector::parse("article").unwrap(),
-        sort_by: vec![Editor::CssSelect(Selector::parse("a").unwrap())],
-        reverse: false,
-    };
-    let html = example.apply(&url, input).unwrap();
-    assert_eq!(html, expected);
+        let expected = r#"<article><h3>B</h3><a id="X">Bla</a></article>
+<article><h3>A</h3><a id="Y">Bla</a></article>"#;
+        let sort_by = CssSort {
+            selector: Selector::parse("article").unwrap(),
+            sort_by: vec![Editor::CssSelect(Selector::parse("a").unwrap())],
+            reverse: false,
+        };
+        case(&sort_by, input, expected);
+    }
+
+    #[test]
+    fn sort_by_same_key_keeps_order() {
+        let input = r#"<html><head></head><body>
+<article><h3>C</h3><a id="X">Bla</a></article>
+<article><h3>A</h3><a id="X">Bla</a></article>
+</body></html>"#;
+        let expected = r#"<article><h3>C</h3><a id="X">Bla</a></article>
+<article><h3>A</h3><a id="X">Bla</a></article>"#;
+        let sort_by = CssSort {
+            selector: Selector::parse("article").unwrap(),
+            sort_by: vec![Editor::CssSelect(Selector::parse("a").unwrap())],
+            reverse: false,
+        };
+        case(&sort_by, input, expected);
+    }
 }
