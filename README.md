@@ -283,20 +283,20 @@ editors:
       selector: article
 ```
 
-The above example sorts by the whole element, so it includes stuff like HTML element attributes.
-In order to sort by a given key, editors can be used.
+The above example sorts by the whole element.
+In order to sort by something specific for a given HTML element, editors can be used.
 
 ```yaml
 editors:
   # Get all articles and sort them by their heading
   - css_sort:
       selector: article
-      sort_by: # here you can use every editor again which is applied to every selected html element
+      sort_by: # the specified editors are applied to every selected HTML element independently
         - css_select: h2
 ```
 
-This can still result in surprising results as the attributes are still included.
-Therefore, editors like [`html_textify`](#html_textify) or [`html_sanitize`](#html_sanitize) are likely a good idea to be used.
+This might still sort in surprising ways as things like attributes are still included (`<h2 class="a">Z</h2>` is sorted before `<h2 class="z">A</h2>`).
+Therefore, editors like [`html_textify`](#html_textify) or [`html_sanitize`](#html_sanitize) are likely a good idea to be used in `sort_by`.
 
 Tip: [`debug_files`](#debug_files) can help you understand what is happening. But don't forget to remove it after you are done testing:
 
