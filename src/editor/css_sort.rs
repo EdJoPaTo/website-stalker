@@ -1,4 +1,4 @@
-use scraper::Selector;
+use scraper::{ElementRef, Selector};
 use serde::Deserialize;
 use url::Url;
 
@@ -25,20 +25,7 @@ impl CssSort {
             anyhow::bail!("selected nothing");
         }
 
-        selected.sort_by_cached_key(|item| {
-            let mut content = super::Content {
-                extension: Some("html"),
-                text: item.html(),
-            };
-            for editor in &self.sort_by {
-                if let Ok(inner) = editor.apply(url, content) {
-                    content = inner;
-                } else {
-                    return String::new();
-                }
-            }
-            content.text
-        });
+        selected.sort_by_cached_key(|element| self.get_sort_by_key(url, element));
 
         if self.reverse {
             selected.reverse();
@@ -49,6 +36,21 @@ impl CssSort {
             .map(scraper::ElementRef::html)
             .collect::<Vec<_>>()
             .join("\n"))
+    }
+
+    fn get_sort_by_key(&self, url: &Url, element: &ElementRef) -> String {
+        let mut content = super::Content {
+            extension: Some("html"),
+            text: element.html(),
+        };
+        for editor in &self.sort_by {
+            if let Ok(inner) = editor.apply(url, content) {
+                content = inner;
+            } else {
+                return String::new();
+            }
+        }
+        content.text
     }
 }
 
