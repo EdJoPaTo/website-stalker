@@ -11,6 +11,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - new editor: `debug_files`
 
+### Fixed
+
+- RSS: improve content_editors error output
+
 ## [0.23.0] - 2024-05-14
 
 ### Added
