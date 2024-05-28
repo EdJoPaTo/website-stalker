@@ -270,15 +270,29 @@ editors:
 
 #### `css_sort`
 
-Similar to [`css_select`](#css_select) but sorts the matched HTML elements before returning them.
+Sort elements matching to the given [CSS Selector](https://developer.mozilla.org/en-US/docs/Learn/CSS/Building_blocks/Selectors).
+Other elements not matching are kept.
+Elements below different parents are sorted independently.
 
-Takes both a [CSS Selector](https://developer.mozilla.org/en-US/docs/Learn/CSS/Building_blocks/Selectors) and editors to sort by key.
+Basic example:
+
+```html
+<div><p>D</p><p>A</p></div>
+<div><p>C</p><p>B</p></div>
+```
+
+with `p` as the selector with result in this:
+
+```html
+<div><p>A</p><p>D</p></div>
+<div><p>B</p><p>C</p></div>
+```
 
 Examples:
 
 ```yaml
 editors:
-  # Get all articles and sort them
+  # Sort all articles
   - css_sort:
       selector: article
 ```
@@ -288,7 +302,7 @@ In order to sort by something specific for a given HTML element, editors can be 
 
 ```yaml
 editors:
-  # Get all articles and sort them by their heading
+  # Sort articles by their heading
   - css_sort:
       selector: article
       sort_by: # the specified editors are applied to every selected HTML element independently
