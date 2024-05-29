@@ -277,15 +277,15 @@ Elements below different parents are sorted independently.
 Basic example:
 
 ```html
-<div><p>D</p><p>A</p></div>
 <div><p>C</p><p>B</p></div>
+<div><p>D</p><p>A</p></div>
 ```
 
-with `p` as the selector with result in this:
+with `p` as the selector will sort into this:
 
 ```html
-<div><p>A</p><p>D</p></div>
 <div><p>B</p><p>C</p></div>
+<div><p>A</p><p>D</p></div>
 ```
 
 Examples:
@@ -297,7 +297,7 @@ editors:
       selector: article
 ```
 
-The above example sorts by the whole element.
+The above example sorts by the whole element ([`outerHTML`](https://developer.mozilla.org/en-US/docs/Web/API/Element/outerHTML)).
 In order to sort by something specific for a given HTML element, editors can be used.
 
 ```yaml
