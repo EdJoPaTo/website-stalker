@@ -35,9 +35,6 @@ impl CssSort {
             logger::warn(&format!("css_sort selector selected nothing to sort {url}"));
         }
 
-        // A single element can not be sorted. Only keep the ones with more than one.
-        grouped_by_parent.retain(|_, elements| elements.len() > 1);
-
         // Get the order of the elements as ids
         // This removes the reference to html allowing to take mut references later on
         let sorted = grouped_by_parent
