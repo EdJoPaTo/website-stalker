@@ -4,9 +4,8 @@ use scraper::{ElementRef, Html, Selector};
 use serde::Deserialize;
 use url::Url;
 
-use crate::logger;
-
 use super::Editor;
+use crate::logger;
 
 #[derive(Debug, Clone, Deserialize)]
 pub struct CssSort {
