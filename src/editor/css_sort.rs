@@ -41,7 +41,7 @@ impl CssSort {
         let sorted = grouped_by_parent
             .into_iter()
             .map(|(parent, mut elements)| {
-                elements.sort_by_cached_key(|element| self.get_sort_by_key(url, element));
+                elements.sort_by_cached_key(|element| self.get_sort_key_from_element(url, element));
                 if self.reverse {
                     elements.reverse();
                 }
@@ -69,7 +69,7 @@ impl CssSort {
         Ok(html.html())
     }
 
-    fn get_sort_by_key(&self, url: &Url, element: &ElementRef) -> String {
+    fn get_sort_key_from_element(&self, url: &Url, element: &ElementRef) -> String {
         let content = super::Content {
             extension: Some("html"),
             text: element.html(),
@@ -176,8 +176,8 @@ mod tests {
         case(&sort_by, input, expected);
     }
 
-    /// Currently, this is done in a simplified way and maybe should be improved in the future.
-    /// For now this documents that its not working perfectly.
+    /// Documents current sorting order when other elements are there.
+    /// Needs to be adapted when sorting order is improved.
     #[test]
     fn sort_with_other_elements() {
         let input = "<div>1</div><p>A</p><img><p>B</p>";
