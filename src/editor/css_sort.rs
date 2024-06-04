@@ -20,7 +20,7 @@ pub struct CssSort {
 }
 
 impl CssSort {
-    pub fn apply(&self, url: &Url, html: &str) -> anyhow::Result<String> {
+    pub fn apply(&self, url: &Url, html: &str) -> String {
         let mut html = Html::parse_document(html);
         let selected = html.select(&self.selector).collect::<Vec<_>>();
 
@@ -31,7 +31,9 @@ impl CssSort {
             }
         }
 
-        anyhow::ensure!(!grouped_by_parent.is_empty(), "nothing to sort");
+        if grouped_by_parent.is_empty() {
+            logger::warn(&format!("css_sort selector selected nothing to sort {url}"));
+        }
 
         // A single element can not be sorted. Only keep the ones with more than one.
         grouped_by_parent.retain(|_, elements| elements.len() > 1);
@@ -66,7 +68,7 @@ impl CssSort {
             }
         }
 
-        Ok(html.html())
+        html.html()
     }
 
     fn get_sort_key_from_element(&self, url: &Url, element: &ElementRef) -> String {
@@ -94,7 +96,7 @@ mod tests {
         const SUFFIX: &str = "</body></html>";
 
         let url = Url::parse("https://edjopato.de/").unwrap();
-        let html = css_sort.apply(&url, input).unwrap();
+        let html = css_sort.apply(&url, input);
 
         assert!(html.starts_with(PREFIX));
         assert!(html.ends_with(SUFFIX));

@@ -69,7 +69,7 @@ impl Editor {
             }),
             Self::CssSort(sort) => Ok(Content {
                 extension: Some("html"),
-                text: sort.apply(url, &input.text)?,
+                text: sort.apply(url, &input.text),
             }),
             Self::DebugFiles(path) => debug_files::debug_files(path, input),
             Self::HtmlMarkdownify => Ok(Content {
