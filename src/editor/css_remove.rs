@@ -6,9 +6,9 @@ pub fn apply(selector: &Selector, html: &str) -> String {
         .select(selector)
         .map(|element| element.id())
         .collect::<Vec<_>>();
-    for selected in selected {
-        if let Some(mut selected_mut) = html.tree.get_mut(selected) {
-            selected_mut.detach();
+    for id in selected {
+        if let Some(mut node_mut) = html.tree.get_mut(id) {
+            node_mut.detach();
         }
     }
     html.html()

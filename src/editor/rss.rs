@@ -112,13 +112,11 @@ impl Rss {
                 builder.pub_date(bla.to_rfc2822());
             }
 
-            let mut content = super::Content {
+            let content = super::Content {
                 extension: Some("html"),
                 text: item.html(),
             };
-            for editor in &self.content_editors {
-                content = editor.apply(url, content)?;
-            }
+            let content = Editor::apply_many(&self.content_editors, url, content)?;
             builder.content(content.text);
 
             items.push(builder.build());
