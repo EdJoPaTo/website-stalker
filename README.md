@@ -268,6 +268,71 @@ editors:
   - css_select: h1 > a
 ```
 
+#### `css_sort`
+
+Sort elements matching to the given [CSS Selector](https://developer.mozilla.org/en-US/docs/Learn/CSS/Building_blocks/Selectors).
+Other elements not matching are kept.
+Elements below different parents are sorted independently.
+
+Basic example:
+
+```html
+<div><p>C</p><p>B</p></div>
+<div><p>D</p><p>A</p></div>
+```
+
+with `p` as the selector will sort into this:
+
+```html
+<div><p>B</p><p>C</p></div>
+<div><p>A</p><p>D</p></div>
+```
+
+Examples:
+
+```yaml
+editors:
+  # Sort all articles
+  - css_sort:
+      selector: article
+```
+
+The above example sorts by the whole element ([`outerHTML`](https://developer.mozilla.org/en-US/docs/Web/API/Element/outerHTML)).
+In order to sort by something specific for a given HTML element, editors can be used.
+
+```yaml
+editors:
+  # Sort articles by their heading
+  - css_sort:
+      selector: article
+      sort_by: # the specified editors are applied to every selected HTML element independently
+        - css_select: h2
+```
+
+This might still sort in surprising ways as things like attributes are still included (`<h2 class="a">Z</h2>` is sorted before `<h2 class="z">A</h2>`).
+Therefore, editors like [`html_textify`](#html_textify) or [`html_sanitize`](#html_sanitize) are likely a good idea to be used in `sort_by`.
+
+Tip: [`debug_files`](#debug_files) can help you understand what is happening. But don't forget to remove it after you are done testing:
+
+```yaml
+editors:
+  - css_sort:
+      selector: article
+      sort_by:
+        - css_select: h2
+        - html_sanitize
+        - debug_files: /tmp/website-stalker/
+```
+
+You can also reverse the sorting:
+
+```yaml
+editors:
+  - css_sort:
+      selector: article
+      reverse: true
+```
+
 #### `debug_files`
 
 This editor passes its input through without modifying it.

@@ -6,6 +6,7 @@ use url::Url;
 
 pub mod css_remove;
 pub mod css_selector;
+pub mod css_sort;
 pub mod debug_files;
 pub mod html_markdown;
 pub mod html_pretty;
@@ -26,6 +27,7 @@ pub struct Content {
 pub enum Editor {
     CssRemove(#[serde(deserialize_with = "deserialize_selector")] scraper::Selector),
     CssSelect(#[serde(deserialize_with = "deserialize_selector")] scraper::Selector),
+    CssSort(css_sort::CssSort),
     DebugFiles(PathBuf),
     HtmlMarkdownify,
     HtmlPrettify,
@@ -42,6 +44,7 @@ impl Editor {
         match self {
             Self::CssRemove(_) => "css_remove",
             Self::CssSelect(_) => "css_select",
+            Self::CssSort(_) => "css_sort",
             Self::DebugFiles(_) => "debug_files",
             Self::HtmlMarkdownify => "html_markdownify",
             Self::HtmlPrettify => "html_prettify",
@@ -63,6 +66,10 @@ impl Editor {
             Self::CssSelect(selector) => Ok(Content {
                 extension: Some("html"),
                 text: css_selector::apply(selector, &input.text)?,
+            }),
+            Self::CssSort(sort) => Ok(Content {
+                extension: Some("html"),
+                text: sort.apply(url, &input.text),
             }),
             Self::DebugFiles(path) => debug_files::debug_files(path, input),
             Self::HtmlMarkdownify => Ok(Content {
