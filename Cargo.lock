@@ -1653,15 +1653,15 @@ checksum = "94143f37725109f92c262ed2cf5e59bce7498c01bcc1502d7b9afe439a4e9f49"
 
 [[package]]
 name = "scraper"
-version = "0.19.0"
+version = "0.19.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "5b80b33679ff7a0ea53d37f3b39de77ea0c75b12c5805ac43ec0c33b3051af1b"
+checksum = "761fb705fdf625482d2ed91d3f0559dcfeab2798fe2771c69560a774865d0802"
 dependencies = [
  "ahash",
  "cssparser",
  "ego-tree",
  "getopts",
- "html5ever 0.26.0",
+ "html5ever 0.27.0",
  "indexmap",
  "once_cell",
  "selectors",
@@ -2270,7 +2270,7 @@ dependencies = [
  "clap_complete",
  "clap_mangen",
  "html2md",
- "html5ever 0.26.0",
+ "html5ever 0.27.0",
  "lazy-regex",
  "mime2ext",
  "once_cell",

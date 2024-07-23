@@ -30,7 +30,7 @@ anyhow = "1"
 chrono = { version = "0.4", default-features = false }
 clap = { version = "4", features = ["deprecated", "derive", "env", "wrap_help"] }
 html2md = "0.2"
-html5ever = "0.26"
+html5ever = "0.27"
 lazy-regex = "3"
 mime2ext = "0.1"
 once_cell = "1"
