@@ -23,35 +23,36 @@ pub fn markdownify(html: &str) -> String {
     result.to_string()
 }
 
+#[cfg(test)]
+#[track_caller]
+fn case(html: &str, expected: &str) {
+    let result = dbg!(markdownify(html));
+    let raw = dbg!(html2md::parse_html(html));
+    assert_eq!(result, expected);
+    assert_ne!(result, raw, "special handling no longer needed");
+}
+
 #[test]
 fn angled_url() {
     let html = r#"<a href="https://edjopato.de/">https://edjopato.de/</a>"#;
-    dbg!(markdownify(html), html2md::parse_html(html));
-    assert_eq!(markdownify(html), "<https://edjopato.de/>");
-    assert_ne!(markdownify(html), html2md::parse_html(html));
+    case(html, "<https://edjopato.de/>");
 }
 
 #[test]
 fn link_label_trim_simple() {
     let html = r#"<a href="/"> bla </a>"#;
-    dbg!(markdownify(html), html2md::parse_html(html));
-    assert_eq!(markdownify(html), "[bla](/)");
-    assert_ne!(markdownify(html), html2md::parse_html(html));
+    case(html, "[bla](/)");
 }
 
 #[test]
 fn link_label_trim_multiline() {
     let html = r#"<a href="/"><div>bla</div><div>blubb</div></a>"#;
-    dbg!(markdownify(html), html2md::parse_html(html));
-    assert_eq!(markdownify(html), "[bla blubb](/)");
-    assert_ne!(markdownify(html), html2md::parse_html(html));
+    case(html, "[bla blubb](/)");
 }
 
 #[test]
 fn trim_lineendings() {
     // \u{a0} is NO-BREAK SPACE
     let html = "<p>whatever  <br>\nis\t<br>\nthis \u{a0}<br>\nmeh</p>";
-    dbg!(markdownify(html), html2md::parse_html(html));
-    assert_eq!(markdownify(html), "whatever\nis\nthis\nmeh");
-    assert_ne!(markdownify(html), html2md::parse_html(html));
+    case(html, "whatever\nis\nthis\nmeh");
 }
