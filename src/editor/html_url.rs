@@ -19,7 +19,7 @@ impl<'url, Wr: Write> HtmlAbsLinkSerializer<'url, Wr> {
     }
 }
 
-impl<'url, Wr: Write> Serializer for HtmlAbsLinkSerializer<'url, Wr> {
+impl<Wr: Write> Serializer for HtmlAbsLinkSerializer<'_, Wr> {
     fn start_elem<'a, AttrIter>(&mut self, name: QualName, attrs: AttrIter) -> std::io::Result<()>
     where
         AttrIter: Iterator<Item = AttrRef<'a>>,

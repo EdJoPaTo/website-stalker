@@ -16,12 +16,12 @@ impl RegexReplacer {
     }
 }
 
-fn deserialize_regex<'de, D>(deserializer: D) -> Result<regex::Regex, D::Error>
+fn deserialize_regex<'de, D>(deserializer: D) -> Result<Regex, D::Error>
 where
     D: serde::Deserializer<'de>,
 {
     let str = String::deserialize(deserializer)?;
-    regex::Regex::new(&str).map_err(serde::de::Error::custom)
+    Regex::new(&str).map_err(serde::de::Error::custom)
 }
 
 #[test]
