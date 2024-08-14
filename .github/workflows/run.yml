@@ -10,11 +10,8 @@ jobs:
     name: Run with example config
     runs-on: ubuntu-latest
     steps:
-      - name: Setup Rust
+      - uses: dtolnay/rust-toolchain@stable
         id: rust
-        uses: dtolnay/rust-toolchain@master
-        with:
-          toolchain: stable
 
       - uses: actions/checkout@v4
       - run: cargo fetch
@@ -26,6 +23,6 @@ jobs:
 
       - name: website-stalker run --all
         working-directory: sites
+        run: cargo run -- run --all
         env:
           WEBSITE_STALKER_FROM: website-stalker-run-workflow@edjopato.de
-        run: cargo run -- run --all
