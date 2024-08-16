@@ -75,7 +75,7 @@ impl CssSort {
         };
         Editor::apply_many(&self.sort_by, url, content).map_or_else(
             |error| {
-                logger::error(&format!("css_sort sort_by failed {error}"));
+                logger::error(&format!("css_sort sort_by failed {error:#}"));
                 String::new()
             },
             |content| content.text,

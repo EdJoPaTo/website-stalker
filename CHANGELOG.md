@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- Improve output on errors, especially HTTP request errors
+
 ## [0.24.1] - 2024-08-14
 
 ### Added

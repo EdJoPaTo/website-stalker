@@ -1,4 +1,4 @@
-use anyhow::anyhow;
+use anyhow::Context;
 use serde::Deserialize;
 use url::Url;
 
@@ -102,8 +102,7 @@ impl Config {
             "WEBHOOK_URL",
         ];
 
-        validate_from(&self.from)
-            .map_err(|err| anyhow!("from ({}) is invalid: {err}", self.from))?;
+        validate_from(&self.from).with_context(|| format!("from ({}) is invalid", self.from))?;
         self.validate_sites()?;
 
         #[allow(deprecated)]

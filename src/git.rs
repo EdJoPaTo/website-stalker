@@ -121,7 +121,7 @@ mod tests {
         println!("# {command}");
         match simple_command(dir, command) {
             Ok(output) => println!("{output}"),
-            Err(err) => println!("{err}"),
+            Err(err) => println!("{err:#}"),
         };
     }
 

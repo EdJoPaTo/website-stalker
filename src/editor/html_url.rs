@@ -1,5 +1,6 @@
 use std::io::Write;
 
+use anyhow::Context;
 use html5ever::serialize::{AttrRef, HtmlSerializer, Serialize, SerializeOpts, Serializer};
 use html5ever::QualName;
 use scraper::Html;
@@ -29,12 +30,8 @@ impl<Wr: Write> Serializer for HtmlAbsLinkSerializer<'_, Wr> {
             let value = if &key.local == "href" || &key.local == "src" {
                 self.base_url
                     .join(value)
-                    .map_err(|err| {
-                        std::io::Error::new(
-                            std::io::ErrorKind::InvalidData,
-                            anyhow::anyhow!("failed to parse url {value} {err}"),
-                        )
-                    })?
+                    .with_context(|| format!("failed to parse url {value}"))
+                    .map_err(|err| std::io::Error::new(std::io::ErrorKind::InvalidData, err))?
                     .to_string()
             } else {
                 value.to_owned()
@@ -138,7 +135,7 @@ fn works_with_already_absolute_url() {
 }
 
 #[test]
-#[should_panic = "failed to parse url /// empty host"]
+#[should_panic = "failed to parse url ///"]
 fn garbage_results_in_error() {
     let base_url = Url::parse("https://edjopato.de/index.html").unwrap();
     let ugly = r#"<html><body>Just a <a href="///">test</a></body></html>"#;

@@ -2,6 +2,7 @@ use core::time::Duration;
 use std::net::SocketAddr;
 use std::time::Instant;
 
+use anyhow::Context;
 use reqwest::header::{HeaderMap, HeaderValue};
 use reqwest::{header, ClientBuilder};
 use url::Url;
@@ -46,7 +47,7 @@ pub async fn get(
     additional_headers: HeaderMap,
     accept_invalid_certs: bool,
     http1_only: bool,
-) -> anyhow::Result<(Content, ResponseMeta)> {
+) -> reqwest::Result<(Content, ResponseMeta)> {
     let mut builder = ClientBuilder::new()
         .danger_accept_invalid_certs(accept_invalid_certs)
         .timeout(Duration::from_secs(30))
@@ -83,9 +84,7 @@ pub async fn get(
 
 pub fn validate_from(from: &str) -> anyhow::Result<()> {
     let value = HeaderValue::from_str(from)?;
-    let value = value
-        .to_str()
-        .map_err(|err| anyhow::anyhow!("from contains non ASCII characters {err}"))?;
+    let value = value.to_str().context("contains non ASCII characters")?;
     if !value.contains('@') || !value.contains('.') {
         anyhow::bail!("doesnt look like an email address: {from}");
     }

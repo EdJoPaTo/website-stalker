@@ -68,7 +68,7 @@ async fn main() {
             match Config::load(from) {
                 Ok(_) => eprintln!("ok"),
                 Err(err) => {
-                    eprintln!("not ok.\n\n{err}\n\nCheck https://github.com/EdJoPaTo/website-stalker for configuration details.");
+                    eprintln!("not ok.\n\n{err:#}\n\nCheck https://github.com/EdJoPaTo/website-stalker for configuration details.");
                     process::exit(1);
                 }
             }
@@ -136,7 +136,7 @@ async fn run(
         Err(err) => {
             if do_commit {
                 logger::error_exit(&format!(
-                    "Not a git repository. --commit only works in git repos: {err}"
+                    "Not a git repository. --commit only works in git repos: {err:#}"
                 ));
             }
             logger::warn("Not a git repository. Will run but won't do git actions.");
@@ -215,7 +215,7 @@ async fn run(
                 }
             }
             Err(err) => {
-                let message = format!("{url} {err}");
+                let message = format!("{url} {err:#}");
                 if ignore_error {
                     logger::warn(&message);
                 } else {
@@ -248,7 +248,7 @@ async fn run(
             urls_of_interest,
         );
         if let Err(err) = notifications.send_reqwest(&message).await {
-            logger::error(&format!("notifier failed to send with Err: {err}"));
+            logger::error(&format!("notifier failed to send with Err: {err:#}"));
         }
     }
 
@@ -271,7 +271,8 @@ async fn stalk_and_save_site(
         site.options.accept_invalid_certs,
         site.options.http1_only,
     )
-    .await?;
+    .await
+    .map_err(reqwest::Error::without_url)?;
 
     if site.url.as_str() != response.url.as_str() {
         logger::warn(&format!("The URL {} was redirected to {}. This caused additional traffic which can be reduced by changing the URL to the target one.", site.url, response.url));

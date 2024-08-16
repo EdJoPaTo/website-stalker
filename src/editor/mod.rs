@@ -1,6 +1,6 @@
 use std::path::PathBuf;
 
-use anyhow::anyhow;
+use anyhow::Context;
 use serde::Deserialize;
 use url::Url;
 
@@ -115,7 +115,7 @@ impl Editor {
         for (i, editor) in editors.iter().enumerate() {
             content = editor
                 .apply(url, content)
-                .map_err(|err| anyhow!("in editor[{i}] {}: {err}", editor.log_name()))?;
+                .with_context(|| format!("in editor[{i}] {}", editor.log_name()))?;
         }
         Ok(content)
     }
