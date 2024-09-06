@@ -17,10 +17,9 @@ pub fn apply(selector: &Selector, html: &str) -> String {
                     .collect::<Vec<_>>()
             })
             .unwrap_or_default();
-
         if let Some(mut node_mut) = html.tree.get_mut(id) {
             for id in children {
-                node_mut.insert_id_after(id);
+                node_mut.insert_id_before(id);
             }
             node_mut.detach();
         }
@@ -28,42 +27,58 @@ pub fn apply(selector: &Selector, html: &str) -> String {
     html.html()
 }
 
+/// Test [`apply`] with a simplified selector input.
+#[cfg(test)]
+#[track_caller]
+fn ta(selector: &str, html: &str) -> String {
+    let selector = Selector::parse(selector).unwrap();
+    apply(&selector, html)
+}
+
 #[cfg(test)]
 const EXAMPLE_HTML: &str =
     r#"<html><head></head><body><div class="a"><p>A</p></div><div class="b">B</div></body></html>"#;
 
-#[cfg(test)]
-#[track_caller]
-fn case(selector: &str, expected: &str) {
-    let selector = Selector::parse(selector).unwrap();
-    let html = apply(&selector, EXAMPLE_HTML);
-    assert_eq!(html, expected);
-}
-
 #[test]
 fn nothing_selected_changes_nothing() {
-    case("span", EXAMPLE_HTML);
+    assert_eq!(ta("span", EXAMPLE_HTML), EXAMPLE_HTML);
 }
 
 #[test]
 fn simple() {
-    case(
-        "p",
-        r#"<html><head></head><body><div class="a">A</div><div class="b">B</div></body></html>"#,
-    );
+    let expected =
+        r#"<html><head></head><body><div class="a">A</div><div class="b">B</div></body></html>"#;
+    assert_eq!(ta("p", EXAMPLE_HTML), expected);
 }
 
 #[test]
-fn multiple() {
-    case(
-        ".b, p",
-        r#"<html><head></head><body><div class="a">A</div>B</body></html>"#,
-    );
+fn multiple_selectors() {
+    let expected = r#"<html><head></head><body><div class="a">A</div>B</body></html>"#;
+    assert_eq!(ta(".b, p", EXAMPLE_HTML), expected);
 }
 
 #[test]
 fn multiple_selectors_inside_each_other_work() {
     let expected = r#"<html><head></head><body>A<div class="b">B</div></body></html>"#;
-    case(".a, p", expected);
-    case("p, .a", expected);
+    assert_eq!(ta(".a, p", EXAMPLE_HTML), expected);
+    assert_eq!(ta("p, .a", EXAMPLE_HTML), expected);
+}
+
+#[test]
+fn multiple_children() {
+    let input =
+        "<html><head></head><body><div><p>A</p><p>B</p></div><div><p>C</p></div></body></html>";
+    let expected = "<html><head></head><body><p>A</p><p>B</p><p>C</p></body></html>";
+    assert_eq!(ta("div", input), expected);
+}
+
+#[test]
+fn selector_selects_multiple_depths() {
+    let input = r#"<html><head></head><body><div class="outer">
+<div class="a"><div class="a-inner"><p>A</p></div></div>
+<div class="b"><p>B</p></div>
+</div></body></html>"#
+        .replace('\n', "");
+    let expected = "<html><head></head><body><p>A</p><p>B</p></body></html>";
+    assert_eq!(ta("div", &input), expected);
 }
