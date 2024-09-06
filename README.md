@@ -239,10 +239,22 @@ For this reason editors like `css_select` are still producing valid HTML output.
 There are probably more tasks out there that might be useful as editors.
 Feel free to provide an issue for an editor idea or create a Pull Request with a new editor.
 
+#### `css_flatten`
+
+Replaces every matching HTML element with its child nodes and returns the HTML.
+Instead of [`css_remove`](#css_remove) this does not remove all the child nodes below.
+
+```yaml
+editors:
+  - css_flatten: div
+  - css_flatten: a[href^="#"] # flatten all local links away (starting with a #)
+```
+
 #### `css_remove`
 
 Tries to remove every instance of matching HTML elements and returns the remaining HTML.
 Opposite of [`css_select`](#css_select).
+When the child nodes should be kept, use [`css_flatten`](#css_flatten).
 
 Examples:
 
