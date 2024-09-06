@@ -82,3 +82,10 @@ fn selector_selects_multiple_depths() {
     let expected = "<html><head></head><body><p>A</p><p>B</p></body></html>";
     assert_eq!(ta("div", &input), expected);
 }
+
+#[test]
+fn flattens_local_links_away() {
+    let input = r##"<html><head></head><body><a href="#heading"><h1>Heading</h1></a><p>This is a <a href="https://edjopato.de">link</a></p></body></html>"##;
+    let expected = r#"<html><head></head><body><h1>Heading</h1><p>This is a <a href="https://edjopato.de">link</a></p></body></html>"#;
+    assert_eq!(ta(r##"a[href^="#"]"##, input), expected);
+}
