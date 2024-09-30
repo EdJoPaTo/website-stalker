@@ -244,6 +244,8 @@ Feel free to provide an issue for an editor idea or create a Pull Request with a
 Replaces every matching HTML element with its child nodes and returns the HTML.
 Instead of [`css_remove`](#css_remove) this does not remove all the child nodes below.
 
+Examples:
+
 ```yaml
 editors:
   - css_flatten: div
