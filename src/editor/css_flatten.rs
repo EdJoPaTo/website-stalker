@@ -27,12 +27,12 @@ pub fn apply(selector: &Selector, html: &str) -> String {
     html.html()
 }
 
-/// Test [`apply`] with a simplified selector input.
 #[cfg(test)]
 #[track_caller]
-fn ta(selector: &str, html: &str) -> String {
+fn case(selector: &str, html: &str, expected: &str) {
     let selector = Selector::parse(selector).unwrap();
-    apply(&selector, html)
+    let actual = apply(&selector, html);
+    assert_eq!(actual, expected);
 }
 
 #[cfg(test)]
@@ -41,27 +41,27 @@ const EXAMPLE_HTML: &str =
 
 #[test]
 fn nothing_selected_changes_nothing() {
-    assert_eq!(ta("span", EXAMPLE_HTML), EXAMPLE_HTML);
+    case("span", EXAMPLE_HTML, EXAMPLE_HTML);
 }
 
 #[test]
 fn simple() {
     let expected =
         r#"<html><head></head><body><div class="a">A</div><div class="b">B</div></body></html>"#;
-    assert_eq!(ta("p", EXAMPLE_HTML), expected);
+    case("p", EXAMPLE_HTML, expected);
 }
 
 #[test]
 fn multiple_selectors() {
     let expected = r#"<html><head></head><body><div class="a">A</div>B</body></html>"#;
-    assert_eq!(ta(".b, p", EXAMPLE_HTML), expected);
+    case(".b, p", EXAMPLE_HTML, expected);
 }
 
 #[test]
 fn multiple_selectors_inside_each_other_work() {
     let expected = r#"<html><head></head><body>A<div class="b">B</div></body></html>"#;
-    assert_eq!(ta(".a, p", EXAMPLE_HTML), expected);
-    assert_eq!(ta("p, .a", EXAMPLE_HTML), expected);
+    case(".a, p", EXAMPLE_HTML, expected);
+    case("p, .a", EXAMPLE_HTML, expected);
 }
 
 #[test]
@@ -69,7 +69,7 @@ fn multiple_children() {
     let input =
         "<html><head></head><body><div><p>A</p><p>B</p></div><div><p>C</p></div></body></html>";
     let expected = "<html><head></head><body><p>A</p><p>B</p><p>C</p></body></html>";
-    assert_eq!(ta("div", input), expected);
+    case("div", input, expected);
 }
 
 #[test]
@@ -80,12 +80,12 @@ fn selector_selects_multiple_depths() {
 </div></body></html>"#
         .replace('\n', "");
     let expected = "<html><head></head><body><p>A</p><p>B</p></body></html>";
-    assert_eq!(ta("div", &input), expected);
+    case("div", &input, expected);
 }
 
 #[test]
 fn flattens_local_links_away() {
     let input = r##"<html><head></head><body><a href="#heading"><h1>Heading</h1></a><p>This is a <a href="https://edjopato.de">link</a></p></body></html>"##;
     let expected = r#"<html><head></head><body><h1>Heading</h1><p>This is a <a href="https://edjopato.de">link</a></p></body></html>"#;
-    assert_eq!(ta(r##"a[href^="#"]"##, input), expected);
+    case(r##"a[href^="#"]"##, input, expected);
 }
