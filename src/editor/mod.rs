@@ -4,6 +4,7 @@ use anyhow::Context;
 use serde::Deserialize;
 use url::Url;
 
+pub mod css_flatten;
 pub mod css_remove;
 pub mod css_selector;
 pub mod css_sort;
@@ -25,6 +26,7 @@ pub struct Content {
 #[derive(Debug, Clone, Deserialize)]
 #[serde(rename_all = "snake_case")]
 pub enum Editor {
+    CssFlatten(#[serde(deserialize_with = "deserialize_selector")] scraper::Selector),
     CssRemove(#[serde(deserialize_with = "deserialize_selector")] scraper::Selector),
     CssSelect(#[serde(deserialize_with = "deserialize_selector")] scraper::Selector),
     CssSort(css_sort::CssSort),
@@ -42,6 +44,7 @@ pub enum Editor {
 impl Editor {
     pub const fn log_name(&self) -> &'static str {
         match self {
+            Self::CssFlatten(_) => "css_flatten",
             Self::CssRemove(_) => "css_remove",
             Self::CssSelect(_) => "css_select",
             Self::CssSort(_) => "css_sort",
@@ -59,6 +62,10 @@ impl Editor {
 
     fn apply(&self, url: &Url, input: Content) -> anyhow::Result<Content> {
         match &self {
+            Self::CssFlatten(selector) => Ok(Content {
+                extension: Some("html"),
+                text: css_flatten::apply(selector, &input.text),
+            }),
             Self::CssRemove(selector) => Ok(Content {
                 extension: Some("html"),
                 text: css_remove::apply(selector, &input.text),

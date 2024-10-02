@@ -29,7 +29,7 @@ fn removes_tag() {
 }
 
 #[test]
-fn remove_not_found() {
+fn nothing_selected_changes_nothing() {
     let selector = Selector::parse("span").unwrap();
     let html = apply(&selector, EXAMPLE_HTML);
     assert_eq!(html, EXAMPLE_HTML);
@@ -47,19 +47,15 @@ fn multiple_selectors_work() {
 
 #[test]
 fn multiple_selectors_inside_each_other_work() {
+    let expected = r#"<html><head></head><body><div class="b">B</div></body></html>"#;
+
     let selector = Selector::parse("p, .a").unwrap();
     let html = apply(&selector, EXAMPLE_HTML);
-    assert_eq!(
-        html,
-        r#"<html><head></head><body><div class="b">B</div></body></html>"#
-    );
+    assert_eq!(html, expected);
 
     let selector = Selector::parse(".a, p").unwrap();
     let html = apply(&selector, EXAMPLE_HTML);
-    assert_eq!(
-        html,
-        r#"<html><head></head><body><div class="b">B</div></body></html>"#
-    );
+    assert_eq!(html, expected);
 }
 
 #[test]
