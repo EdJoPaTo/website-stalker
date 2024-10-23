@@ -1,7 +1,7 @@
 [package]
 name = "website-stalker"
 description = "Track changes on websites via git"
-version = "0.24.2"
+version = "0.25.0"
 license = "LGPL-2.1-or-later"
 repository = "https://github.com/EdJoPaTo/website-stalker"
 authors = ["EdJoPaTo <website-stalker-rust@edjopato.de>"]
@@ -21,7 +21,7 @@ lto = true
 clap = { version = "4", features = ["deprecated", "derive", "env"] }
 clap_complete = "4"
 clap_mangen = "0.2"
-pling = { version = "0.4", default-features = false, features = ["clap"] }
+pling = { version = "0.5", default-features = false, features = ["clap"] }
 regex = "1"
 
 [dependencies]
@@ -34,7 +34,7 @@ html5ever = "0.27"
 lazy-regex = "3"
 mime2ext = "0.1"
 once_cell = "1"
-pling = { version = "0.4", default-features = false, features = ["clap", "reqwest"] }
+pling = { version = "0.5", default-features = false, features = ["clap", "reqwest"] }
 regex = "1"
 rss = { version = "2", features = ["validation"] }
 scraper = { version = "0.20", features = ["deterministic"] }
