@@ -3,7 +3,7 @@ name: Update Arch Linux User Repository (AUR)
 on:
   push:
     tags:
-      - 'v*'
+      - v*
 
 jobs:
   aur-publish:
