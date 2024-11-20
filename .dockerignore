@@ -3,6 +3,9 @@
 /systemd
 /target
 Dockerfile
+rustfmt.toml
 
 # Dont build completions and man pages
 build.rs
+
+/sites/*/*
