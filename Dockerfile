@@ -23,5 +23,5 @@ FROM docker.io/library/alpine:3
 RUN apk upgrade --no-cache \
 	&& apk add --no-cache git
 
-COPY --from=builder /build/target/release/website-stalker /usr/bin/
+COPY --from=builder /build/target/release/website-stalker /usr/local/bin/
 ENTRYPOINT ["website-stalker"]
