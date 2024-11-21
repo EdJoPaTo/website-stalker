@@ -1,4 +1,4 @@
-FROM docker.io/library/rust:1-alpine as builder
+FROM docker.io/library/rust:1-alpine AS builder
 WORKDIR /build
 RUN apk upgrade --no-cache \
 	&& apk add --no-cache musl-dev
@@ -19,7 +19,7 @@ RUN strip target/release/website-stalker
 
 
 # Start building the final image
-FROM docker.io/library/alpine:3
+FROM docker.io/library/alpine:3 AS final
 RUN apk upgrade --no-cache \
 	&& apk add --no-cache git
 
