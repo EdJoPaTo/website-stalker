@@ -91,7 +91,6 @@ async fn main() {
                 site_filter.as_ref(),
             )
             .await;
-            eprintln!("Thank you for using website-stalker!");
         }
     }
 }
@@ -253,7 +252,10 @@ async fn run(
     }
 
     if error_occurred {
-        logger::error_exit("All done but some site failed. Thank you for using website stalker!");
+        logger::info("All done but some site failed. Thank you for using website stalker!");
+        process::exit(1);
+    } else {
+        eprintln!("Thank you for using website-stalker!");
     }
 }
 
