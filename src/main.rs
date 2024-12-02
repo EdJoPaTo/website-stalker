@@ -113,7 +113,7 @@ async fn run(
     let sites_total = sites.len();
     let sites = sites
         .into_iter()
-        .filter(|site| site_filter.map_or(true, |filter| filter.is_match(site.url.as_str())))
+        .filter(|site| site_filter.is_none_or(|filter| filter.is_match(site.url.as_str())))
         .collect::<Vec<_>>();
     let sites_amount = sites.len();
     if sites.is_empty() {
