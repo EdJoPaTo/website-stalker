@@ -252,8 +252,7 @@ async fn run(
     }
 
     if error_occurred {
-        logger::info("All done but some site failed. Thank you for using website stalker!");
-        process::exit(1);
+        logger::notice_exit("All done but some site failed. Thank you for using website stalker!");
     } else {
         eprintln!("Thank you for using website-stalker!");
     }

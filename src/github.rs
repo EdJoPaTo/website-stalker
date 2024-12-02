@@ -21,6 +21,10 @@ pub fn warning(message: &str) {
     println!("::warning file=website-stalker.yaml::{message}");
 }
 
+pub fn notice(message: &str) {
+    println!("::notice file=website-stalker.yaml::{message}");
+}
+
 /// See [`crate::notification`]
 pub fn commit_prefix() -> Option<String> {
     let server = env::var("GITHUB_SERVER_URL").ok()?;
