@@ -58,7 +58,7 @@ impl CssSort {
             }
 
             // Insert them at the beginning of the parents children
-            // This destroyes the order with the other elements in there but its way simpler to do for now
+            // This destroys the order with the other elements in there but its way simpler to do for now
             let mut parent_mut = html.tree.get_mut(parent).unwrap();
             for id in sorted.into_iter().rev() {
                 parent_mut.prepend_id(id);
