@@ -56,20 +56,13 @@ impl Site {
         })
     }
 
-    fn unique_idenfier(&self) -> String {
-        self.to_file_path()
-            .to_str()
-            .expect("the path should be unicode already")
-            .to_owned()
-    }
-
     pub fn get_all_file_paths(sites: &[Self]) -> Vec<PathBuf> {
         sites.iter().map(Self::to_file_path).collect()
     }
 
     pub fn validate_no_duplicate(sites: &[Self]) -> anyhow::Result<()> {
         // TODO: return url or something of specific duplicates
-        let mut uniq = sites.iter().map(Self::unique_idenfier).collect::<Vec<_>>();
+        let mut uniq = Self::get_all_file_paths(sites);
         uniq.sort_unstable();
         let total = uniq.len();
         uniq.dedup();
