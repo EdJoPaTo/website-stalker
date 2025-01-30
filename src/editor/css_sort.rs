@@ -50,7 +50,7 @@ impl CssSort {
                     .collect::<Vec<_>>();
                 (parent, elements)
             })
-            .collect::<HashMap<_, _>>();
+            .collect::<Vec<_>>();
 
         for (parent, sorted) in sorted {
             for id in &sorted {
