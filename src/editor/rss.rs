@@ -1,4 +1,5 @@
-use once_cell::sync::Lazy;
+use std::sync::LazyLock;
+
 use rss::validation::Validate;
 use rss::{ChannelBuilder, ItemBuilder};
 use scraper::Selector;
@@ -39,22 +40,31 @@ pub struct Rss {
     pub content_editors: Vec<Editor>,
 }
 
+macro_rules! selector {
+    ($selector:literal) => {{
+        static SELECTOR: LazyLock<Selector> = LazyLock::new(|| Selector::parse($selector).unwrap());
+        &SELECTOR
+    }};
+}
+
 impl Rss {
+    fn item_selector(&self) -> &Selector {
+        static FALLBACK: LazyLock<Selector> = LazyLock::new(|| Selector::parse("article").unwrap());
+        self.item_selector.as_ref().unwrap_or_else(|| &FALLBACK)
+    }
+
+    fn title_selector(&self) -> &Selector {
+        static FALLBACK: LazyLock<Selector> = LazyLock::new(|| Selector::parse("h2").unwrap());
+        self.title_selector.as_ref().unwrap_or_else(|| &FALLBACK)
+    }
+
+    fn link_selector(&self) -> &Selector {
+        static FALLBACK: LazyLock<Selector> = LazyLock::new(|| Selector::parse("a").unwrap());
+        self.link_selector.as_ref().unwrap_or_else(|| &FALLBACK)
+    }
+
     pub fn generate(&self, url: &Url, html: &str) -> anyhow::Result<String> {
-        static TITLE: Lazy<Selector> =
-            Lazy::new(|| Selector::parse("title, h1, h2, h3, h4, h5, h6").unwrap());
-        static DESCRIPTION: Lazy<Selector> =
-            Lazy::new(|| Selector::parse("meta[name=description]").unwrap());
-        static DATETIME: Lazy<Selector> = Lazy::new(|| Selector::parse("*[datetime]").unwrap());
-        static LINK: Lazy<Selector> = Lazy::new(|| Selector::parse("a").unwrap());
-        static H2: Lazy<Selector> = Lazy::new(|| Selector::parse("h2").unwrap());
-        static ARTICLE: Lazy<Selector> = Lazy::new(|| Selector::parse("article").unwrap());
-
-        let item = self.item_selector.as_ref().unwrap_or_else(|| &ARTICLE);
-        let title = self.title_selector.as_ref().unwrap_or_else(|| &H2);
-        let link = self.link_selector.as_ref().unwrap_or_else(|| &LINK);
-
-        let parsed_html = scraper::Html::parse_document(html);
+        let html = scraper::Html::parse_document(html);
 
         let mut channel = ChannelBuilder::default();
         channel.link(url.to_string());
@@ -62,7 +72,10 @@ impl Rss {
 
         if let Some(title) = &self.title {
             channel.title(title.to_string());
-        } else if let Some(element) = parsed_html.select(&TITLE).next() {
+        } else if let Some(element) = html
+            .select(selector!("title, h1, h2, h3, h4, h5, h6"))
+            .next()
+        {
             channel.title(element.inner_html().trim().to_owned());
         } else {
             crate::logger::warn(&format!(
@@ -70,18 +83,18 @@ impl Rss {
             ));
         }
 
-        if let Some(description) = parsed_html
-            .select(&DESCRIPTION)
+        if let Some(description) = html
+            .select(selector!("meta[name=description]"))
             .find_map(|element| element.value().attr("content"))
         {
             channel.description(description.to_owned());
         }
 
         let mut items = Vec::new();
-        for item in parsed_html.select(item) {
+        for item in html.select(self.item_selector()) {
             let mut builder = ItemBuilder::default();
 
-            if let Some(title) = item.select(title).next() {
+            if let Some(title) = item.select(self.title_selector()).next() {
                 builder.title(
                     title
                         .text()
@@ -98,14 +111,14 @@ impl Rss {
             }
 
             if let Some(link) = item
-                .select(link)
+                .select(self.link_selector())
                 .find_map(|element| element.value().attr("href"))
             {
                 builder.link(url.join(link)?.to_string());
             }
 
             if let Some(bla) = item
-                .select(&DATETIME)
+                .select(selector!("*[datetime]"))
                 .find_map(|element| element.value().attr("datetime"))
                 .and_then(|value| chrono::DateTime::parse_from_rfc3339(value).ok())
             {
