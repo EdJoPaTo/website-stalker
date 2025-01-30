@@ -17,7 +17,6 @@ RUN cargo build --release --locked --offline
 RUN strip target/release/website-stalker
 
 
-# Start building the final image
 FROM docker.io/library/alpine:3 AS final
 RUN apk upgrade --no-cache \
 	&& apk add --no-cache git
