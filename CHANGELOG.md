@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.25.1] - 2025-01-30
+
 ### Fixed
 
 - Hint about an error in the end but dont create another error for hint.
