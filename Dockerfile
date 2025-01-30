@@ -8,12 +8,11 @@ COPY Cargo.toml Cargo.lock ./
 # cargo needs a dummy src/lib.rs to compile the dependencies
 RUN mkdir -p src \
 	&& touch src/lib.rs \
-	&& cargo fetch --locked \
-	&& cargo build --release --offline \
+	&& cargo build --release --locked \
 	&& rm -rf src
 
 COPY . ./
-RUN cargo build --release --frozen --offline
+RUN cargo build --release --locked --offline
 
 RUN strip target/release/website-stalker
 
