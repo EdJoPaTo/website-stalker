@@ -7,11 +7,10 @@ GitHub related logic
 */
 
 use std::env;
+use std::sync::LazyLock;
 
-use once_cell::sync::Lazy;
-
-pub static IS_RUN_AS_GITHUB_ACTION: Lazy<bool> =
-    Lazy::new(|| env::var_os("GITHUB_ACTIONS").is_some());
+pub static IS_RUN_AS_GITHUB_ACTION: LazyLock<bool> =
+    LazyLock::new(|| env::var_os("GITHUB_ACTIONS").is_some());
 
 pub fn error(message: &str) {
     println!("::error file=website-stalker.yaml::{message}");
