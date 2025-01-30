@@ -1,17 +1,16 @@
-use lazy_regex::{lazy_regex, Captures, Lazy, Regex};
+use lazy_regex::{regex, Captures};
 
 pub fn markdownify(html: &str) -> String {
-    static LINK: Lazy<Regex> = lazy_regex!(r"\[([^\]]+)\]\(([^)]+)\)");
-    static MANY_SPACES: Lazy<Regex> = lazy_regex!(r"\s+");
-
-    let result = html2md::parse_html(html)
+    let markdown = html2md::parse_html(html)
         .lines()
         .map(str::trim_end)
         .collect::<Vec<_>>()
         .join("\n");
 
-    let result = LINK.replace_all(&result, |cap: &Captures| {
-        let label = MANY_SPACES.replace_all(cap[1].trim(), " ");
+    // Simplify Markdown links
+    let markdown = regex!(r"\[([^\]]+)\]\(([^)]+)\)").replace_all(&markdown, |cap: &Captures| {
+        // prevent many spaces on the label
+        let label = regex!(r"\s+").replace_all(cap[1].trim(), " ");
         let url = cap[2].trim();
         if label == url {
             format!("<{url}>")
@@ -20,7 +19,7 @@ pub fn markdownify(html: &str) -> String {
         }
     });
 
-    result.to_string()
+    markdown.to_string()
 }
 
 #[cfg(test)]
