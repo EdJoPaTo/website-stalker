@@ -26,8 +26,8 @@ impl CssSort {
 
         let mut grouped_by_parent: HashMap<_, Vec<ElementRef>> = HashMap::new();
         for element in selected {
-            if let Some(key) = element.parent().map(|parent| parent.id()) {
-                grouped_by_parent.entry(key).or_default().push(element);
+            if let Some(parent) = element.parent().map(|parent| parent.id()) {
+                grouped_by_parent.entry(parent).or_default().push(element);
             }
         }
 
