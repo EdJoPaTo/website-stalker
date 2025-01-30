@@ -1,4 +1,4 @@
-use serde::Serialize;
+use serde::Serialize as _;
 use serde_json::ser::PrettyFormatter;
 use serde_json::Serializer;
 

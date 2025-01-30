@@ -1,5 +1,5 @@
 use std::collections::BTreeMap;
-use std::fmt::Write;
+use std::fmt::Write as _;
 
 use url::Url;
 

@@ -1,6 +1,6 @@
 use std::sync::LazyLock;
 
-use rss::validation::Validate;
+use rss::validation::Validate as _;
 use rss::{ChannelBuilder, ItemBuilder};
 use scraper::Selector;
 use serde::Deserialize;

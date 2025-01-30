@@ -1,7 +1,7 @@
 use std::io::Write;
 
-use anyhow::Context;
-use html5ever::serialize::{AttrRef, HtmlSerializer, Serialize, SerializeOpts, Serializer};
+use anyhow::Context as _;
+use html5ever::serialize::{AttrRef, HtmlSerializer, Serialize as _, SerializeOpts, Serializer};
 use html5ever::QualName;
 use scraper::Html;
 use url::Url;

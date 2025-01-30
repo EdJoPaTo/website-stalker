@@ -2,7 +2,7 @@ use core::time::Duration;
 use std::collections::HashMap;
 use std::{fs, process};
 
-use clap::Parser;
+use clap::Parser as _;
 use regex::Regex;
 use reqwest::header::{HeaderValue, FROM};
 use tokio::sync::mpsc::channel;

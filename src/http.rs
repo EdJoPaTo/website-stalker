@@ -2,7 +2,7 @@ use core::time::Duration;
 use std::net::SocketAddr;
 use std::time::Instant;
 
-use anyhow::Context;
+use anyhow::Context as _;
 use reqwest::header::{HeaderMap, HeaderValue};
 use reqwest::{header, ClientBuilder};
 use url::Url;
