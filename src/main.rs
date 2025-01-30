@@ -169,6 +169,7 @@ async fn run(
 
     let mut rx = {
         let (tx, rx) = channel(10);
+        #[allow(clippy::iter_over_hash_type)]
         for (_, sites) in groups {
             let from = from.clone();
             let tx = tx.clone();

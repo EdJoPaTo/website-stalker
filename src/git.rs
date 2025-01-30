@@ -122,7 +122,7 @@ mod tests {
         match simple_command(dir, command) {
             Ok(output) => println!("{output}"),
             Err(err) => println!("{err:#}"),
-        };
+        }
     }
 
     fn overview(dir: &Path) {
