@@ -15,25 +15,13 @@ pub struct Rss {
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub title: Option<String>,
 
-    #[serde(
-        default,
-        skip_serializing_if = "Option::is_none",
-        deserialize_with = "super::deserialize_selector_opt"
-    )]
+    #[serde(default, skip_serializing_if = "Option::is_none")]
     pub item_selector: Option<Selector>,
 
-    #[serde(
-        default,
-        skip_serializing_if = "Option::is_none",
-        deserialize_with = "super::deserialize_selector_opt"
-    )]
+    #[serde(default, skip_serializing_if = "Option::is_none")]
     pub title_selector: Option<Selector>,
 
-    #[serde(
-        default,
-        skip_serializing_if = "Option::is_none",
-        deserialize_with = "super::deserialize_selector_opt"
-    )]
+    #[serde(default, skip_serializing_if = "Option::is_none")]
     pub link_selector: Option<Selector>,
 
     #[serde(default, skip_serializing_if = "Vec::is_empty")]

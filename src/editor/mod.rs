@@ -26,9 +26,9 @@ pub struct Content {
 #[derive(Debug, Clone, Deserialize)]
 #[serde(rename_all = "snake_case")]
 pub enum Editor {
-    CssFlatten(#[serde(deserialize_with = "deserialize_selector")] scraper::Selector),
-    CssRemove(#[serde(deserialize_with = "deserialize_selector")] scraper::Selector),
-    CssSelect(#[serde(deserialize_with = "deserialize_selector")] scraper::Selector),
+    CssFlatten(scraper::Selector),
+    CssRemove(scraper::Selector),
+    CssSelect(scraper::Selector),
     CssSort(css_sort::CssSort),
     DebugFiles(PathBuf),
     HtmlMarkdownify,
@@ -126,19 +126,4 @@ impl Editor {
         }
         Ok(content)
     }
-}
-
-fn deserialize_selector<'de, D>(deserializer: D) -> Result<scraper::Selector, D::Error>
-where
-    D: serde::Deserializer<'de>,
-{
-    let str = String::deserialize(deserializer)?;
-    scraper::Selector::parse(&str).map_err(serde::de::Error::custom)
-}
-
-fn deserialize_selector_opt<'de, D>(deserializer: D) -> Result<Option<scraper::Selector>, D::Error>
-where
-    D: serde::Deserializer<'de>,
-{
-    Ok(Some(deserialize_selector(deserializer)?))
 }

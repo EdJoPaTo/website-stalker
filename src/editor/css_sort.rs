@@ -9,7 +9,6 @@ use crate::logger;
 
 #[derive(Debug, Clone, Deserialize)]
 pub struct CssSort {
-    #[serde(deserialize_with = "super::deserialize_selector")]
     pub selector: Selector,
 
     #[serde(default)]
