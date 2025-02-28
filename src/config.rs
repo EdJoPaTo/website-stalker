@@ -107,14 +107,18 @@ impl Config {
 
         #[allow(deprecated)]
         if self.notification_template.is_some() {
-            anyhow::bail!("Notifications got reworked and the notification_template in the config file is no longer used. Check website-stalker run --help for the new notification settings.")
+            anyhow::bail!(
+                "Notifications got reworked and the notification_template in the config file is no longer used. Check website-stalker run --help for the new notification settings."
+            )
         }
 
         for (key, _value) in std::env::vars_os().filter(|(key, _value)| {
             key.to_str()
                 .is_some_and(|key| OLD_PLING_ENV_VARS.contains(&key))
         }) {
-            logger::warn(&format!("Environment variable {key:?} was part of the old notification setup. Check website-stalker run --help for the new notification settings."));
+            logger::warn(&format!(
+                "Environment variable {key:?} was part of the old notification setup. Check website-stalker run --help for the new notification settings."
+            ));
         }
 
         Ok(())

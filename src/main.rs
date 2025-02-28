@@ -46,7 +46,9 @@ async fn main() {
     match Cli::parse() {
         Cli::ExampleConfig => print!("{EXAMPLE_CONF}"),
         Cli::Init => {
-            logger::warn("website-stalker init is deprecated. Use `git init && website-stalker example-config > website-stalker.yaml`");
+            logger::warn(
+                "website-stalker init is deprecated. Use `git init && website-stalker example-config > website-stalker.yaml`",
+            );
             if git::Repo::new().is_err() {
                 git::Repo::init(
                     &std::env::current_dir().expect("Should be run in a valid working directory"),
@@ -62,13 +64,17 @@ async fn main() {
             println!("Init complete.\nNext step: adapt the configuration file to your needs.");
         }
         Cli::Check => {
-            logger::warn("website-stalker check is deprecated. website-stalker run also checks the config and runs it when valid.");
+            logger::warn(
+                "website-stalker check is deprecated. website-stalker run also checks the config and runs it when valid.",
+            );
             eprintln!("\nConfiguration...");
             let from = std::env::var("WEBSITE_STALKER_FROM").ok();
             match Config::load(from) {
                 Ok(_) => eprintln!("ok"),
                 Err(err) => {
-                    eprintln!("not ok.\n\n{err:#}\n\nCheck https://github.com/EdJoPaTo/website-stalker for configuration details.");
+                    eprintln!(
+                        "not ok.\n\n{err:#}\n\nCheck https://github.com/EdJoPaTo/website-stalker for configuration details."
+                    );
                     process::exit(1);
                 }
             }
@@ -127,7 +133,9 @@ async fn run(
         Ok(repo) => {
             if repo.is_something_modified() {
                 if do_commit {
-                    logger::error_exit("The git repository is unclean. --commit can only be used in a clean repository.");
+                    logger::error_exit(
+                        "The git repository is unclean. --commit can only be used in a clean repository.",
+                    );
                 }
                 logger::warn("The git repository is unclean.");
             }
@@ -152,7 +160,9 @@ async fn run(
     }
 
     if sites_amount < sites_total {
-        logger::info(&format!("Your configuration file contains {sites_total} sites of which {sites_amount} are selected by your filter."));
+        logger::info(&format!(
+            "Your configuration file contains {sites_total} sites of which {sites_amount} are selected by your filter."
+        ));
     }
 
     let mut groups: HashMap<String, Vec<Site>> = HashMap::new();
@@ -164,7 +174,9 @@ async fn run(
     let distinct_hosts = groups.len();
     println!("Begin stalking of {sites_amount} sites on {distinct_hosts} hosts...");
     if distinct_hosts < sites_amount {
-        logger::info("Some sites are on the same host. There is a wait time of 5 seconds between each request to the same host in order to reduce load on the server.");
+        logger::info(
+            "Some sites are on the same host. There is a wait time of 5 seconds between each request to the same host in order to reduce load on the server.",
+        );
     }
 
     let mut rx = {
@@ -277,7 +289,10 @@ async fn stalk_and_save_site(
     .map_err(reqwest::Error::without_url)?;
 
     if site.url.as_str() != response.url.as_str() {
-        logger::warn(&format!("The URL {} was redirected to {}. This caused additional traffic which can be reduced by changing the URL to the target one.", site.url, response.url));
+        logger::warn(&format!(
+            "The URL {} was redirected to {}. This caused additional traffic which can be reduced by changing the URL to the target one.",
+            site.url, response.url
+        ));
     }
 
     // Use response.url as canonical urls for example are relative to the actual url
