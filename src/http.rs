@@ -51,7 +51,7 @@ pub async fn get(
     let mut builder = ClientBuilder::new()
         .danger_accept_invalid_certs(accept_invalid_certs)
         .timeout(Duration::from_secs(30))
-        .user_agent(USER_AGENT);
+        .user_agent(HeaderValue::from_static(USER_AGENT));
     if http1_only {
         builder = builder.http1_only();
     }
