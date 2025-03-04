@@ -154,8 +154,8 @@ async fn run(
         let paths = Site::get_all_file_paths(&sites);
         let removed = site_store::remove_gone(&paths)
             .expect("Should be able to cleanup the superfluous files");
-        for filename in removed {
-            logger::warn(&format!("Remove superfluous {filename:?}"));
+        for file in removed {
+            logger::warn(&format!("Remove superfluous {}", file.display()));
         }
     }
 

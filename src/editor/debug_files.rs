@@ -18,7 +18,7 @@ pub fn debug_files(path: &Path, content: Content) -> anyhow::Result<Content> {
     }
 
     let file = path.join(filename);
-    logger::warn(&format!("debug_files writes {file:?}"));
+    logger::warn(&format!("debug_files writes {}", file.display()));
     std::fs::write(file, &content.text)?;
 
     Ok(content)
