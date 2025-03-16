@@ -9,7 +9,7 @@ use tokio::sync::mpsc::channel;
 use tokio::time::sleep;
 
 use crate::cli::Cli;
-use crate::config::{Config, EXAMPLE_CONF};
+use crate::config::Config;
 use crate::site::Site;
 
 mod cli;
@@ -44,7 +44,7 @@ impl core::fmt::Display for ChangeKind {
 #[tokio::main]
 async fn main() {
     match Cli::parse() {
-        Cli::ExampleConfig => print!("{EXAMPLE_CONF}"),
+        Cli::ExampleConfig => print!("{}", Config::EXAMPLE),
         Cli::Init => {
             logger::warn(
                 "website-stalker init is deprecated. Use `git init && website-stalker example-config > website-stalker.yaml`",
@@ -57,7 +57,7 @@ async fn main() {
             }
             let from = std::env::var("WEBSITE_STALKER_FROM").ok();
             if Config::load(from).is_err() {
-                fs::write("website-stalker.yaml", EXAMPLE_CONF)
+                fs::write("website-stalker.yaml", Config::EXAMPLE)
                     .expect("failed to write example configuration file");
                 println!("Example configuration file generated.");
             }

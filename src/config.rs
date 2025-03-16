@@ -6,8 +6,6 @@ use crate::http::validate_from;
 use crate::logger;
 use crate::site::{Options, Site};
 
-pub const EXAMPLE_CONF: &str = include_str!("../sites/website-stalker.yaml");
-
 #[derive(Debug, Deserialize)]
 pub struct Config {
     // Read as empty string when not defined as it could be overridden from the env
@@ -45,6 +43,8 @@ pub struct SiteEntry {
 }
 
 impl Config {
+    pub const EXAMPLE: &str = include_str!("../sites/website-stalker.yaml");
+
     pub fn load(cli_from: Option<String>) -> anyhow::Result<Self> {
         let filecontent = std::fs::read_to_string("website-stalker.yaml")?;
         let mut config = serde_yaml::from_str::<Self>(&filecontent)?;
@@ -138,7 +138,7 @@ impl Config {
 
 #[test]
 fn example_sites_are_valid() {
-    let config = serde_yaml::from_str::<Config>(EXAMPLE_CONF).unwrap();
+    let config = serde_yaml::from_str::<Config>(Config::EXAMPLE).unwrap();
     config.validate_sites().unwrap();
 }
 
