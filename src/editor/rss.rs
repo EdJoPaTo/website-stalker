@@ -2,6 +2,7 @@ use std::sync::LazyLock;
 
 use rss::validation::Validate as _;
 use rss::{ChannelBuilder, ItemBuilder};
+use schemars::JsonSchema;
 use scraper::Selector;
 use serde::Deserialize;
 use url::Url;
@@ -10,18 +11,22 @@ use super::Editor;
 
 const GENERATOR: &str = concat!(env!("CARGO_PKG_NAME"), " ", env!("CARGO_PKG_REPOSITORY"),);
 
-#[derive(Debug, Clone, Deserialize)]
+#[derive(Debug, Clone, Deserialize, JsonSchema)]
+#[serde(deny_unknown_fields)]
 pub struct Rss {
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub title: Option<String>,
 
     #[serde(default, skip_serializing_if = "Option::is_none")]
+    #[schemars(with = "String")]
     pub item_selector: Option<Selector>,
 
     #[serde(default, skip_serializing_if = "Option::is_none")]
+    #[schemars(with = "String")]
     pub title_selector: Option<Selector>,
 
     #[serde(default, skip_serializing_if = "Option::is_none")]
+    #[schemars(with = "String")]
     pub link_selector: Option<Selector>,
 
     #[serde(default, skip_serializing_if = "Vec::is_empty")]

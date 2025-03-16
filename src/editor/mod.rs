@@ -1,6 +1,7 @@
 use std::path::PathBuf;
 
 use anyhow::Context as _;
+use schemars::JsonSchema;
 use serde::Deserialize;
 use url::Url;
 
@@ -23,12 +24,15 @@ pub struct Content {
     pub text: String,
 }
 
-#[derive(Debug, Clone, Deserialize)]
+/// # Editor
+/// Editors are manipulating the content of a webpage to simplify comparing them later on.
+#[derive(Debug, Clone, Deserialize, JsonSchema)]
 #[serde(rename_all = "snake_case")]
+#[serde(deny_unknown_fields)]
 pub enum Editor {
-    CssFlatten(scraper::Selector),
-    CssRemove(scraper::Selector),
-    CssSelect(scraper::Selector),
+    CssFlatten(#[schemars(with = "String")] scraper::Selector),
+    CssRemove(#[schemars(with = "String")] scraper::Selector),
+    CssSelect(#[schemars(with = "String")] scraper::Selector),
     CssSort(css_sort::CssSort),
     DebugFiles(PathBuf),
     HtmlMarkdownify,

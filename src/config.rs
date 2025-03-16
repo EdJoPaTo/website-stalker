@@ -1,4 +1,5 @@
 use anyhow::Context as _;
+use schemars::JsonSchema;
 use serde::Deserialize;
 use url::Url;
 
@@ -8,10 +9,13 @@ use crate::site::{Options, Site};
 
 pub const EXAMPLE_CONF: &str = include_str!("../sites/website-stalker.yaml");
 
-#[derive(Debug, Deserialize)]
+/// # Website Stalker configuration file
+#[derive(Debug, Deserialize, JsonSchema)]
+#[serde(deny_unknown_fields)]
 pub struct Config {
     // Read as empty string when not defined as it could be overridden from the env
     #[serde(default)]
+    #[schemars(email)]
     pub from: String,
 
     #[deprecated = "The notification template was removed"]
@@ -21,11 +25,12 @@ pub struct Config {
     pub sites: Vec<SiteEntry>,
 }
 
-#[derive(Debug, Deserialize)]
+/// Single or multiple URLs
+#[derive(Debug, Deserialize, JsonSchema)]
 #[serde(untagged)]
 pub enum UrlVariants {
     Single(Url),
-    Many(Vec<Url>),
+    Many(#[schemars(length(min = 1))] Vec<Url>),
 }
 
 impl UrlVariants {
@@ -37,7 +42,8 @@ impl UrlVariants {
     }
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, JsonSchema)]
+#[serde(deny_unknown_fields)]
 pub struct SiteEntry {
     pub url: UrlVariants,
     #[serde(flatten)]

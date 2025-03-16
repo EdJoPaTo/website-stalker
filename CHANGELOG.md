@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- Generate the JSON Schema for the `website-stalker.yaml` with `website-stalker json-schema`.
+
 ## [0.25.1] - 2025-01-30
 
 ### Fixed
