@@ -1,4 +1,4 @@
-# yaml-language-server: $schema=/tmp/website-stalker-schema.json
+# yaml-language-server: $schema=https://github.com/EdJoPaTo/website-stalker/releases/latest/download/website-stalker-schema.json
 #
 # This is an example config
 # The filename has to be `website-stalker.yaml`
