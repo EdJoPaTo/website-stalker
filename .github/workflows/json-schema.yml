@@ -22,7 +22,7 @@ jobs:
       - run: cargo build
 
       - name: website-stalker json-schema >website-stalker-schema.json
-        run: cargo run -- json-schema | tee website-stalker-schema.json
+        run: cargo run -- json-schema | tee website-stalker-schema.json | jq --color-output
 
       - uses: actions/upload-artifact@v4
         with:
