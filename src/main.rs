@@ -9,7 +9,7 @@ use tokio::sync::mpsc::channel;
 use tokio::time::sleep;
 
 use crate::cli::Cli;
-use crate::config::{Config, EXAMPLE_CONF};
+use crate::config::Config;
 use crate::site::Site;
 
 mod cli;
@@ -44,7 +44,7 @@ impl core::fmt::Display for ChangeKind {
 #[tokio::main]
 async fn main() {
     match Cli::parse() {
-        Cli::ExampleConfig => print!("{EXAMPLE_CONF}"),
+        Cli::ExampleConfig => print!("{}", Config::EXAMPLE),
         Cli::JsonSchema => {
             let schema = serde_json::to_string_pretty(&schemars::schema_for!(Config)).unwrap();
             println!("{schema}");
@@ -61,7 +61,7 @@ async fn main() {
             }
             let from = std::env::var("WEBSITE_STALKER_FROM").ok();
             if Config::load(from).is_err() {
-                fs::write("website-stalker.yaml", EXAMPLE_CONF)
+                fs::write("website-stalker.yaml", Config::EXAMPLE)
                     .expect("failed to write example configuration file");
                 println!("Example configuration file generated.");
             }
@@ -105,7 +105,7 @@ async fn main() {
     }
 }
 
-#[allow(clippy::too_many_lines)]
+#[expect(clippy::too_many_lines)]
 async fn run(
     do_commit: bool,
     from: Option<String>,
@@ -185,7 +185,7 @@ async fn run(
 
     let mut rx = {
         let (tx, rx) = channel(10);
-        #[allow(clippy::iter_over_hash_type)]
+        #[expect(clippy::iter_over_hash_type)]
         for (_, sites) in groups {
             let from = from.clone();
             let tx = tx.clone();

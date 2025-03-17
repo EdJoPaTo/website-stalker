@@ -37,7 +37,7 @@ fn generate_change_lines(mut changed: Vec<Url>) -> String {
     text.trim().to_owned()
 }
 
-#[allow(clippy::literal_string_with_formatting_args)]
+#[expect(clippy::literal_string_with_formatting_args)]
 fn generate_commit_part(commit: Option<String>, template: Option<String>) -> Option<String> {
     if let Some(template) = template {
         commit.map(|commit| {

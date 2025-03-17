@@ -7,8 +7,6 @@ use crate::http::validate_from;
 use crate::logger;
 use crate::site::{Options, Site};
 
-pub const EXAMPLE_CONF: &str = include_str!("../sites/website-stalker.yaml");
-
 /// # Website Stalker configuration file
 #[derive(Debug, Deserialize, JsonSchema)]
 #[serde(deny_unknown_fields)]
@@ -51,6 +49,8 @@ pub struct SiteEntry {
 }
 
 impl Config {
+    pub const EXAMPLE: &str = include_str!("../sites/website-stalker.yaml");
+
     pub fn load(cli_from: Option<String>) -> anyhow::Result<Self> {
         let filecontent = std::fs::read_to_string("website-stalker.yaml")?;
         let mut config = serde_yaml::from_str::<Self>(&filecontent)?;
@@ -111,7 +111,7 @@ impl Config {
         validate_from(&self.from).with_context(|| format!("from ({}) is invalid", self.from))?;
         self.validate_sites()?;
 
-        #[allow(deprecated)]
+        #[expect(deprecated)]
         if self.notification_template.is_some() {
             anyhow::bail!(
                 "Notifications got reworked and the notification_template in the config file is no longer used. Check website-stalker run --help for the new notification settings."
@@ -144,14 +144,14 @@ impl Config {
 
 #[test]
 fn example_sites_are_valid() {
-    let config = serde_yaml::from_str::<Config>(EXAMPLE_CONF).unwrap();
+    let config = serde_yaml::from_str::<Config>(Config::EXAMPLE).unwrap();
     config.validate_sites().unwrap();
 }
 
 #[test]
 #[should_panic = "site list is empty"]
 fn validate_fails_on_empty_sites_list() {
-    #[allow(deprecated)]
+    #[expect(deprecated)]
     let config = Config {
         from: "dummy".to_owned(),
         notification_template: None,
@@ -163,7 +163,7 @@ fn validate_fails_on_empty_sites_list() {
 #[test]
 #[should_panic = "site entry has no urls"]
 fn validate_fails_on_sites_list_with_empty_many() {
-    #[allow(deprecated)]
+    #[expect(deprecated)]
     let config = Config {
         from: "dummy".to_owned(),
         notification_template: None,
