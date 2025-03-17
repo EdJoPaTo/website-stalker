@@ -59,6 +59,7 @@ features = [
 	"brotli", # response body decompression
 	"deflate", # response body decompression
 	"gzip", # response body decompression
+	"zstd", # response body decompression
 ]
 
 [dev-dependencies]
