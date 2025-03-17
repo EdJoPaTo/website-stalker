@@ -1,4 +1,4 @@
-name: Run with example config
+name: Run executable
 
 on:
   push:
@@ -6,7 +6,7 @@ on:
   workflow_dispatch:
 
 jobs:
-  run:
+  run-run:
     name: Run with example config
     runs-on: ubuntu-latest
     steps:
@@ -26,3 +26,32 @@ jobs:
         run: cargo run -- run --all
         env:
           WEBSITE_STALKER_FROM: website-stalker-run-workflow@edjopato.de
+
+  json-schema:
+    name: Generate json-schema
+    runs-on: ubuntu-latest
+    steps:
+      - uses: dtolnay/rust-toolchain@stable
+        id: rust
+
+      - uses: actions/checkout@v4
+      - run: cargo fetch
+      - uses: actions/cache@v4
+        with:
+          key: run-${{ steps.rust.outputs.cachekey }}-${{ hashFiles('**/Cargo.*') }}
+          path: target/
+      - run: cargo build
+
+      - name: website-stalker json-schema >website-stalker-schema.json
+        run: cargo run -- json-schema | tee website-stalker-schema.json | jq --color-output
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: json-schema
+          path: website-stalker-schema.json
+
+      - name: Add to GitHub release
+        if: startsWith(github.ref, 'refs/tags/v')
+        uses: softprops/action-gh-release@v2
+        with:
+          files: website-stalker-schema.json
