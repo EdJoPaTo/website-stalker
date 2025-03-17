@@ -1,10 +1,8 @@
-/*!
-GitHub related logic
-
-# Documentation
-- <https://docs.github.com/en/actions/learn-github-actions/variables#default-environment-variables>
-- <https://docs.github.com/en/actions/using-workflows/workflow-commands-for-github-actions>
-*/
+//! GitHub related logic
+//!
+//! # Documentation
+//! - <https://docs.github.com/en/actions/learn-github-actions/variables#default-environment-variables>
+//! - <https://docs.github.com/en/actions/using-workflows/workflow-commands-for-github-actions>
 
 use std::env;
 use std::sync::LazyLock;
