@@ -2,7 +2,7 @@ use clap::{Parser, ValueHint};
 use pling::clap::Args as Pling;
 use regex::Regex;
 
-#[allow(clippy::large_enum_variant)]
+#[expect(clippy::large_enum_variant)]
 #[derive(Parser)]
 #[command(about, version)]
 pub enum Cli {

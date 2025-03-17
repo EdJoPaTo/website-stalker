@@ -101,7 +101,7 @@ async fn main() {
     }
 }
 
-#[allow(clippy::too_many_lines)]
+#[expect(clippy::too_many_lines)]
 async fn run(
     do_commit: bool,
     from: Option<String>,
@@ -181,7 +181,7 @@ async fn run(
 
     let mut rx = {
         let (tx, rx) = channel(10);
-        #[allow(clippy::iter_over_hash_type)]
+        #[expect(clippy::iter_over_hash_type)]
         for (_, sites) in groups {
             let from = from.clone();
             let tx = tx.clone();
