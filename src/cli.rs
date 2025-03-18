@@ -9,7 +9,7 @@ pub enum Cli {
     /// Print an example configuration file which can be piped into website-stalker.yaml
     ExampleConfig,
 
-    /// Print the JSON Schema for the configuration file
+    /// Print the JSON Schema of the configuration file
     JsonSchema,
 
     /// Initialize the current directory with a git repository and a configuration file (website-stalker.yaml)
