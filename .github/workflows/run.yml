@@ -23,7 +23,7 @@ jobs:
         with:
           name: website-stalker
           path: target/debug/website-stalker
-          retention-days: 2
+          retention-days: 1
 
   run-example-config:
     needs: build
