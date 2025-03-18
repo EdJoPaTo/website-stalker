@@ -6,8 +6,7 @@ on:
   workflow_dispatch:
 
 jobs:
-  run-run:
-    name: Run with example config
+  build:
     runs-on: ubuntu-latest
     steps:
       - uses: dtolnay/rust-toolchain@stable
@@ -20,30 +19,40 @@ jobs:
           key: run-${{ steps.rust.outputs.cachekey }}-${{ hashFiles('**/Cargo.*') }}
           path: target/
       - run: cargo build
+      - uses: actions/upload-artifact@v4
+        with:
+          name: website-stalker
+          path: target/debug/website-stalker
+          retention-days: 2
 
-      - name: website-stalker run --all
+  run-example-config:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          path: /usr/local/bin
+          merge-multiple: true
+      - run: sudo chmod +x /usr/local/bin/website-stalker
+
+      - uses: actions/checkout@v4
+
+      - run: website-stalker run --all
         working-directory: sites
-        run: cargo run -- run --all
         env:
           WEBSITE_STALKER_FROM: website-stalker-run-workflow@edjopato.de
 
   json-schema:
-    name: Generate json-schema
+    needs: build
     runs-on: ubuntu-latest
     steps:
-      - uses: dtolnay/rust-toolchain@stable
-        id: rust
-
-      - uses: actions/checkout@v4
-      - run: cargo fetch
-      - uses: actions/cache@v4
+      - uses: actions/download-artifact@v4
         with:
-          key: run-${{ steps.rust.outputs.cachekey }}-${{ hashFiles('**/Cargo.*') }}
-          path: target/
-      - run: cargo build
+          path: /usr/local/bin
+          merge-multiple: true
+      - run: sudo chmod +x /usr/local/bin/website-stalker
 
-      - name: website-stalker json-schema >website-stalker-schema.json
-        run: cargo run -- json-schema | tee website-stalker-schema.json | jq --color-output
+      - run: website-stalker json-schema | tee website-stalker-schema.json | jq --color-output
 
       - uses: actions/upload-artifact@v4
         with:
