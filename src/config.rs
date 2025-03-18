@@ -1,4 +1,5 @@
 use anyhow::Context as _;
+use schemars::JsonSchema;
 use serde::Deserialize;
 use url::Url;
 
@@ -6,24 +7,24 @@ use crate::http::validate_from;
 use crate::logger;
 use crate::site::{Options, Site};
 
-#[derive(Debug, Deserialize)]
+/// # Website Stalker configuration file
+#[derive(Debug, Deserialize, JsonSchema)]
+#[serde(deny_unknown_fields)]
 pub struct Config {
     // Read as empty string when not defined as it could be overridden from the env
     #[serde(default)]
+    #[schemars(email)]
     pub from: String,
-
-    #[deprecated = "The notification template was removed"]
-    #[serde(default, skip_serializing_if = "Option::is_none")]
-    pub notification_template: Option<String>,
 
     pub sites: Vec<SiteEntry>,
 }
 
-#[derive(Debug, Deserialize)]
+/// Single or multiple URLs
+#[derive(Debug, Deserialize, JsonSchema)]
 #[serde(untagged)]
 pub enum UrlVariants {
     Single(Url),
-    Many(Vec<Url>),
+    Many(#[schemars(length(min = 1))] Vec<Url>),
 }
 
 impl UrlVariants {
@@ -35,7 +36,8 @@ impl UrlVariants {
     }
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, JsonSchema)]
+#[serde(deny_unknown_fields)]
 pub struct SiteEntry {
     pub url: UrlVariants,
     #[serde(flatten)]
@@ -105,13 +107,6 @@ impl Config {
         validate_from(&self.from).with_context(|| format!("from ({}) is invalid", self.from))?;
         self.validate_sites()?;
 
-        #[expect(deprecated)]
-        if self.notification_template.is_some() {
-            anyhow::bail!(
-                "Notifications got reworked and the notification_template in the config file is no longer used. Check website-stalker run --help for the new notification settings."
-            )
-        }
-
         for (key, _value) in std::env::vars_os().filter(|(key, _value)| {
             key.to_str()
                 .is_some_and(|key| OLD_PLING_ENV_VARS.contains(&key))
@@ -145,10 +140,8 @@ fn example_sites_are_valid() {
 #[test]
 #[should_panic = "site list is empty"]
 fn validate_fails_on_empty_sites_list() {
-    #[expect(deprecated)]
     let config = Config {
         from: "dummy".to_owned(),
-        notification_template: None,
         sites: vec![],
     };
     config.validate_sites().unwrap();
@@ -157,10 +150,8 @@ fn validate_fails_on_empty_sites_list() {
 #[test]
 #[should_panic = "site entry has no urls"]
 fn validate_fails_on_sites_list_with_empty_many() {
-    #[expect(deprecated)]
     let config = Config {
         from: "dummy".to_owned(),
-        notification_template: None,
         sites: vec![SiteEntry {
             url: UrlVariants::Many(vec![]),
             options: Options {

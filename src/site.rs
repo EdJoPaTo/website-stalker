@@ -1,6 +1,9 @@
+#![expect(unused_qualifications, reason = "false positive with schemars")]
+
 use std::path::{Path, PathBuf};
 
 use reqwest::header::{HeaderMap, HeaderName, HeaderValue};
+use schemars::JsonSchema;
 use serde::Deserialize;
 use url::Url;
 
@@ -13,7 +16,8 @@ pub struct Site {
     pub options: Options,
 }
 
-#[derive(Debug, Clone, Deserialize)]
+#[derive(Debug, Clone, Deserialize, JsonSchema)]
+#[serde(deny_unknown_fields)]
 pub struct Options {
     #[serde(default, skip_serializing_if = "core::ops::Not::not")]
     pub accept_invalid_certs: bool,
@@ -27,11 +31,8 @@ pub struct Options {
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub filename: Option<PathBuf>,
 
-    #[serde(
-        default,
-        skip_serializing_if = "Vec::is_empty",
-        deserialize_with = "deserialize_headermap"
-    )]
+    #[serde(default, deserialize_with = "deserialize_headermap")]
+    #[schemars(schema_with = "schema_headermap")]
     pub headers: HeaderMap,
 
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
@@ -93,6 +94,12 @@ where
         result.append(key, value);
     }
     Ok(result)
+}
+
+fn schema_headermap(generator: &mut schemars::SchemaGenerator) -> schemars::schema::Schema {
+    let mut schema = Vec::<String>::json_schema(generator).into_object();
+    schema.array().min_items = Some(1);
+    schemars::schema::Schema::Object(schema)
 }
 
 #[test]

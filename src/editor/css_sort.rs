@@ -1,5 +1,6 @@
 use std::collections::HashMap;
 
+use schemars::JsonSchema;
 use scraper::{ElementRef, Html, Selector};
 use serde::Deserialize;
 use url::Url;
@@ -7,11 +8,13 @@ use url::Url;
 use super::Editor;
 use crate::logger;
 
-#[derive(Debug, Clone, Deserialize)]
+#[derive(Debug, Clone, Deserialize, JsonSchema)]
+#[serde(deny_unknown_fields)]
 pub struct CssSort {
+    #[schemars(with = "String")]
     pub selector: Selector,
 
-    #[serde(default)]
+    #[serde(default, skip_serializing_if = "core::ops::Not::not")]
     pub reverse: bool,
 
     #[serde(default, skip_serializing_if = "Vec::is_empty")]

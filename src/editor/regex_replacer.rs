@@ -1,11 +1,14 @@
 use std::borrow::Cow;
 
 use regex::Regex;
+use schemars::JsonSchema;
 use serde::Deserialize;
 
-#[derive(Debug, Clone, Deserialize)]
+#[derive(Debug, Clone, Deserialize, JsonSchema)]
+#[serde(deny_unknown_fields)]
 pub struct RegexReplacer {
     #[serde(deserialize_with = "deserialize_regex")]
+    #[schemars(with = "String")]
     pub pattern: Regex,
     pub replace: String,
 }

@@ -1,4 +1,4 @@
-name: Run with example config
+name: Run executable
 
 on:
   push:
@@ -6,8 +6,7 @@ on:
   workflow_dispatch:
 
 jobs:
-  run:
-    name: Run with example config
+  build:
     runs-on: ubuntu-latest
     steps:
       - uses: dtolnay/rust-toolchain@stable
@@ -20,9 +19,48 @@ jobs:
           key: run-${{ steps.rust.outputs.cachekey }}-${{ hashFiles('**/Cargo.*') }}
           path: target/
       - run: cargo build
+      - uses: actions/upload-artifact@v4
+        with:
+          name: website-stalker
+          path: target/debug/website-stalker
+          retention-days: 1
 
-      - name: website-stalker run --all
+  run-example-config:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          path: /usr/local/bin
+          merge-multiple: true
+      - run: sudo chmod +x /usr/local/bin/website-stalker
+
+      - uses: actions/checkout@v4
+
+      - run: website-stalker run --all
         working-directory: sites
-        run: cargo run -- run --all
         env:
           WEBSITE_STALKER_FROM: website-stalker-run-workflow@edjopato.de
+
+  json-schema:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          path: /usr/local/bin
+          merge-multiple: true
+      - run: sudo chmod +x /usr/local/bin/website-stalker
+
+      - run: website-stalker json-schema | tee website-stalker-schema.json | jq --color-output
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: json-schema
+          path: website-stalker-schema.json
+
+      - name: Add to GitHub release
+        if: startsWith(github.ref, 'refs/tags/v')
+        uses: softprops/action-gh-release@v2
+        with:
+          files: website-stalker-schema.json

@@ -45,6 +45,10 @@ impl core::fmt::Display for ChangeKind {
 async fn main() {
     match Cli::parse() {
         Cli::ExampleConfig => print!("{}", Config::EXAMPLE),
+        Cli::JsonSchema => {
+            let schema = serde_json::to_string_pretty(&schemars::schema_for!(Config)).unwrap();
+            println!("{schema}");
+        }
         Cli::Init => {
             logger::warn(
                 "website-stalker init is deprecated. Use `git init && website-stalker example-config > website-stalker.yaml`",
