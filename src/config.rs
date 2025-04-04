@@ -28,7 +28,7 @@ pub enum UrlVariants {
 }
 
 impl UrlVariants {
-    pub fn is_empty(&self) -> bool {
+    pub const fn is_empty(&self) -> bool {
         match self {
             Self::Single(_) => false,
             Self::Many(many) => many.is_empty(),
@@ -112,8 +112,9 @@ impl Config {
                 .is_some_and(|key| OLD_PLING_ENV_VARS.contains(&key))
         }) {
             logger::warn(&format!(
-                "Environment variable {key:?} was part of the old notification setup. Check website-stalker run --help for the new notification settings."
-            ));
+                "Environment variable {} was part of the old notification setup. Check website-stalker run --help for the new notification settings.",
+                key.display())
+            );
         }
 
         Ok(())
