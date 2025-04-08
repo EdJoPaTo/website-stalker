@@ -9,6 +9,7 @@ pub mod css_flatten;
 pub mod css_remove;
 pub mod css_selector;
 pub mod css_sort;
+pub mod css_tag_replace;
 pub mod debug_files;
 pub mod html_markdown;
 pub mod html_pretty;
@@ -34,6 +35,7 @@ pub enum Editor {
     CssRemove(#[schemars(with = "String")] scraper::Selector),
     CssSelect(#[schemars(with = "String")] scraper::Selector),
     CssSort(css_sort::CssSort),
+    CssTagReplace(css_tag_replace::CssTagReplace),
     DebugFiles(PathBuf),
     HtmlMarkdownify,
     HtmlPrettify,
@@ -52,6 +54,7 @@ impl Editor {
             Self::CssRemove(_) => "css_remove",
             Self::CssSelect(_) => "css_select",
             Self::CssSort(_) => "css_sort",
+            Self::CssTagReplace(_) => "css_tag_replace",
             Self::DebugFiles(_) => "debug_files",
             Self::HtmlMarkdownify => "html_markdownify",
             Self::HtmlPrettify => "html_prettify",
@@ -81,6 +84,10 @@ impl Editor {
             Self::CssSort(sort) => Ok(Content {
                 extension: Some("html"),
                 text: sort.apply(url, &input.text),
+            }),
+            Self::CssTagReplace(replace) => Ok(Content {
+                extension: Some("html"),
+                text: replace.apply(&input.text),
             }),
             Self::DebugFiles(path) => debug_files::debug_files(path, input),
             Self::HtmlMarkdownify => Ok(Content {

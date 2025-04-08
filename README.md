@@ -347,6 +347,33 @@ editors:
       reverse: true
 ```
 
+#### `css_tag_replace`
+
+Replace HTML tags matching a given CSS selector.
+
+For example, the following config will replace all `h3` tags with `h2` tags.
+
+```yaml
+editors:
+  - css_tag_replace:
+      selector: h3
+      replace: h2
+```
+
+```diff
+ <html>
+ <head></head>
+ <body>
+-  <h3 class="green">
++  <h2 class="green">
+     Hello
+-  </h3>
++  </h2>
+   World
+ </body>
+ </html>
+```
+
 #### `debug_files`
 
 This editor passes its input through without modifying it.
