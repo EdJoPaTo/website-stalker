@@ -64,7 +64,7 @@ impl Rss {
         channel.generator(GENERATOR.to_owned());
 
         if let Some(title) = &self.title {
-            channel.title(title.to_string());
+            channel.title(title.clone());
         } else if let Some(element) = html
             .select(selector!("title, h1, h2, h3, h4, h5, h6"))
             .next()
