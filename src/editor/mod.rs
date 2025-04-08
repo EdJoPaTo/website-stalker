@@ -87,7 +87,7 @@ impl Editor {
             }),
             Self::CssTagReplace(replace) => Ok(Content {
                 extension: Some("html"),
-                text: replace.apply(&input.text),
+                text: replace.apply(&input.text)?,
             }),
             Self::DebugFiles(path) => debug_files::debug_files(path, input),
             Self::HtmlMarkdownify => Ok(Content {

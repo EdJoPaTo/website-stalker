@@ -14,7 +14,7 @@ pub struct CssTagReplace {
 }
 
 impl CssTagReplace {
-    pub fn apply(&self, html: &str) -> String {
+    pub fn apply(&self, html: &str) -> anyhow::Result<String> {
         let mut html = Html::parse_document(html);
         let selected = html
             .select(&self.selector)
@@ -29,7 +29,7 @@ impl CssTagReplace {
                 )
             })
             .collect::<Vec<_>>();
-
+        anyhow::ensure!(!selected.is_empty(), "selected nothing");
         for (node_id, mut element, children) in selected {
             element.name = QualName::new(None, ns!(html), self.replace.clone());
 
@@ -46,7 +46,7 @@ impl CssTagReplace {
             node.detach();
         }
 
-        html.html()
+        Ok(html.html())
     }
 }
 
@@ -57,7 +57,8 @@ fn case<TAG: Into<LocalName>>(selectors: &str, replace: TAG, html: &str, expecte
         selector: Selector::parse(selectors).unwrap(),
         replace: replace.into(),
     }
-    .apply(html);
+    .apply(html)
+    .expect("Should select something");
     assert_eq!(result, expected);
 }
 
