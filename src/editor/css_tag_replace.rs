@@ -18,32 +18,18 @@ impl CssTagReplace {
         let mut html = Html::parse_document(html);
         let selected = html
             .select(&self.selector)
-            .map(|element| {
-                (
-                    element.id(),
-                    element.value().clone(),
-                    element
-                        .children()
-                        .map(|child| child.id())
-                        .collect::<Vec<_>>(),
-                )
-            })
+            .map(|element| element.id())
             .collect::<Vec<_>>();
         anyhow::ensure!(!selected.is_empty(), "selected nothing");
-        for (node_id, mut element, children) in selected {
-            element.name = QualName::new(None, ns!(html), self.replace.clone());
-
+        for node_id in selected {
             let mut node = html
                 .tree
                 .get_mut(node_id)
                 .expect("Element ID should exist as it was just taken from the given HTML");
-
-            let mut new_node = node.insert_after(Node::Element(element));
-            for child in children {
-                new_node.append_id(child);
-            }
-
-            node.detach();
+            let Node::Element(element) = node.value() else {
+                unreachable!("Select only selects elements");
+            };
+            element.name = QualName::new(None, ns!(html), self.replace.clone());
         }
 
         Ok(html.html())
