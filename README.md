@@ -349,7 +349,7 @@ editors:
 
 #### `css_tag_replace`
 
-Replace HTML tags matching a given CSS selector.
+Replace [HTML tags](https://developer.mozilla.org/en-US/docs/Glossary/Tag) matching a given [CSS Selector](https://developer.mozilla.org/en-US/docs/Learn/CSS/Building_blocks/Selectors).
 
 For example, the following config will replace all `h3` tags with `h2` tags.
 
