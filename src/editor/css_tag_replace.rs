@@ -75,3 +75,10 @@ fn keeps_attributes() {
     let expected = r#"<html><head></head><body><h1 class="green">Hello</h1>World</body></html>"#;
     case("h2", "h1", html, expected);
 }
+
+#[test]
+fn more_specific_selector() {
+    let html = "<body><header><div>Headline</div></header><main><div>Something</div></main></body>";
+    let expected = "<html><head></head><body><header><div>Headline</div></header><main><p>Something</p></main></body></html>";
+    case("main div", "p", html, expected);
+}
