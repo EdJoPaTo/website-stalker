@@ -374,6 +374,30 @@ editors:
  </html>
 ```
 
+This can be helpful to ensure some kind of structure especially when editors like [`html_markdownify`](#html_markdownify) are used.
+Think about a website where only some subsections are of interest and selected via the [`css_select`](#css_select).
+While the `header` contains some `h1` the selected part skips the `h2` headings and continues with `h3` headings.
+Also, `<strong>` are (incorrectly) used as subheadings.
+Parsing this to Markdown results in less optimal structure as `h2` are skipped and `<strong>` don't result in headings.
+Ideal would be a single `h1` and then continous depending on the depth `h2`, `h3` and so on.
+The following can help with that:
+
+```yaml
+editors:
+  # Select the header and some interesting sections
+  - css_select: header, main section.interesting
+  # First migrate the h3 tags to h2 so there is no gap
+  - css_tag_replace:
+      selector: h3
+      replace: h2
+  # Then migrate all strong tags to proper headings
+  - css_tag_replace:
+      selector: strong
+      replace: h3
+  # In the end parse to Markdown
+  - html_markdownify
+```
+
 #### `debug_files`
 
 This editor passes its input through without modifying it.
