@@ -7,9 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.26.0] - 2025-04-10
+
 ### Added
 
-- Generate the JSON Schema for the `website-stalker.yaml` with `website-stalker json-schema`.
+- Generate the JSON Schema for the `website-stalker.yaml` with `website-stalker json-schema`. Its also added to the Github Release for easy usage.
 - new editor: `css_tag_replace`
 - Support zstd response body decompression
 
