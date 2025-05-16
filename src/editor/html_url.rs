@@ -1,10 +1,11 @@
 use std::io::Write;
 
-use anyhow::Context as _;
 use html5ever::serialize::{AttrRef, HtmlSerializer, Serialize as _, SerializeOpts, Serializer};
 use html5ever::QualName;
 use scraper::Html;
 use url::Url;
+
+use crate::logger;
 
 struct HtmlAbsLinkSerializer<'url, Wr: Write> {
     serializer: HtmlSerializer<Wr>,
@@ -28,11 +29,16 @@ impl<Wr: Write> Serializer for HtmlAbsLinkSerializer<'_, Wr> {
         let mut result_attrs = Vec::new();
         for (key, value) in attrs {
             let value = if &key.local == "href" || &key.local == "src" {
-                self.base_url
-                    .join(value)
-                    .with_context(|| format!("failed to parse url {value}"))
-                    .map_err(|err| std::io::Error::new(std::io::ErrorKind::InvalidData, err))?
-                    .to_string()
+                match self.base_url.join(value) {
+                    Ok(url) => url.to_string(),
+                    Err(error) => {
+                        logger::warn(&format!(
+                            "{} html_url_canonicalize could not parse url {value}: {error}",
+                            self.base_url
+                        ));
+                        value.to_owned()
+                    }
+                }
             } else {
                 value.to_owned()
             };
@@ -135,9 +141,12 @@ fn works_with_already_absolute_url() {
 }
 
 #[test]
-#[should_panic = "failed to parse url ///"]
-fn garbage_results_in_error() {
+fn garbage_is_skipped() {
     let base_url = Url::parse("https://edjopato.de/index.html").unwrap();
-    let ugly = r#"<html><body>Just a <a href="///">test</a></body></html>"#;
+    let ugly = r#"<html><body>Just a <a href="///">test</a> that <a href="https://edjopato.de">works</a></body></html>"#;
     canonicalize(&base_url, ugly).unwrap();
+    assert_eq!(
+        canonicalize(&base_url, ugly).unwrap(),
+        r#"<html><head></head><body>Just a <a href="///">test</a> that <a href="https://edjopato.de/">works</a></body></html>"#
+    );
 }
