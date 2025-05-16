@@ -19,9 +19,11 @@ pub fn markdownify(html: &str) -> anyhow::Result<String> {
         }
     });
 
-    let output = markdown.to_string();
-    anyhow::ensure!(!output.trim().is_empty(), "There should be output content");
-    Ok(output)
+    anyhow::ensure!(
+        !markdown.trim().is_empty(),
+        "There should be output content"
+    );
+    Ok(markdown.to_string())
 }
 
 #[cfg(test)]
