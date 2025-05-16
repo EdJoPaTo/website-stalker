@@ -92,7 +92,7 @@ impl Editor {
             Self::DebugFiles(path) => debug_files::debug_files(path, input),
             Self::HtmlMarkdownify => Ok(Content {
                 extension: Some("md"),
-                text: html_markdown::markdownify(&input.text),
+                text: html_markdown::markdownify(&input.text)?,
             }),
             Self::HtmlPrettify => Ok(Content {
                 extension: Some("html"),

@@ -1,6 +1,6 @@
 use lazy_regex::{regex, Captures};
 
-pub fn markdownify(html: &str) -> String {
+pub fn markdownify(html: &str) -> anyhow::Result<String> {
     let markdown = html2md::parse_html(html)
         .lines()
         .map(str::trim_end)
@@ -19,15 +19,18 @@ pub fn markdownify(html: &str) -> String {
         }
     });
 
-    markdown.to_string()
+    let output = markdown.to_string();
+    anyhow::ensure!(!output.trim().is_empty(), "There should be output content");
+    Ok(output)
 }
 
 #[cfg(test)]
 #[track_caller]
 fn case(html: &str, expected: &str) {
-    let result = dbg!(markdownify(html));
-    let raw = dbg!(html2md::parse_html(html));
+    let result = dbg!(markdownify(html).unwrap());
     assert_eq!(result, expected);
+
+    let raw = dbg!(html2md::parse_html(html));
     assert_ne!(result, raw, "special handling no longer needed");
 }
 
@@ -54,4 +57,11 @@ fn trim_lineendings() {
     // \u{a0} is NO-BREAK SPACE
     let html = "<p>whatever  <br>\nis\t<br>\nthis \u{a0}<br>\nmeh</p>";
     case(html, "whatever\nis\nthis\nmeh");
+}
+
+#[test]
+#[should_panic = "There should be output content"]
+fn empty_output_fails() {
+    let html = "<!-- there is nothing to to parse into markdown -->";
+    dbg!(markdownify(html).unwrap());
 }
