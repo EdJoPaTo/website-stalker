@@ -46,7 +46,10 @@ async fn main() {
     match Cli::parse() {
         Cli::ExampleConfig => print!("{}", Config::EXAMPLE),
         Cli::JsonSchema => {
-            let schema = serde_json::to_string_pretty(&schemars::schema_for!(Config)).unwrap();
+            // `yaml-language-server` only works with `draft-07` for some things
+            let settings = schemars::generate::SchemaSettings::draft07();
+            let schema = schemars::SchemaGenerator::new(settings).into_root_schema_for::<Config>();
+            let schema = serde_json::to_string_pretty(&schema).unwrap();
             println!("{schema}");
         }
         Cli::Init => {

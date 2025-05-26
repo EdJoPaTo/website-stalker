@@ -96,10 +96,10 @@ where
     Ok(result)
 }
 
-fn schema_headermap(generator: &mut schemars::SchemaGenerator) -> schemars::schema::Schema {
-    let mut schema = Vec::<String>::json_schema(generator).into_object();
-    schema.array().min_items = Some(1);
-    schemars::schema::Schema::Object(schema)
+fn schema_headermap(generator: &mut schemars::SchemaGenerator) -> schemars::Schema {
+    let mut schema = Vec::<String>::json_schema(generator);
+    schema.insert("minItems".to_owned(), serde_json::Value::from(1));
+    schema
 }
 
 #[test]
