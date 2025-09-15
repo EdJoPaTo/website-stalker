@@ -17,7 +17,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
-- `html_markdownify`: Error on empty output. Emtpy output is unlikely the expected behaviour.
+- `html_markdownify`: Error on empty output. Empty output is unlikely the expected behaviour.
 - `html_url_canonicalize`: Don't error on unparsable URL. Only warn and accept the broken one.
 
 ## [0.26.0] - 2025-04-10

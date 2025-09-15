@@ -379,7 +379,7 @@ Think about a website where only some subsections are of interest and selected v
 While the `header` contains some `h1` the selected part skips the `h2` headings and continues with `h3` headings.
 Also, `<strong>` are (incorrectly) used as subheadings.
 Parsing this to Markdown results in less optimal structure as `h2` are skipped and `<strong>` don't result in headings.
-Ideal would be a single `h1` and then continous depending on the depth `h2`, `h3` and so on.
+Ideal would be a single `h1` and then continuous depending on the depth `h2`, `h3` and so on.
 The following can help with that:
 
 ```yaml
