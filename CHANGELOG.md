@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- new editor: `json_simple_select`
+
 ## [0.26.2] - 2025-09-15
 
 ### Changed

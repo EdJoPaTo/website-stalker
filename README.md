@@ -485,6 +485,18 @@ editors:
   - json_prettify
 ```
 
+### `json_simple_select`
+
+Selects key from an input JSON to narrow down the JSON.
+Inspired by [`jq`](https://jqlang.github.io/jq/) but with only very basic selection support.
+
+Example:
+
+```yaml
+editors:
+  - json_simple_select: .foo.bar
+```
+
 #### `regex_replace`
 
 Searches the input with a Regex pattern and replaces all occurrences with the given replace phrase.
