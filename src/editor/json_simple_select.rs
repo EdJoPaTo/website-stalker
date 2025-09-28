@@ -69,6 +69,16 @@ fn simple_object() {
 }
 
 #[test]
+fn selector_two_deep() {
+    case(r#"{"foo": {"bar": 42}}"#, ".foo.bar", "42");
+}
+
+#[test]
 fn simple_array() {
     case("[13, 37]", ".[1]", "37");
+}
+
+#[test]
+fn array_and_object() {
+    case(r#"{"foo": [13, 37, {"bar": 42}]}"#, ".foo[2].bar", "42");
 }
