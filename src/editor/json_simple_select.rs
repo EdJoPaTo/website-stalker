@@ -1,7 +1,9 @@
 use anyhow::Context as _;
 
 pub fn apply(json: &str, selector: &str) -> anyhow::Result<String> {
-    let selector = selector.split('.').filter(|part| !part.is_empty());
+    let selector = selector
+        .split(['.', '[', ']'])
+        .filter(|part| !part.is_empty());
     let value: serde_json::Value = serde_json::from_str(json)?;
     let mut current = &value;
     for part in selector {
@@ -29,20 +31,44 @@ pub fn apply(json: &str, selector: &str) -> anyhow::Result<String> {
     Ok(output)
 }
 
-#[test]
-fn simple_object() {
-    let input = r#"{"foo": {"bar": 42}}"#;
-    let selector = ".foo";
-    let expected = r#"{"bar":42}"#;
+#[cfg(test)]
+#[track_caller]
+fn case(input: &str, selector: &str, expected: &str) {
+    use std::io::Write as _;
+
     let actual = apply(input, selector).unwrap();
     assert_eq!(actual, expected);
+
+    let process = std::process::Command::new("jq")
+        .stdin(std::process::Stdio::piped())
+        .stdout(std::process::Stdio::piped())
+        .arg("--compact-output")
+        .arg(selector)
+        .spawn()
+        .expect("jq should be spawnable");
+    process
+        .stdin
+        .as_ref()
+        .unwrap()
+        .write_all(input.as_bytes())
+        .expect("jq process should get input via stdin");
+    let output = process.wait_with_output().expect("Should wait for jq");
+
+    if !output.status.success() || !output.stderr.is_empty() {
+        let stderr = String::from_utf8_lossy(&output.stderr);
+        panic!("jq unsuccessful:\n{stderr}");
+    }
+
+    let jq_stdout = String::from_utf8(output.stdout).expect("jq stdout should be Utf-8");
+    assert_eq!(jq_stdout.trim(), expected);
+}
+
+#[test]
+fn simple_object() {
+    case(r#"{"foo": {"bar": 42}}"#, ".foo", r#"{"bar":42}"#);
 }
 
 #[test]
 fn simple_array() {
-    let input = "[13, 37]";
-    let selector = ".1";
-    let expected = "37";
-    let actual = apply(input, selector).unwrap();
-    assert_eq!(actual, expected);
+    case("[13, 37]", ".[1]", "37");
 }
