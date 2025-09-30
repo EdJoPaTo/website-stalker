@@ -490,13 +490,13 @@ editors:
 Selects from an input JSON to narrow it down.
 Inspired by [`jq`](https://jqlang.github.io/jq/) but with only very basic selection support.
 
-Due to the current, naive selector implementation it might support syntax jq doesnt support, but that is considered a bug.
+Due to the current, naive selector implementation it might support syntax `jq` doesnt support, but that is considered a bug.
 It might change on every release.
-If the syntax works in jq too, it is intended behaviour.
+If the syntax works in `jq` too, it is intended behaviour.
 
-This editor is intentionally kept simple and does not intend to support the whole jq featureset.
+This editor is intentionally kept simple and does not intend to support the whole `jq` featureset.
 But it does not mean it should stay in its current state.
-If you think it should support other simple syntax of jq, feel free to create an issue or pull request and then lets discuss about it.
+If you think it should support other simple syntax of `jq`, feel free to create an issue or pull request and then lets discuss about it.
 
 Example:
 
