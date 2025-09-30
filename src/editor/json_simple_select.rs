@@ -13,17 +13,20 @@ pub fn apply(json: &str, selector: &str) -> anyhow::Result<String> {
             serde_json::Value::Number(_) => anyhow::bail!("can not select into a numeric value"),
             serde_json::Value::String(_) => anyhow::bail!("can not select into a string value"),
             serde_json::Value::Array(values) => {
-                let index = part
-                    .parse::<usize>()
-                    .context("selector can not be used to index an array")?;
-                current = values
-                    .get(index)
-                    .context("selector selected out of bounds in the array")?;
+                let index = part.parse::<usize>().with_context(|| {
+                    format!("selector ({part}) can not be used to index an array")
+                })?;
+                current = values.get(index).with_context(|| {
+                    format!(
+                        "selector (index {index}) selected out of bounds in an array of length {}",
+                        values.len()
+                    )
+                })?;
             }
             serde_json::Value::Object(map) => {
-                current = map
-                    .get(part)
-                    .context("selector tried to select a non existing key in object")?;
+                current = map.get(part).with_context(|| {
+                    format!("selector ({part}) tried to select a non existing key in object")
+                })?;
             }
         }
     }
@@ -81,4 +84,12 @@ fn simple_array() {
 #[test]
 fn array_and_object() {
     case(r#"{"foo": [13, 37, {"bar": 42}]}"#, ".foo[2].bar", "42");
+}
+
+#[test]
+#[should_panic = "selector (index 42) selected out of bounds in an array of length 2"]
+fn array_out_of_bounds() {
+    let input = "[13, 37]";
+    let selector = ".[42]";
+    apply(input, selector).unwrap();
 }
