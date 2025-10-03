@@ -17,6 +17,7 @@ pub mod html_sanitize;
 pub mod html_text;
 pub mod html_url;
 pub mod json_prettify;
+pub mod json_simple_select;
 pub mod regex_replacer;
 pub mod rss;
 
@@ -43,6 +44,7 @@ pub enum Editor {
     HtmlTextify,
     HtmlUrlCanonicalize,
     JsonPrettify,
+    JsonSimpleSelect(String),
     RegexReplace(regex_replacer::RegexReplacer),
     Rss(rss::Rss),
 }
@@ -62,6 +64,7 @@ impl Editor {
             Self::HtmlTextify => "html_textify",
             Self::HtmlUrlCanonicalize => "html_url_canonicalize",
             Self::JsonPrettify => "json_prettify",
+            Self::JsonSimpleSelect(_) => "json_simple_select",
             Self::RegexReplace(_) => "regex_replace",
             Self::Rss(_) => "rss",
         }
@@ -113,6 +116,10 @@ impl Editor {
             Self::JsonPrettify => Ok(Content {
                 extension: Some("json"),
                 text: json_prettify::prettify(&input.text)?,
+            }),
+            Self::JsonSimpleSelect(selector) => Ok(Content {
+                extension: Some("json"),
+                text: json_simple_select::apply(&input.text, selector)?,
             }),
             Self::RegexReplace(rr) => Ok(Content {
                 extension: input.extension,

@@ -485,6 +485,26 @@ editors:
   - json_prettify
 ```
 
+### `json_simple_select`
+
+Selects from an input JSON to narrow it down.
+Inspired by [`jq`](https://jqlang.github.io/jq/) but with only very basic selection support.
+
+Due to the current, naive selector implementation it might support syntax `jq` doesnt support.
+Syntax that works with this editor and `jq` is intended behaviour.
+Syntax that only works with this editor and not `jq` is considered a bug and might change its behaviour on any release.
+
+This editor is intentionally kept simple and does not intend to support the whole `jq` featureset.
+But it does not mean it should stay in its current state.
+If you think it should support other simple syntax of `jq`, feel free to create an issue or pull request and then lets discuss about it.
+
+Example:
+
+```yaml
+editors:
+  - json_simple_select: .foo[2].bar
+```
+
 #### `regex_replace`
 
 Searches the input with a Regex pattern and replaces all occurrences with the given replace phrase.
