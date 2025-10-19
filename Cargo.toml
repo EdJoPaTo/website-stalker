@@ -55,9 +55,9 @@ default-features = false
 features = [
 	"charset",
 	"http2",
-	"macos-system-configuration",
 	"rustls-tls",
 	"socks", # Socks5 Proxy support
+	"system-proxy",
 	"brotli", # response body decompression
 	"deflate", # response body decompression
 	"gzip", # response body decompression
