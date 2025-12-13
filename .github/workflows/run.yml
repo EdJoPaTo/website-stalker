@@ -19,7 +19,7 @@ jobs:
           key: run-${{ steps.rust.outputs.cachekey }}-${{ hashFiles('**/Cargo.*') }}
           path: target/
       - run: cargo build
-      - uses: actions/upload-artifact@v5
+      - uses: actions/upload-artifact@v6
         with:
           name: website-stalker
           path: target/debug/website-stalker
@@ -56,7 +56,7 @@ jobs:
 
       - run: website-stalker json-schema | tee website-stalker-schema.json | jq --color-output
 
-      - uses: actions/upload-artifact@v5
+      - uses: actions/upload-artifact@v6
         with:
           name: json-schema
           path: website-stalker-schema.json
