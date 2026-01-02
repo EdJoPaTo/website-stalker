@@ -1,4 +1,4 @@
-use html5ever::{ns, LocalName, QualName};
+use html5ever::{LocalName, QualName, ns};
 use schemars::JsonSchema;
 use scraper::{Html, Node, Selector};
 use serde::Deserialize;

@@ -1,4 +1,4 @@
-use lazy_regex::{regex, Captures};
+use lazy_regex::{Captures, regex};
 
 pub fn markdownify(html: &str) -> anyhow::Result<String> {
     let markdown = html2md::parse_html(html)

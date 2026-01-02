@@ -1,6 +1,6 @@
 use serde::Serialize as _;
-use serde_json::ser::PrettyFormatter;
 use serde_json::Serializer;
+use serde_json::ser::PrettyFormatter;
 
 pub fn prettify(json: &str) -> anyhow::Result<String> {
     let value: serde_json::Value = serde_json::from_str(json)?;

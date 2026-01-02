@@ -4,7 +4,7 @@ use std::time::Instant;
 
 use anyhow::Context as _;
 use reqwest::header::{HeaderMap, HeaderValue};
-use reqwest::{header, ClientBuilder};
+use reqwest::{ClientBuilder, header};
 use url::Url;
 
 use crate::editor::Content;

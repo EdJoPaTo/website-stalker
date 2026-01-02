@@ -4,7 +4,7 @@ use std::{fs, process};
 
 use clap::Parser as _;
 use regex::Regex;
-use reqwest::header::{HeaderValue, FROM};
+use reqwest::header::{FROM, HeaderValue};
 use tokio::sync::mpsc::channel;
 use tokio::time::sleep;
 

@@ -1,7 +1,7 @@
 use std::io::Write;
 
-use html5ever::serialize::{AttrRef, HtmlSerializer, Serialize as _, SerializeOpts, Serializer};
 use html5ever::QualName;
+use html5ever::serialize::{AttrRef, HtmlSerializer, Serialize as _, SerializeOpts, Serializer};
 use lazy_regex::regex;
 use scraper::Html;
 
