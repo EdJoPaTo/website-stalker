@@ -25,6 +25,8 @@ mod notification;
 mod site;
 mod site_store;
 
+const WAIT_BETWEEN_SAME_HOST: Duration = Duration::from_secs(5);
+
 pub enum ChangeKind {
     Init,
     Changed,
@@ -181,9 +183,9 @@ async fn run(
     let distinct_hosts = groups.len();
     println!("Begin stalking of {sites_amount} sites on {distinct_hosts} hosts...");
     if distinct_hosts < sites_amount {
-        logger::info(
-            "Some sites are on the same host. There is a wait time of 5 seconds between each request to the same host in order to reduce load on the server.",
-        );
+        logger::info(&format!(
+            "Some sites are on the same host. There is a wait time of {WAIT_BETWEEN_SAME_HOST:?} between each request to the same host in order to reduce load on the server.",
+        ));
     }
 
     let mut rx = {
@@ -195,7 +197,7 @@ async fn run(
             tokio::spawn(async move {
                 for (i, site) in sites.into_iter().enumerate() {
                     if i > 0 {
-                        sleep(Duration::from_secs(5)).await;
+                        sleep(WAIT_BETWEEN_SAME_HOST).await;
                     }
                     let result = stalk_and_save_site(&from, &site).await;
                     tx.send((site.url, result, site.options.ignore_error))
