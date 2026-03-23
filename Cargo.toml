@@ -34,14 +34,14 @@ anyhow = "1"
 chrono = { version = "0.4", default-features = false }
 clap = { version = "4", features = ["deprecated", "derive", "env", "wrap_help"] }
 html2md = "0.2"
-html5ever = "0.36"
+html5ever = { version = "0.39", features = ["serde"] }
 lazy-regex = "3"
 mime2ext = "0.1"
 pling = { version = "0.6", default-features = false, features = ["clap", "reqwest"] }
 regex = "1"
 rss = { version = "2", features = ["validation"] }
 schemars = { version = "1", features = ["url2"] }
-scraper = { version = "0.25", default-features = false, features = ["deterministic", "serde"] }
+scraper = { version = "0.26", default-features = false, features = ["deterministic", "serde"] }
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
 serde_yaml = "0.9"
