@@ -24,7 +24,7 @@ lto = true
 [build-dependencies]
 clap = { version = "4", features = ["deprecated", "derive", "env"] }
 clap_complete = "4"
-clap_mangen = "0.2"
+clap_mangen = { version = "0.3", features = ["env"] }
 pling = { version = "0.6", default-features = false, features = ["clap"] }
 regex = "1"
 
