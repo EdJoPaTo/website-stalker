@@ -275,9 +275,8 @@ async fn run(
 
     if error_occurred {
         logger::notice_exit("All done but some site failed. Thank you for using website stalker!");
-    } else {
-        eprintln!("Thank you for using website-stalker!");
     }
+    eprintln!("Thank you for using website-stalker!");
 }
 
 async fn stalk_and_save_site(
