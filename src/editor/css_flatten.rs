@@ -7,16 +7,12 @@ pub fn apply(selector: &Selector, html: &str) -> String {
         .map(|element| element.id())
         .collect::<Vec<_>>();
     for id in selected {
-        let children = html
-            .tree
-            .get(id)
-            .map(|parent| {
-                parent
-                    .children()
-                    .map(|child| child.id())
-                    .collect::<Vec<_>>()
-            })
-            .unwrap_or_default();
+        let children = html.tree.get(id).map_or_default(|parent| {
+            parent
+                .children()
+                .map(|child| child.id())
+                .collect::<Vec<_>>()
+        });
         if let Some(mut node_mut) = html.tree.get_mut(id) {
             for id in children {
                 node_mut.insert_id_before(id);
