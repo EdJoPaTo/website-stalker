@@ -1,5 +1,3 @@
-#![expect(unused_qualifications, reason = "false positive with schemars")]
-
 use std::path::{Path, PathBuf};
 
 use reqwest::header::{HeaderMap, HeaderName, HeaderValue};
