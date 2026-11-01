@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- `html_markdownify`: Enclose destinations with whitespace in `<>`, see <https://gitlab.com/Kanedias/html2md/-/work_items/14>
+
 ## [0.27.1] - 2026-06-13
 
 ### Changed
