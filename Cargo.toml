@@ -33,6 +33,8 @@ ammonia = "4"
 anyhow = "1"
 chrono = { version = "0.4", default-features = false }
 clap = { version = "4", features = ["deprecated", "derive", "env", "wrap_help"] }
+chardetng = "0.1"
+encoding_rs = "0.8"
 html2md = "0.2"
 html5ever = { version = "0.39", features = ["serde"] }
 lazy-regex = "3"

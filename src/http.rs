@@ -1,8 +1,12 @@
 use core::time::Duration;
 use std::net::SocketAddr;
+use std::sync::LazyLock;
 use std::time::Instant;
 
 use anyhow::Context as _;
+use chardetng::EncodingDetector;
+use encoding_rs::Encoding;
+use regex::bytes::Regex as BytesRegex;
 use reqwest::header::{HeaderMap, HeaderValue};
 use reqwest::{ClientBuilder, header};
 use url::Url;
@@ -38,6 +42,19 @@ impl core::fmt::Display for IpVersion {
     }
 }
 
+fn extract_html_charset(bytes: &[u8]) -> Option<&'static Encoding> {
+    static META_CHARSET_RE: LazyLock<BytesRegex> = LazyLock::new(|| {
+        BytesRegex::new(r#"(?i)<meta\s+[^>]*charset=["']?\s*([a-zA-Z0-9._-]+)"#).unwrap()
+    });
+
+    if let Some(captures) = META_CHARSET_RE.captures(bytes) {
+        if let Some(m) = captures.get(1) {
+            return Encoding::for_label(m.as_bytes());
+        }
+    }
+    None
+}
+
 /// HTTP GET Request
 ///
 /// FROM provides an email address for the target host to be contacted in case of problems.
@@ -61,11 +78,13 @@ pub async fn get(
     let response = request.send().await?.error_for_status()?;
     let took = Instant::now().saturating_duration_since(start);
 
-    let extension = response
+    let content_type = response
         .headers()
         .get(header::CONTENT_TYPE)
         .and_then(|value| value.to_str().ok())
-        .and_then(mime2ext::mime2ext);
+        .map(ToString::to_string);
+
+    let extension = content_type.as_deref().and_then(mime2ext::mime2ext);
     let ip_version = match response.remote_addr() {
         Some(SocketAddr::V4(_)) => IpVersion::IPv4,
         Some(SocketAddr::V6(_)) => IpVersion::IPv6,
@@ -77,7 +96,35 @@ pub async fn get(
         took,
         url: response.url().clone(),
     };
-    let text = response.text().await?;
+
+    let bytes = response.bytes().await?;
+
+    let encoding = Encoding::for_bom(&bytes)
+        .map(|(enc, _)| enc)
+        .or_else(|| extract_html_charset(&bytes))
+        .or_else(|| {
+            content_type.as_deref().and_then(|ct| {
+                ct.split(';')
+                    .find_map(|param| {
+                        let param = param.trim();
+                        if param.to_lowercase().starts_with("charset=") {
+                            let charset = param["charset=".len()..].trim_matches('"');
+                            Encoding::for_label(charset.as_bytes())
+                        } else {
+                            None
+                        }
+                    })
+            })
+        })
+        .unwrap_or_else(|| {
+            let mut detector = EncodingDetector::new();
+            detector.feed(&bytes, true);
+            detector.guess(None, true)
+        });
+
+    let (cow, _, _) = encoding.decode(&bytes);
+    let text = cow.replace("\r\n", "\n").replace('\r', "\n");
+
     let content = Content { extension, text };
     Ok((content, meta))
 }

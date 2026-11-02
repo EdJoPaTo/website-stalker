@@ -25,7 +25,7 @@ mod notification;
 mod site;
 mod site_store;
 
-const WAIT_BETWEEN_SAME_HOST: Duration = Duration::from_secs(5);
+const WAIT_BETWEEN_SAME_HOST: Duration = Duration::from_secs(20);
 
 pub enum ChangeKind {
     Init,
