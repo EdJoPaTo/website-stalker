@@ -111,7 +111,7 @@ impl Editor {
             }),
             Self::HtmlUrlCanonicalize => Ok(Content {
                 extension: Some("html"),
-                text: html_url::canonicalize(url, &input.text)?,
+                text: html_url::canonicalize(url, &input.text),
             }),
             Self::JsonPrettify => Ok(Content {
                 extension: Some("json"),
