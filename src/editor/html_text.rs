@@ -30,7 +30,8 @@ impl<Wr: Write> Serializer for HtmlTextSerializer<Wr> {
     }
 
     fn write_text(&mut self, text: &str) -> std::io::Result<()> {
-        writeln!(self.serializer.writer, "{text}")
+        self.serializer.writer.write_all(text.as_bytes())?;
+        self.serializer.writer.write_all(b"\n")
     }
 
     fn write_comment(&mut self, _text: &str) -> std::io::Result<()> {
