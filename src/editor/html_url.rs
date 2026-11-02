@@ -57,7 +57,7 @@ impl<Wr: Write> Serializer for HtmlAbsLinkSerializer<'_, Wr> {
     }
 
     fn write_text(&mut self, text: &str) -> std::io::Result<()> {
-        write!(self.serializer.writer, "{text}")
+        self.serializer.write_text(text)
     }
 
     fn write_comment(&mut self, text: &str) -> std::io::Result<()> {
@@ -81,9 +81,10 @@ fn reserialize(html: &str, base_url: &Url) -> anyhow::Result<String> {
     let mut buf = Vec::new();
 
     let opts = SerializeOpts::default();
+    let traversal_scope = opts.traversal_scope.clone();
+
     let mut ser = HtmlAbsLinkSerializer::new(&mut buf, opts, base_url);
-    let opts = SerializeOpts::default();
-    Html::parse_document(html).serialize(&mut ser, opts.traversal_scope)?;
+    Html::parse_document(html).serialize(&mut ser, traversal_scope)?;
 
     let result = String::from_utf8(buf)?;
     Ok(result)
@@ -144,9 +145,39 @@ fn works_with_already_absolute_url() {
 fn garbage_is_skipped() {
     let base_url = Url::parse("https://edjopato.de/index.html").unwrap();
     let ugly = r#"<html><body>Just a <a href="///">test</a> that <a href="https://edjopato.de">works</a></body></html>"#;
-    canonicalize(&base_url, ugly).unwrap();
     assert_eq!(
         canonicalize(&base_url, ugly).unwrap(),
         r#"<html><head></head><body>Just a <a href="///">test</a> that <a href="https://edjopato.de/">works</a></body></html>"#
+    );
+}
+
+#[test]
+fn doesnt_touch_noscript() {
+    let base_url = Url::parse("https://edjopato.de/index.html").unwrap();
+    let ugly =
+        r#"<html><body>Just a test <noscript><a href="/post/">link</a></noscript></body></html>"#;
+    assert_eq!(
+        canonicalize(&base_url, ugly).unwrap(),
+        r#"<html><head></head><body>Just a test <noscript><a href="/post/">link</a></noscript></body></html>"#
+    );
+}
+
+#[test]
+fn unrelated_not_yet_escaped_text_is_escaped() {
+    let base_url = Url::parse("https://edjopato.de/index.html").unwrap();
+    let ugly = "<html><body>Go -> there & save the world while already escaped &amp; keeps escaped</body></html>";
+    assert_eq!(
+        canonicalize(&base_url, ugly).unwrap(),
+        "<html><head></head><body>Go -&gt; there &amp; save the world while already escaped &amp; keeps escaped</body></html>"
+    );
+}
+
+#[test]
+fn style_tag_content_is_not_escaped() {
+    let base_url = Url::parse("https://edjopato.de/index.html").unwrap();
+    let ugly = "<html><body><style>body > a { margin: 0; }</style></body></html>";
+    assert_eq!(
+        canonicalize(&base_url, ugly).unwrap(),
+        "<html><head></head><body><style>body > a { margin: 0; }</style></body></html>"
     );
 }

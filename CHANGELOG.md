@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- `html_url_canonicalize` & `html_prettify`: Correctly escape text in HTML. Keep existing escapes and escape tokens that need to be escaped in HTML.
+
 ## [0.27.1] - 2026-06-13
 
 ### Changed

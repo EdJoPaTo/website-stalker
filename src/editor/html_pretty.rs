@@ -82,7 +82,8 @@ impl<Wr: Write> Serializer for HtmlPrettySerializer<Wr> {
             Ok(())
         } else {
             self.indent()?;
-            writeln!(self.serializer.writer, "{}", text.trim())
+            self.serializer.write_text(text.trim())?;
+            self.serializer.writer.write_all(b"\n")
         }
     }
 
@@ -119,9 +120,10 @@ fn reserialize(html: &str) -> anyhow::Result<String> {
     let mut buf = Vec::new();
 
     let opts = SerializeOpts::default();
+    let traversal_scope = opts.traversal_scope.clone();
+
     let mut ser = HtmlPrettySerializer::new(&mut buf, opts);
-    let opts = SerializeOpts::default();
-    Html::parse_document(html).serialize(&mut ser, opts.traversal_scope)?;
+    Html::parse_document(html).serialize(&mut ser, traversal_scope)?;
 
     let result = String::from_utf8(buf)?;
     Ok(result)
@@ -214,7 +216,7 @@ fn remove_empty_class_attribute() {
 }
 
 #[test]
-fn style_formatted() {
+fn style_attribute_formatted() {
     let ugly = r#"<html><body><div style="display:none;color:white;--something:42;">test</div></body></html>"#;
     assert_eq!(
         prettify(ugly).unwrap(),
@@ -225,6 +227,57 @@ fn style_formatted() {
 		<div style="--something: 42; color: white; display: none;">
 			test
 		</div>
+	</body>
+</html>"#
+    );
+}
+
+#[test]
+fn text_is_escaped() {
+    let ugly = "<html><body>Go -> there & save the world while already escaped &amp; keeps escaped</body></html>";
+    assert_eq!(
+        prettify(ugly).unwrap(),
+        "<html>
+	<head>
+	</head>
+	<body>
+		Go -&gt; there &amp; save the world while already escaped &amp; keeps escaped
+	</body>
+</html>"
+    );
+}
+
+#[test]
+fn style_tag_content_is_not_escaped() {
+    let ugly = "<html><body><style>body > a { margin: 0; }</style></body></html>";
+    assert_eq!(
+        prettify(ugly).unwrap(),
+        "<html>
+	<head>
+	</head>
+	<body>
+		<style>
+			body > a { margin: 0; }
+		</style>
+	</body>
+</html>"
+    );
+}
+
+#[test]
+fn noscript_content_is_untouched_plaintext() {
+    let ugly =
+        r#"<html><body>Just a test <noscript><a href="/post/">link</a></noscript></body></html>"#;
+    assert_eq!(
+        prettify(ugly).unwrap(),
+        r#"<html>
+	<head>
+	</head>
+	<body>
+		Just a test
+		<noscript>
+			<a href="/post/">link</a>
+		</noscript>
 	</body>
 </html>"#
     );
