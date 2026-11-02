@@ -85,3 +85,9 @@ fn doesnt_contain_many_newlines() {
     let html = "<html><body>bla\n\n\n\n\nblubb</body></html>";
     assert_eq!(textify(html).unwrap(), "bla\n\nblubb");
 }
+
+#[test]
+fn no_escapes() {
+    let html = "<html><body>A &amp; B</body></html>";
+    assert_eq!(textify(html).unwrap(), "A & B");
+}
